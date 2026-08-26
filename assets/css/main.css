@@ -478,3 +478,105 @@ hr {
 
 /* Remove the dangling right/bottom borders on the metric grid edges cleanly */
 @supports (grid-template-columns: subgrid) { }
+
+/* ============================================================================
+   Extensions for the project write-ups (added with the long-form project pages)
+   Everything below follows the tokens above — no new colours, no new type.
+   ========================================================================== */
+
+/* ----- Figures carrying real images ---------------------------------------- */
+/* A figure may hold an SVG diagram (above) or a captured PNG. Screenshots of a
+   Game Boy screen must never be smoothed by the browser: the whole point of a
+   four-shade picture is that it has four shades in it. */
+figure img { width: 100%; border-radius: 6px; }
+/* Numeric cells must not wrap mid-figure ("100.00 %" splitting over two lines). */
+table .num { white-space: nowrap; }
+figure.pixel img {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: var(--code-bg);
+}
+/* A narrower figure for tall or small captures, still full-bleed on a phone. */
+figure.narrow { max-width: 520px; }
+figure.narrow img { border-radius: 4px; }
+
+/* Two captures side by side — a before and an after. Stacks under 640px. */
+.fig-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.fig-pair .cap {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+}
+.fig-pair .cap .accent { color: var(--accent); }
+.fig-pair img { border-radius: 6px; }
+
+/* ----- Code block with a caption ------------------------------------------- */
+/* `figure.code` wraps a <pre> so a snippet can say where it came from. */
+figure.code { padding: 0; overflow: hidden; }
+figure.code pre { border: none; border-radius: 0; margin: 0; background: var(--code-bg); }
+figure.code figcaption {
+  margin-top: 0;
+  padding: 12px 20px;
+  border-top: 1px solid var(--hairline);
+  background: var(--card);
+}
+
+/* ----- Pull quote ---------------------------------------------------------- */
+/* Used for a rule a project holds itself to, in its own words. */
+.pullquote {
+  border-left: 2px solid var(--accent);
+  margin: 0;
+  padding: 4px 0 4px 22px;
+  max-width: var(--measure);
+}
+.pullquote p {
+  font-size: 21px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 0;
+}
+.pullquote cite {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  font-style: normal;
+  color: var(--ink-soft);
+  margin-top: 12px;
+}
+
+/* ----- Provenance strip ---------------------------------------------------- */
+/* One line under a page saying what backs every number on it. */
+.provenance {
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: var(--card);
+  padding: 18px 22px;
+  box-shadow: var(--shadow);
+}
+.provenance p { margin: 0; font-size: 14px; color: var(--ink-soft); }
+.provenance p + p { margin-top: 10px; }
+
+/* ----- Prose helpers ------------------------------------------------------- */
+.prose figure, .prose .fig-pair, .prose .pullquote { margin-top: 1.6em; }
+.prose figure + p, .prose .fig-pair + p { margin-top: 1.6em; }
+.wide { max-width: none; }
+
+/* A caption sitting directly under a full-width figure outside .prose */
+figcaption strong { color: var(--ink); }
+
+@media (max-width: 640px) {
+  .fig-pair { grid-template-columns: 1fr; }
+  .pullquote p { font-size: 18px; }
+  figure { padding: 14px; }
+}

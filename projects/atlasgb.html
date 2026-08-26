@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AtlasGB — devlog</title>
-  <meta name="description" content="AtlasGB: memory maps for Game Boy cartridges where every claim carries its evidence. Updates, milestones and achievements.">
+  <meta name="description" content="AtlasGB: memory maps for Game Boy cartridges where every claim carries its evidence. 2,898 claims for Pokémon Red and Blue, four evidence tiers, seven entries deliberately marked unevidenced — and a vacuous invariant that says so itself.">
   <meta name="color-scheme" content="light dark">
   <meta property="og:type" content="website">
   <meta property="og:title" content="AtlasGB — devlog">
@@ -31,14 +31,14 @@
   <main class="container">
 
     <header class="post-header">
-      <p class="eyebrow">Project · Cartridge atlas</p>
+      <p class="eyebrow">Project · Dataset</p>
       <h1>AtlasGB</h1>
       <p class="lead">
-        Memory maps for Game Boy cartridges where every claim carries the evidence for
-        it. Most memory maps are transcriptions — somebody read an address once and
-        everybody since has copied it, with no way to tell a right address from a
-        plausible one. AtlasGB records how each entry was checked, and the entries with
-        no evidence say so, rather than borrowing confidence from the rows beside them.
+        Memory maps for Game Boy cartridges that carry the evidence for every claim they
+        make. Maps for these games already exist — the disassemblies have their
+        <code>wram.asm</code>, the wikis have tables, the cheat sites have lists. They are
+        <em>transcriptions</em>: somebody read an address once and everybody since has
+        copied it. AtlasGB differs in exactly one way, and it is the whole point.
       </p>
     </header>
 
@@ -46,122 +46,611 @@
       <div class="metrics">
         <div class="metric">
           <div class="num">2,898</div>
-          <div class="label">Verified claims</div>
+          <div class="label">Evidenced claims</div>
         </div>
         <div class="metric">
-          <div class="num"><span class="accent">0</span></div>
-          <div class="label">Disagreements with the cartridge</div>
+          <div class="num">39</div>
+          <div class="label">Covered by an invariant</div>
         </div>
         <div class="metric">
-          <div class="num">628<span style="color:var(--ink-soft)">/1,012</span></div>
-          <div class="label">Addresses described</div>
+          <div class="num"><span class="accent">7</span></div>
+          <div class="label">Marked unevidenced, on purpose</div>
         </div>
         <div class="metric">
-          <div class="num">7</div>
-          <div class="label">Unevidenced — and marked as such</div>
+          <div class="num">0</div>
+          <div class="label">Entries disagreeing with the cartridge</div>
         </div>
       </div>
-      <p class="note" style="margin-top:14px;">First atlas: every address in Pokémon Red and Blue.</p>
-    </section>
-
-    <section class="prose">
-      <h2>What it is</h2>
-      <p>
-        One atlas per cartridge. Each entry names an address, what lives there, and — for
-        almost all of them — the evidence that the cartridge was watched using it. The
-        evidence itself is produced by a cycle-accurate emulator (TerminalGB) that runs
-        the real cartridge and records what it does. A description is written only where
-        that watching produced something specific and unambiguous; where it did not, the
-        entry stays blank and is counted, because a plausible sentence guessed from a
-        symbol name is exactly the thing this project exists as a reaction to.
+      <p class="note" style="margin-top:14px;">
+        One atlas is published: Pokémon Red and Blue, English (USA/Europe). Work RAM and high
+        RAM are 100 % accounted for with no holes. Red and Blue build from one source and share
+        their work RAM map, so one atlas covers both.
       </p>
     </section>
 
     <section class="prose">
-      <h2>How a claim earns its place</h2>
+      <h2>The problem is not that they are wrong</h2>
       <p>
-        Every entry records its own evidence tier. The tier is not editable by hand — it
-        is written only by landing a verification report produced by running the
-        cartridge, and CI recomputes a SHA-256 digest of the column so that editing a
-        token by hand, or adding an address without re-running the check, turns the build
-        red. A tier in the published atlas therefore always names a real run against a
-        real cartridge.
+        A transcribed memory map is not so much wrong as <strong>unauditable</strong>. You
+        cannot ask it <em>how do you know?</em> — so a typo made in 2004 is still there,
+        indistinguishable from the two thousand correct rows around it. There is no way, from
+        inside any of them, to tell a right address from a plausible one.
+      </p>
+      <div class="pullquote">
+        <p>Every claim carries its evidence — and the entries with no evidence at all say so,
+          rather than borrowing confidence from the rows beside them.</p>
+        <cite>AtlasGB, the whole premise</cite>
+      </div>
+      <p>
+        That is possible because the evidence is produced by a cycle-accurate emulator —
+        <a href="terminalgb.html">TerminalGB</a> — that runs the cartridge and watches what it
+        does. The atlas is a published dataset, not an application: one tab-separated file per
+        cartridge is the source of truth, and every page, index, table and JSON file in the
+        repository is generated from it.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>Four tiers, and each one's limit is stated rather than glossed</h2>
+    </section>
+
+    <figure>
+      <svg viewBox="0 0 720 300" role="img"
+           aria-label="Bar chart of how many of AtlasGB's 2,898 Pokémon Red/Blue claims carry each evidence tier. Tier R, the cartridge names it: 1,594 claims, 55.0 per cent. Tier L, observed live: 2,694 claims, 93.0 per cent. Tier I, an invariant covers it: 39 claims, 1.3 per cent. No token at all: 60 claims, 2.1 per cent."
+           xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
+        <style>
+          .lbl  { fill: var(--ink); font-size: 13px; font-weight: 700; letter-spacing: .06em; }
+          .sub  { fill: var(--ink-soft); font-size: 11px; letter-spacing: .02em; }
+          .val  { fill: var(--ink); font-size: 12px; font-weight: 700; }
+          .val-a{ fill: var(--accent); font-size: 12px; font-weight: 700; }
+          .val-i{ fill: var(--paper); font-size: 12px; font-weight: 700; }
+          .trk  { fill: var(--code-bg); stroke: var(--hairline); stroke-width: 1; }
+          .bar  { fill: var(--ink); }
+          .bar-a{ fill: var(--accent); }
+          .axis { fill: var(--ink-soft); font-size: 10px; letter-spacing: .06em; }
+        </style>
+
+        <!-- track baseline, 0 .. 2898 mapped to x 200 .. 690 -->
+        <text x="200" y="16" class="axis">0</text>
+        <text x="690" y="16" text-anchor="end" class="axis">2,898 CLAIMS</text>
+
+        <!-- R -->
+        <text x="0" y="42" class="lbl">R</text>
+        <text x="24" y="42" class="sub">the cartridge names it</text>
+        <rect x="200" y="30" width="490" height="20" rx="3" class="trk"/>
+        <rect x="200" y="30" width="269.6" height="20" rx="3" class="bar"/>
+        <text x="480" y="45" class="val">1,594 &#183; 55.0%</text>
+
+        <!-- L -->
+        <text x="0" y="102" class="lbl">L</text>
+        <text x="24" y="102" class="sub">observed live</text>
+        <rect x="200" y="90" width="490" height="20" rx="3" class="trk"/>
+        <rect x="200" y="90" width="455.7" height="20" rx="3" class="bar"/>
+        <text x="646" y="105" text-anchor="end" class="val-i">2,694 &#183; 93.0%</text>
+
+        <!-- I -->
+        <text x="0" y="162" class="lbl">I</text>
+        <text x="24" y="162" class="sub">an invariant covers it</text>
+        <rect x="200" y="150" width="490" height="20" rx="3" class="trk"/>
+        <rect x="200" y="150" width="6.6" height="20" rx="3" class="bar"/>
+        <text x="218" y="165" class="val">39 &#183; 1.3%</text>
+
+        <!-- none -->
+        <text x="0" y="222" class="lbl">&#183;</text>
+        <text x="24" y="222" class="sub">no token at all</text>
+        <rect x="200" y="210" width="490" height="20" rx="3" class="trk"/>
+        <rect x="200" y="210" width="10.1" height="20" rx="3" class="bar-a"/>
+        <text x="222" y="225" class="val-a">60 &#183; 2.1%</text>
+
+        <line x1="0" y1="252" x2="720" y2="252" stroke="var(--hairline)" stroke-width="1"/>
+        <text x="0" y="274" class="sub">The tiers are not exclusive: 1,419 claims carry both R and L, and 34 carry all three.</text>
+        <text x="0" y="292" class="sub">Only 3 claims rest on an invariant alone.</text>
+      </svg>
+      <figcaption>
+        Counted from the atlas's own source of truth. AtlasGB ships no images of its own, so
+        this chart was built from the data: reading
+        <code>atlases/pokemon-rb/data/atlas.tsv</code> with Python's <code>csv.DictReader</code>
+        and tallying the <code>verify</code> column with
+        <code>collections.Counter</code> gives <code>rom,live</code> 1,419 ·
+        <code>live</code> 1,239 · <code>rom</code> 141 · empty 60 · <code>rom,live,inv</code>
+        34 · <code>inv</code> 3 · <code>live,inv</code> 2, which is where every number above
+        comes from. It reproduces the repository's own published
+        <code>data/evidence.json</code> exactly — <span class="mono">rom 1594</span>,
+        <span class="mono">live 2694</span>, <span class="mono">inv 39</span> including the
+        three ROM-table labels.
+      </figcaption>
+    </figure>
+
+    <section class="prose">
+      <h3>R — the cartridge names it</h3>
+      <p>
+        The address appears in the ROM image as the operand of an instruction that takes one.
+        <code>ld [nn],a</code> is <code>EA lo hi</code>; <code>ldh [n],a</code> is
+        <code>E0 n</code>.
+      </p>
+      <p>
+        This is a <strong>byte scan, not a disassembly</strong>, and the limit follows from that
+        immediately: two bytes of graphics data preceded by a byte that happens to be
+        <code>$EA</code> look exactly like <code>ld [nn],a</code>, so a single hit is weak — the
+        scan records the <em>count</em>, which for a real address is typically dozens. What it
+        cannot do is produce a false <em>negative</em>: an address the game really does load will
+        be found.
+      </p>
+
+      <h3>L — observed live</h3>
+      <p>
+        The byte changed while the cartridge ran a <strong>fixed</strong> button script on a
+        cycle-accurate emulator, from a cold boot with no save. Emulation is deterministic, so
+        the same cartridge and the same script give the same answer to anybody holding them; that
+        is what makes it a baseline rather than an anecdote.
+      </p>
+      <p>
+        The script plays the opening and then walks and opens menus, so it never reaches a battle
+        or a storage box. An entry it does not mark is <strong>honestly unmarked: <em>not
+        observed</em>, never <em>not used</em></strong>. Extending that script is the single
+        highest-value contribution anybody could make to the repository.
+      </p>
+
+      <h3>I — an invariant covers it</h3>
+      <p>
+        A named, hand-written check proved the entry <strong>means what it says</strong>, not
+        merely that it exists. These are the strongest rows in the file and the only kind that
+        can catch an address which is real, live, and describing the wrong thing.
+      </p>
+      <p>
+        They are not clever, and that is deliberate. Every nybble of the money field must be 0–9,
+        because it is packed decimal and a wrong address almost certainly would not be. The party
+        arrays must agree three ways — the count, the flat species list, and the species inside
+        each 44-byte structure — because those are three statements of one fact, written at
+        different moments. Two files in the consuming emulator disagreed about the battle
+        structure's size, 28 in one and 29 in the other; the map settles it, and the fact that
+        the trainer-class field follows immediately is the proof.
+      </p>
+      <p>
+        The strongest is the asymmetric one: every species you carry, converted from its
+        <em>internal</em> index through the Pokédex-order table <em>read out of the
+        cartridge</em>, must have its bit set in the owned bitfield. Three independently located
+        things have to agree. Shifting that table by one byte breaks it — and breaks the separate
+        content check beside it — which was measured rather than asserted.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The best row in the file is the one that admits it proves nothing</h2>
+      <p>
+        There is an obvious invariant for the Pokédex: <strong>owned ⊆ seen</strong>. You cannot
+        own a Pokémon you have never seen, so every bit of the owned bitfield must be set in the
+        seen bitfield. It is cheap, it is true, and it looks like it pins both addresses.
+      </p>
+      <p>
+        It does not. The relation is symmetric when the two sets are equal — so on a save where
+        everything seen was also caught, <strong>swapping the two symbols survives the
+        check</strong>. It passes, cheerfully, on an atlas that has the two addresses the wrong
+        way round.
+      </p>
+      <p>
+        The check says so when that is the case, rather than reporting a pass it has not earned.
+        It is written up on the verification page as a worked example of exactly this failure
+        mode, and the sentence it exists to hold up is worth the whole section:
+      </p>
+      <div class="pullquote">
+        <p>A check that quietly passes for the wrong reason is worse than no check.</p>
+        <cite><code>docs/verification.md</code></cite>
+      </div>
+      <p>
+        The same page reports the harness catching one of its own author's errors while it was
+        being written: the signature used to confirm the species-name table started at RHYDON had
+        <code>D</code> as <code>$84</code> instead of <code>$83</code>. An invariant is only as
+        strong as the save it runs against and the constants it was built from, and both of those
+        are stated.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>TACKLE is 95 per cent and we said 94</h2>
+      <p>
+        This project's most useful entries are the corrections of its own beliefs, and this is
+        the cleanest of them, because nothing failed.
+      </p>
+      <p>
+        A section literally headed <em>"two things the cartridge settled"</em> recorded that
+        TACKLE's accuracy byte is 240, not 242 — 94 %, where the community usually quotes 95 %.
+        The claim had propagated into a policy document, into a Rust module's doc comments and
+        into a project memory file, and sat there for as long as those files existed. No run was
+        affected. It was found by re-reading the move table while writing a page about
+        discoveries, on the grounds that a page about discoveries which repeats a number without
+        checking it is not worth having.
+      </p>
+      <p>
+        The method is the part to copy: read the table straight out of the cartridge, six bytes
+        per move, and <strong>check the reading against moves whose values are not in dispute
+        before believing anything about the one that is.</strong>
       </p>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr>
-              <th style="width:8%">Tier</th>
-              <th style="width:22%">Meaning</th>
-              <th>How it is proved</th>
-            </tr>
+            <tr><th>Move</th><th class="num">Id</th><th class="num">Power</th><th class="num">Accuracy byte</th><th class="num">As a percentage</th></tr>
           </thead>
           <tbody>
-            <tr><td class="mono">R</td><td>ROM</td><td>The address appears in the ROM image as the operand of a load instruction — a byte scan recording a count.</td></tr>
-            <tr><td class="mono">L</td><td>Live</td><td>The byte changed while the cartridge ran a fixed button script on a cycle-accurate emulator, from cold boot.</td></tr>
-            <tr><td class="mono">I</td><td>Invariant</td><td>A named, hand-written check proved the entry <em>means what it says</em> — not merely that it exists.</td></tr>
-            <tr><td class="mono">·</td><td>None</td><td>No evidence yet. Stated openly, not hidden — seven storage entries currently sit here.</td></tr>
+            <tr><td>POUND</td><td class="num">1</td><td class="num">40</td><td class="num">255</td><td class="num">100 %</td></tr>
+            <tr><td>SCRATCH</td><td class="num">10</td><td class="num">40</td><td class="num">255</td><td class="num">100 %</td></tr>
+            <tr><td>VINE WHIP</td><td class="num">22</td><td class="num">35</td><td class="num">255</td><td class="num">100 %</td></tr>
+            <tr><td><strong>TACKLE</strong></td><td class="num"><strong>33</strong></td><td class="num"><strong>35</strong></td><td class="num"><strong>242</strong></td><td class="num"><strong>94.9 %</strong></td></tr>
+            <tr><td>HYPER BEAM</td><td class="num">63</td><td class="num">150</td><td class="num">229</td><td class="num">89.8 %</td></tr>
+            <tr><td>HYDRO PUMP</td><td class="num">56</td><td class="num">120</td><td class="num">204</td><td class="num">80.0 %</td></tr>
           </tbody>
         </table>
+      </div>
+      <p>
+        Every row but the one under investigation matches the values Generation 1 is known for,
+        which is what says the table is being read at the right offset with the right stride.
+      </p>
+      <p>
+        And the origin of the wrong number is instructive: <strong>94 % of 255 is 239.7, which
+        rounds to 240</strong> — the byte you get by <em>computing it from a percentage you
+        already believed</em>, rather than reading it. The code was never wrong. Only the prose
+        was.
+      </p>
+
+      <figure class="code">
+        <pre><code>python3 - "$ROM" &lt;&lt;'PY'
+import sys
+rom = open(sys.argv[1], 'rb').read()
+e = 0x0E * 0x4000 + (33 - 1) * 6      # Moves, 0E:4000, TACKLE is move 33
+print("power %d  accuracy %d  (%.1f%%)" % (rom[e+2], rom[e+4], rom[e+4] * 100 / 255))
+PY
+# power 35  accuracy 242  (94.9%)</code></pre>
+        <figcaption>
+          The whole correction, reproducible in one command against your own cartridge. No ROM is
+          distributed by the project; you point <code>$ROM</code> at your own. The rule this
+          produced: <strong>when you write down a number the cartridge holds, write down the
+          command that reads it.</strong>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="prose">
+      <h2>Accuracy is not the number in the move table</h2>
+      <p>
+        A related finding, and a much better argument for large sample sizes than any statistics
+        lecture. The hit calculation scales a move's accuracy byte by the attacker's accuracy
+        stage and by the inverse of the defender's evasion stage — so a policy reading the ROM
+        value is reading a number that has not been true since the first SAND-ATTACK landed.
+      </p>
+      <p>
+        A Pidgey's SAND-ATTACK takes a 95 % TACKLE to <strong>62 %</strong> and then
+        <strong>47 %</strong>. Both ratios come out of a stage-modifier table read <em>from the
+        cartridge</em>, located by searching for its own opening bytes — a signature that occurs
+        exactly once — and re-checked on every read against two properties: the first pair must be
+        0.25, and the middle pair must be exactly 1:1, because a table read from the wrong place
+        almost never has a neutral stage in its middle.
+      </p>
+      <p>
+        The reason this is on the page at all is <em>how</em> it surfaced. Three of 3,000 attempts
+        at one scenario died in the same shape: at 2 HP against a Pokémon on 1 HP, the driver
+        chose to swing rather than escape, because a good roll would end it first — a coin flip
+        taken in place of an escape that would also have removed the incoming hit.
+      </p>
+      <div class="callout">
+        <p class="eyebrow">Found only at N = 3,000</p>
+        <p>
+          <strong>Two separate 600-attempt runs were clean.</strong> The bug was not rare in the
+          <em>mechanic</em>, it was rare in the <em>route</em> — it needs a Pidgey that has had
+          time to use SAND-ATTACK twice. That is a certification bar earning its keep rather than
+          being a formality.
+        </p>
+      </div>
+      <p>
+        There is a second trap sitting underneath it that the atlas carries its own warning about:
+        in the stat-stage block, <strong>7 is neutral, not 0</strong>, and the block is zeroed work
+        RAM until the battle-init routine writes the sevens. A sample taken on the first frames of
+        a battle reads 0 everywhere and looks like every stat six stages down.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The map, measured rather than recalled</h2>
+      <p>
+        Not every finding is about memory. Some of them are about the shape of the world, and the
+        ones that matter are the ones where the intuitive model is wrong.
+      </p>
+      <p>
+        One scenario lost 17 of 600 attempts, every one of them on the same row of Viridian City,
+        sliding between x=26 and x=32, with the leg's first waypoint at (29,26) unreachable above
+        it. The first model of the trap was topological and it was wrong: a flood fill says (29,26)
+        is fine — there is a 13-step path back to it crossing no warp tile — and reports nothing.
+      </p>
+      <p>
+        Two things had to be modelled exactly before any check could catch it. <strong>The ledge:
+        </strong> stepping down off row 26 does not land on row 27, it <em>jumps</em> to row 28,
+        and the one-wayness is in the cartridge's own data — eight ledge entries, for facing down,
+        left and right, and <em>none</em> for up. <strong>The walker:</strong> a greedy waypoint
+        walker is not a path-finder, and below a one-way ledge it slides along the wall, which is
+        precisely what the 17 failing runs did.
+      </p>
+
+      <figure class="code">
+        <pre><code>       0123456789012345678901234567890123456789
+ y=25  ####....######........#.##..........####
+ y=26  ####....######......................####   &lt;- the waypoint was (29,26)
+ y=27  ###############.###.####################   &lt;- ledge; gaps only at x=15, 19
+ y=28  ...#................................####   &lt;- where 17 runs slid, x=26..32
+ y=29  ...#.................#..............####
+ y=30  ...#................................####
+
+(29,26) walkable=True   step down -&gt; (29,28)      a two-tile jump over row 27
+(29,28) walkable=True   step up   -&gt; None         nothing comes back
+LedgeTiles: 8 entries, facings down/left/right, none for up
+
+GoTo simulated below the ledge, target (29,26):
+    from (29,28) -&gt; stops at (32,28)
+    from (30,28) -&gt; stops at (27,28)
+    from (26,28) -&gt; stops at (31,28)</code></pre>
+        <figcaption>
+          Viridian City rows 25–30, read off the retail cartridge by the repository's own audit
+          tool with no emulator run — and the failure reproduced from it in three lines. The
+          walker never reaches the waypoint from below, and where it stops is exactly the
+          x=26…32 slide the 600-attempt corpus reported.
+        </figcaption>
+      </figure>
+
+      <p>
+        The repair is not a bigger budget. The row the mart door opens onto crosses the city
+        cleanly, sits six rows above the ledge, and the rest of the chain finishes even from
+        <em>below</em> the ledge — so the leg turns west first and an overshoot costs nothing.
+        This shape has now appeared three times, which is what makes it a rule rather than three
+        anecdotes:
+      </p>
+      <div class="pullquote">
+        <p>A waypoint whose overshoot is unrecoverable is a waypoint pointing at a trap.</p>
+        <cite>Prefer the turning point with slack around it</cite>
+      </div>
+      <p class="note">
+        The tool that makes that rule checkable is honest about its own limits, which is the
+        reason it is worth having: it is a design aid rather than a gate. It cannot know whether
+        an overshoot is <em>reachable</em> — that needs the map's people, and a person in the way
+        is what pushed the walker over the ledge in the first place — and it has no model of the
+        driver's stuck-sidestep, so it over-reports.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>Sixty entries carry no evidence, and the sixty are pulled apart</h2>
+      <p>
+        Counting every entry rather than only storage, 60 carry no <code>verify</code> token at
+        all. That number is worth taking apart, because most of it is not a gap in the
+        <em>running</em> of the checks; it is a gap in what the checks are built to look at.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>What</th><th class="num">Count</th><th>Why it has nothing</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ROM routines and data tables</td>
+              <td class="num">53</td>
+              <td>The operand scan is deliberately scoped to RAM addresses — it asks "does the
+                game load <em>this address</em> as data", which is the right question for a byte
+                of storage and the wrong one for a routine's entry point. The live sweep cannot
+                apply either: a ROM byte never changes. Three of the 53 <em>are</em> checked, by a
+                fourth method — a byte-signature content check. The other 50 have no method wired
+                up, and the honest fact is that the mechanism already exists and generalises;
+                nobody has pointed it at them.</td>
+            </tr>
+            <tr>
+              <td>Storage bytes the fixed script never touches</td>
+              <td class="num">3</td>
+              <td>Real work-RAM addresses that need a battle, a full sprite roster or a storage
+                box — none of which the opening-and-overworld script reaches. Extending the script
+                closes these, not a new method.</td>
+            </tr>
+            <tr>
+              <td>Cartridge-RAM <code>free</code> markers</td>
+              <td class="num">4</td>
+              <td>These rows assert "this byte is unallocated", to keep the completeness invariant
+                honest. That is not a claim a cartridge run can confirm or deny — there is nothing
+                to check.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        So roughly 50 are "a method exists and nobody has pointed it here yet", 3 are "the standing
+        method has not reached this byte yet", and 4 are not really unverified claims at all.
+        <strong>None of the 60 needed a new <em>kind</em> of check to be invented</strong> — which
+        is a far more useful statement than "98 % evidenced".
+      </p>
+      <p>
+        Separately, seven <em>storage</em> entries carry no evidence and are listed by name in the
+        evidence record. They stay marked as unevidenced, and the validator prints them by name on
+        every run so they cannot quietly disappear. That honesty is the product.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The evidence column is not editable by hand</h2>
+      <p>
+        Evidence tiers are produced elsewhere — proving an address against a running cartridge
+        needs an emulator — and arrive as a report. The evidence record stores the run's provenance
+        <em>and a SHA-256 digest of the verify column it produced</em>, and CI checks it. Two
+        consequences, both intended:
+      </p>
+      <ul>
+        <li>editing a tier by hand turns CI red;</li>
+        <li>
+          adding a symbol to the atlas without re-running the verification turns CI red, because
+          the new symbol changes the digest — the atlas grew, so the last run no longer covers it.
+        </li>
+      </ul>
+      <p>
+        The digest is over <code>symbol → verify</code> only, so writing a description or rewording
+        a chapter does not invalidate a run.
+      </p>
+      <p>
+        On 25 August 2026 the tiers were re-produced from scratch against a second, independent boot
+        of the same retail cartridge and save, run twice for determinism. Both runs produced
+        byte-identical results and both agreed with the previously published run: <strong>zero
+        entries moved tier</strong>. That is itself the finding — the atlas's 2,898 claims disagree
+        with the cartridge in zero places — and it is logged whether it finds something or not,
+        because a verification pass that found nothing wrong is worth recording as of when it ran.
+      </p>
+      <div class="callout">
+        <p class="eyebrow">Two different kinds of being wrong, two different homes</p>
+        <p>
+          The discoveries page is where <em>the cartridge</em> surprising us goes. A separate
+          data-issues page is where <em>this atlas being wrong</em> goes. The distinction is not
+          cosmetic: conflating them would mean a reader cannot tell "the game does something
+          strange" from "we published something wrong and fixed it", and those carry opposite
+          implications for whether the <em>rest</em> of the atlas can be trusted.
+        </p>
       </div>
     </section>
 
     <section class="prose">
-      <h2>Milestones</h2>
-      <div class="timeline">
-
-        <div class="tl-item">
-          <div class="tl-date">25 Aug 2026</div>
-          <p class="tl-title">Re-verified against a second cartridge boot</p>
-          <p>
-            The atlas was re-produced from scratch against a second, independent boot of a
-            retail Pokémon Blue cartridge and save, run twice for determinism. Both runs
-            were byte-identical and agreed with the earlier run: zero entries moved tier,
-            and the atlas's 2,898 claims disagree with the cartridge in zero places.
-          </p>
-        </div>
-
-        <div class="tl-item">
-          <div class="tl-date">25 Aug 2026</div>
-          <p class="tl-title">Descriptions written by watching, not guessing</p>
-          <p>
-            136 descriptions were generated by stepping a real playthrough frame by frame —
-            recording which bytes change, and the code behind every write — rather than by
-            searching for a plausible label. A forced gym battle against Misty was set up,
-            checked, and only then trusted.
-          </p>
-        </div>
-
-        <div class="tl-item">
-          <div class="tl-date">17 Aug 2026</div>
-          <p class="tl-title">Findings from the cartridge campaign land</p>
-          <p>
-            The entries the cartridge campaign established were described and linked back to
-            the findings behind them, so the front page points at the evidence rather than
-            at assertions.
-          </p>
-        </div>
-
-        <div class="tl-item">
-          <div class="tl-date">15 Aug 2026</div>
-          <p class="tl-title">First atlas, standing on its own evidence</p>
-          <p>
-            Pokémon Red and Blue published as the first atlas — one directory per cartridge,
-            work RAM and high RAM fully accounted for with no holes, evidence tiers assigned
-            by a real run against the cartridge from the start.
-          </p>
-        </div>
-
+      <h2>A symbol name is not a source</h2>
+      <p>
+        The description column says what an address is <em>for</em>, and it is written from a
+        source: what the disassembly says the symbol is, what the emulator measured on the retail
+        cartridge, or a structure this atlas already documents. <strong>A symbol name on its own is
+        not a source</strong> — the atlas already shows the symbol name, and a plausible sentence
+        derived from it is exactly the thing this project exists as a reaction to.
+      </p>
+      <p>
+        That is why ninety map-script bytes are blank and one is not: only Oak's laboratory has been
+        driven and watched.
+      </p>
+      <p>
+        When the well of already-written-down evidence ran dry, the next place to look was not the
+        symbol name — it was the cartridge. A standalone tool steps a real playthrough and records,
+        per address, <em>which code writes it, when, and to what values</em>. Grouping addresses by
+        their <strong>writing routine</strong> is what actually produced measured linkage: a
+        sound-engine channel-init routine writing nine per-channel fields together; two shadow
+        sprite slots never touched independently regardless of which routine does the touching; a
+        stat-stage reset routine distinct from the one an existing description already credited.
+      </p>
+      <p>
+        It also produced four traps worth knowing generally, every one of which would have produced
+        confident-looking wrong evidence:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>The trap</th><th>What it nearly credited</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>A ROM entry's length column is "distance to the next atlas entry in the same
+                bank" — exhaustively accurate for RAM, wildly inflated for a sparsely covered ROM
+                bank.</td>
+              <td>The species-name table's recorded length is 13,598 bytes because nothing else in
+                its bank is named yet. An unguarded range match credited it with writing dozens of
+                unrelated bytes before a small-window cap caught it.</td>
+            </tr>
+            <tr>
+              <td>The fixed low bank is <em>always</em> mapped, whatever the bank register says.
+                Grouping its writers by (bank, PC) instead of by PC alone splits one shared routine
+                into several apparently different ones, by the accident of whatever bank happened
+                to be switched in.</td>
+              <td>A 39-address generic byte-copy utility at <code>$00B6</code> was nearly credited
+                as evidence for a dozen unrelated relationships.</td>
+            </tr>
+            <tr>
+              <td>The script's own state-forcing writes can be misattributed to whatever
+                instruction happens to run first in the next traced frame — the detection is a diff
+                against a shadow map taken once at the start of the run, so the forced write's
+                "before" value is already stale.</td>
+              <td>It can look like the game's own code wrote two addresses in one instruction when
+                really the tool wrote them itself, outside any frame. Any directly forced address
+                must be excluded from the analysis entirely, not merely have its first event
+                distrusted.</td>
+            </tr>
+            <tr>
+              <td>A one-off investigation binary must load a real save, or its negative findings
+                about game <em>mechanics</em> are not trustworthy.</td>
+              <td>Two tools written passing no save started a brand-new game each run, and a forced
+                trainer battle never progressed past its first menu whatever the input. Loading the
+                real save and re-running the <em>identical</em> code produced a complete battle —
+                damage both directions, a second party member sent out, ending in a genuine
+                black-out. A negative result from a fresh game is a finding about fresh games.</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </section>
-
-    <section id="writing" class="prose">
-      <h2>Writing</h2>
-      <p class="note">
-        A full write-up of the evidence model and the re-runnable verification loop is in
-        progress. It will appear here and in the <a href="../#writing">Writing</a> index.
+      <p>
+        The rule that came out of the linkage work is the sharpest sentence in the repository:
+        <strong>a shared writer is <em>measured</em>, but "measured" and "examined" are not the same
+        thing.</strong> The first backfill populated only six of thirty-one measured writer-groups,
+        because those were the six the prose actually stood behind. Three were explicitly declined —
+        one of them named in the prose as "plausibly one generic copy-N-bytes utility reused across
+        three unrelated features".
+      </p>
+      <p>
+        Two held-back groups were examined the next round rather than left open indefinitely, by a
+        bounded check that needs no emulator and no disassembler: read the raw ROM bytes at the
+        writer's program counter and see whether the shape is a tight, counted, value-agnostic loop
+        (generic) or a routine whose instructions reference the specific fields it writes
+        (purpose-built). Both turned out generic — a constant-fill loop, and a stack-pop-based bulk
+        transfer that points the stack pointer at a source buffer as a speed trick. The suspicion was
+        confirmed rather than resolved the other way, which is the outcome worth publishing.
       </p>
     </section>
+
+    <section class="prose">
+      <h2>Two things about the licence, stated plainly because they are easy to overstate</h2>
+      <p>
+        The atlas content is CC BY-SA 4.0; the tooling and the schema are MIT, and the boundary is a
+        path rather than a judgement call. The split is not cosmetic: somebody producing a compatible
+        atlas elsewhere is worth more than an exclusive one here, and a schema you need permission to
+        implement is a schema nobody implements. Share-alike exists so that nobody can absorb a
+        verified atlas into a closed product and quietly strip the evidence off it.
+      </p>
+      <p>
+        <strong>The addresses are still facts and nobody owns them.</strong> Anyone can re-derive
+        every one from the public disassembly. Share-alike reaches the compilation, the evidence and
+        the prose — not the number <code>$D163</code>. And <strong>MIT already granted cannot be
+        revoked</strong>: every copy published before the relicence stays MIT. It is a re-pin that
+        brings share-alike in, not the passage of time.
+      </p>
+      <p>
+        One trade-off is taken deliberately and written down rather than tidied away: the licence
+        file opens with the path table rather than with the bare MIT text, so GitHub's licence
+        detector will likely show "Other" in the sidebar instead of "MIT". That is the honest
+        outcome — a sidebar reading "MIT" over a repository whose data is share-alike is worse than
+        one reading nothing.
+      </p>
+      <p class="note">
+        The addresses, symbol names and structure layouts are facts about the cartridge, derived from
+        a built <code>pret/pokered</code> checkout. The names in particular are the disassembly
+        projects' work, built up over many years by many people, and they are the most useful thing
+        in these files. They were not invented here and are not claimed here; the disassembly's prose
+        and comments are not ours to copy, so every description is written from scratch.
+      </p>
+    </section>
+
+    <hr>
+
+    <div class="provenance">
+      <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
+      <p>
+        The claim count, the tier counts and the chart above are read from
+        <code>atlases/pokemon-rb/data/atlas.tsv</code>, the atlas's own source of truth, and cross-
+        checked against the repository's committed <code>data/evidence.json</code>. That record
+        names the emulator commit that produced the run, the cartridge by title, region and SHA-1,
+        the script that was played, and the run date (25 Aug 2026).
+      </p>
+      <p>
+        The cartridge measurements — the move table, the stage-modifier ratios, the Viridian City
+        walkability grid — were read off a retail Pokémon Blue cartridge with the project's own
+        tools and, for the ledge-trap block, with no emulator run at all. No ROM is distributed;
+        the reproduction commands point at your own.
+      </p>
+      <p>
+        Pokémon, Game Boy and Nintendo are trade marks of their respective owners; this project is
+        not affiliated with any of them, and contains no commercial ROM data and no boot-ROM content
+        in any form.
+      </p>
+    </div>
 
     <a class="backlink" href="../#projects">← All projects</a>
 
