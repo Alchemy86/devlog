@@ -25,6 +25,7 @@
       <a class="brand" href="./">devlog<span class="dot">.</span></a>
       <nav>
         <a href="#projects">Projects</a>
+        <a href="#pages">Pages</a>
         <a href="#writing">Writing</a>
       </nav>
     </div>
@@ -39,7 +40,7 @@
         Detailed breakdowns of the core work — TerminalGB, AgentGB, AtlasGB and the
         rest. The source repositories are private; this is where the interesting parts
         become visible. Real numbers, real trade-offs, and the failures that make them
-        worth reading.
+        worth reading — every figure traceable to something that can be re-run.
       </p>
     </section>
 
@@ -88,9 +89,103 @@
       </div>
     </section>
 
+    <section id="pages">
+      <div class="sec-head">
+        <h2>Standing pages</h2>
+        <p class="sub">
+          Three pages that grow rather than get published once. Each collects a running
+          record — what has been found, how far something has come, what it costs — and
+          each is added to as the work produces something worth adding.
+        </p>
+      </div>
+
+      <div class="cards">
+        <a class="card" href="finds.html">
+          <div class="card-hd">
+            <p class="kicker">Gen 1 cartridge</p>
+            <h3>Cartridge finds</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              Things the cartridge actually does — the player and rival are already called
+              NINTEN and SONY before either naming screen runs, the learnset table is not
+              indexed the way anyone expects, and a trainer sees straight through walls.
+              Each entry with its addresses, its mechanism and how it was checked.
+            </p>
+          </div>
+          <div class="card-ft">5 entries · verified against a named cartridge →</div>
+        </a>
+
+        <a class="card" href="agentgb-progress.html">
+          <div class="card-hd">
+            <p class="kicker">AgentGB</p>
+            <h3>Agent progress</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              From a random-walk floor where nobody leaves the first town, to a
+              122,330-weight screen-only student completing a sixteen-link chain 145 times
+              in 150 cold boots. The arc in order, with the number that was true at each
+              point — and the ledger of what is still not true.
+            </p>
+          </div>
+          <div class="card-ft">Stage 0 → 18 links attempted · honest gaps →</div>
+        </a>
+
+        <a class="card" href="terminalgb-performance.html">
+          <div class="card-hd">
+            <p class="kicker">TerminalGB</p>
+            <h3>Performance &amp; features</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              Real ms/frame figures with the core, the engine and the load average they
+              were taken on — 414× real time on one core, 3,735× on twenty — a same-session
+              comparison against two other emulators, and what exactness actually costs.
+            </p>
+          </div>
+          <div class="card-ft">Measured, not quoted · every condition stated →</div>
+        </a>
+      </div>
+    </section>
+
     <section id="writing">
       <h2>Writing</h2>
       <ul class="post-list">
+
+        <li>
+          <a class="post-card" href="posts/every-failure-was-the-same-starter.html">
+            <div class="post-meta">
+              <span class="tag">AgentGB</span>
+              <span>Measurement</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">Every failure was the same starter</p>
+            <p class="post-dek">
+              A twenty-six agent swarm scored 88.5% and looked healthy. Watching the film
+              instead of reading the table showed all three failures were the same starter
+              Pokémon — one chance in 2,600. What a summary structurally cannot show, and
+              the reporting rule that came out of it.
+            </p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/the-doubling-back-wall.html">
+            <div class="post-meta">
+              <span class="tag">AgentGB</span>
+              <span>Route learning</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">The wall you hit walking home</p>
+            <p class="post-dek">
+              An agent learned the walk to the shop perfectly and could not learn the walk
+              back. Two measured rates that sum to a hundred are the signature of an
+              impossible task, not a hard one — and the fix was to stop opening the bag and
+              read what the cartridge already says out loud.
+            </p>
+          </a>
+        </li>
 
         <li>
           <a class="post-card" href="posts/terminalgb-double-speed-accuracy.html">
@@ -111,9 +206,10 @@
 
       </ul>
       <p class="note" style="margin-top:24px;">
-        Long-form writing has a second home: each <a href="#projects">project page</a> above now
-        carries its own account — the mechanism, the measurements, the hypotheses that were
-        refuted, and the failures that turned out to be specific rather than random.
+        Long-form writing has two other homes: the <a href="#pages">standing pages</a> above,
+        which accumulate, and each <a href="#projects">project page</a>, which carries its own
+        account — the mechanism, the measurements, the hypotheses that were refuted, and the
+        failures that turned out to be specific rather than random.
       </p>
     </section>
 

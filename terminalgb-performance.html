@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TerminalGB performance — devlog</title>
+  <meta name="description" content="What TerminalGB does, what it measures, and how fast it runs — real ms/frame figures with the load average, the core placement and the clock they were taken on, plus a same-session comparison against two other emulators.">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TerminalGB performance and features">
+  <meta property="og:description" content="Real ms/frame numbers with their conditions, a same-session comparison against SameBoy and PyBoy, and the accuracy each engine buys.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/terminalgb-performance.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="./">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="./#projects">Projects</a>
+        <a href="./#writing">Writing</a>
+        <a href="finds.html">Finds</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="page-hero">
+      <p class="eyebrow">Standing page · TerminalGB</p>
+      <h1>Performance, and what it buys.</h1>
+      <p class="lead">
+        A cycle-accurate Game Boy and Game Boy Color emulator, and the honest cost of being
+        one. Every figure here carries the conditions it was taken under — which core, which
+        picture engine, which load average — because on this box the identical binary reads
+        56% apart between a quiet machine and a busy one.
+      </p>
+      <div class="hero-facts">
+        <span>Fastest configuration <b>0.0405 ms/frame</b></span>
+        <span><b>414×</b> real time, one core</span>
+        <span><b>3,735×</b> at twenty workers</span>
+        <span>A DMG frame is <b>16.7427 ms</b></span>
+        <span>Updated <b>27 Aug 2026</b></span>
+      </div>
+    </section>
+
+    <section>
+      <div class="toc">
+        <p class="eyebrow">On this page</p>
+        <ol>
+          <li><a href="#headline">The headline, with its conditions</a></li>
+          <li><a href="#field">Against the field, same session</a></li>
+          <li><a href="#scaling">What twenty cores do</a></li>
+          <li><a href="#engines">Two picture engines, and what exactness costs</a></li>
+          <li><a href="#method">The method, and three things learned by getting it wrong</a></li>
+          <li><a href="#features">What it can actually do</a></li>
+          <li><a href="#gaps">Stated plainly: the gaps</a></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ HEADLINE ============ -->
+    <section id="headline">
+      <div class="sec-head">
+        <h2>The headline, with its conditions</h2>
+        <p class="sub">
+          Pokémon Blue from a real in-game save state, one worker, pinned to a P-core,
+          thread CPU clock. The DMG's own frame is 16.7427 ms, so 1× real time is 59.7275
+          frames a second.
+        </p>
+      </div>
+
+      <div class="tiles">
+        <div class="tile">
+          <div class="t-num"><span class="accent">0.0405</span><small>&nbsp;ms</small></div>
+          <div class="t-label">Per frame, fastest accurate config</div>
+          <div class="t-note">Pixels off, no APU installed. 414× real time, load 1.3.</div>
+        </div>
+        <div class="tile">
+          <div class="t-num">0.4962<small>&nbsp;ms</small></div>
+          <div class="t-label">Per frame, exact engine + picture</div>
+          <div class="t-note">34× real time. The default engine, drawing every dot.</div>
+        </div>
+        <div class="tile">
+          <div class="t-num">3,735<small>×</small></div>
+          <div class="t-label">Aggregate, 20 workers</div>
+          <div class="t-note">223,073 emulated frames a second on a quiet box.</div>
+        </div>
+        <div class="tile">
+          <div class="t-num">9.5<small>×</small></div>
+          <div class="t-label">Faster than SameBoy</div>
+          <div class="t-note">Both cycle-accurate, both optimised, measured in one session.</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:26px;">
+        <div class="card-hd">
+          <p class="kicker">One core, five configurations</p>
+          <h3>The number changes by an order of magnitude depending on what is switched on</h3>
+        </div>
+        <div class="card-bd">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Configuration</th>
+                  <th class="num">ms/frame</th>
+                  <th class="num">× real time</th>
+                  <th class="num">Load</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Collector</strong> — pixels off, APU installed, samples off</td><td class="num"><strong>0.0454</strong></td><td class="num"><strong>369×</strong></td><td class="num">1.3</td></tr>
+                <tr><td>The same, no APU installed at all</td><td class="num">0.0405</td><td class="num">414×</td><td class="num">1.3</td></tr>
+                <tr><td>The same, on a busy box</td><td class="num">0.0772</td><td class="num">217×</td><td class="num">16</td></tr>
+                <tr><td>Player — picture on, APU silent</td><td class="num">0.1582</td><td class="num">106×</td><td class="num">16</td></tr>
+                <tr><td><code>identical</code> picture engine, picture on</td><td class="num">0.4962</td><td class="num">34×</td><td class="num">16</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Rows one and three are the <em>same binary</em>. The entire difference between
+            369× and 217× is the box's other occupant, reaching the measurement through
+            frequency scaling. That is why every row above states its load average, and why
+            a figure quoted without one should be distrusted.
+          </p>
+        </div>
+        <div class="card-ft">
+          Reproduce with the repository's own <code>core_bench</code> example: 20,000 frames,
+          3,000 warm-up, three repeats, pinned with <code>taskset</code>.
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-hd">
+          <p class="kicker">And with the speed flags on</p>
+          <h3>Documented shortcuts, each behind a named switch, off by default</h3>
+        </div>
+        <div class="card-bd">
+          <p>
+            Everything above is the accurate machine — every peripheral on its exact cycle.
+            A run that is <em>driving</em> the machine rather than judging it can take
+            liberties, and each one is a named flag rather than a silent mode:
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Mode</th><th class="num">ms/frame</th><th class="num">× real time</th><th class="num">Over accurate</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Accurate</td><td class="num">0.0555–0.0557</td><td class="num">300×</td><td class="num">—</td></tr>
+                <tr><td><code>speed</code></td><td class="num">0.0510–0.0511</td><td class="num">328×</td><td class="num">+9.2%</td></tr>
+                <tr><td><code>speed,no-apu-state</code></td><td class="num">0.0395–0.0397</td><td class="num">423×</td><td class="num">+40.8%</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Read these as ratios against the accurate row measured <em>in the same session</em>,
+            not against the table above it — that is a different save state, and cross-session
+            comparison is exactly what this page's method section says not to trust. One P-core,
+            load 0.84, three interleaved rounds.
+          </p>
+        </div>
+        <div class="card-ft">
+          Speed mode is off by default and no accuracy gate can reach it.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FIELD ============ -->
+    <section id="field">
+      <div class="sec-head">
+        <h2>Against the field, same session</h2>
+        <p class="sub">
+          One machine, one core, one cartridge, one frame count, one clock — and nobody's
+          marketing number. Every side built with its own release configuration and its
+          rendering and sound switched off, because that is how a headless campaign runs.
+        </p>
+      </div>
+
+      <figure class="scrollfig" aria-labelledby="fig-field-cap">
+        <svg viewBox="0 0 720 282" role="img" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
+          <style>
+            .n   { fill: var(--ink); font-size: 12.5px; font-weight: 700; letter-spacing: .02em; }
+            .bar { fill: var(--accent); opacity: .20; }
+            .bab { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+            .bar.o { opacity: .09; }
+            .bab.o { stroke: var(--ink-soft); stroke-dasharray: 4 3; }
+            .v   { fill: var(--ink); font-size: 15px; font-weight: 700; }
+            .sub { fill: var(--ink-soft); font-size: 10px; }
+            .tick{ stroke: var(--hairline-2); stroke-width: 1; }
+            .tl  { fill: var(--ink-soft); font-size: 9.5px; }
+            .hdr { fill: var(--ink-soft); font-size: 10px; letter-spacing: .1em; }
+          </style>
+          <text x="0" y="16" class="hdr">× REAL GAME BOY TIME — ONE CORE, ONE CARTRIDGE, 7,168 FRAMES, SAME MINUTE</text>
+          <line x1="132.0" y1="32" x2="132.0" y2="214" class="tick"/>
+          <text x="132.0" y="228" text-anchor="middle" class="tl">0×</text>
+          <line x1="237.8" y1="32" x2="237.8" y2="214" class="tick"/>
+          <text x="237.8" y="228" text-anchor="middle" class="tl">200×</text>
+          <line x1="343.6" y1="32" x2="343.6" y2="214" class="tick"/>
+          <text x="343.6" y="228" text-anchor="middle" class="tl">400×</text>
+          <line x1="449.3" y1="32" x2="449.3" y2="214" class="tick"/>
+          <text x="449.3" y="228" text-anchor="middle" class="tl">600×</text>
+          <line x1="555.1" y1="32" x2="555.1" y2="214" class="tick"/>
+          <text x="555.1" y="228" text-anchor="middle" class="tl">800×</text>
+          <text x="0" y="61" class="n">PyBoy 2.7.0</text>
+          <text x="0" y="76" class="sub">NOT cycle-accurate</text>
+          <rect x="132" y="40" width="459.6" height="44" class="bar o"/>
+          <rect x="132" y="40" width="459.6" height="44" class="bab o"/>
+          <text x="601.6" y="61" class="v">869×</text>
+          <text x="601.6" y="76" class="sub">0.0193 ms/frame</text>
+          <text x="0" y="123" class="n">TerminalGB</text>
+          <text x="0" y="138" class="sub">cycle-accurate</text>
+          <rect x="132" y="102" width="219.0" height="44" class="bar"/>
+          <rect x="132" y="102" width="219.0" height="44" class="bab"/>
+          <text x="361.0" y="123" class="v">414×</text>
+          <text x="361.0" y="138" class="sub">0.0405 ms/frame</text>
+          <text x="0" y="185" class="n">SameBoy</text>
+          <text x="0" y="200" class="sub">cycle-accurate</text>
+          <rect x="132" y="164" width="22.7" height="44" class="bar"/>
+          <rect x="132" y="164" width="22.7" height="44" class="bab"/>
+          <text x="164.7" y="185" class="v">43×</text>
+          <text x="164.7" y="200" class="sub">0.3854 ms/frame</text>
+        </svg>        <figcaption id="fig-field-cap">
+          <strong>Pokémon Blue, 7,168 frames from reset — 120 emulated seconds — on every
+          emulator, pinned to the same P-core, thread CPU time on every side.</strong> All
+          three are the best of three runs interleaved with each other in the same minute on
+          a quiet box (load 1.3). PyBoy's bar is drawn open because it is not
+          cycle-accurate — the comparison is real, but the two are not doing the same job.
+          Drawn from the measured figures, not to scale of any published claim.
+        </figcaption>
+      </figure>
+
+      <div class="cards" style="margin-top:26px;">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Where the remaining gap is</p>
+            <h3>It is entirely the core</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              Costed by turning each part on and off on both sides in the same session:
+            </p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Component</th><th class="num">PyBoy</th><th class="num">Ours</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Core only</td><td class="num">0.0198–0.0298</td><td class="num">0.0672</td></tr>
+                  <tr><td>The renderer, on top</td><td class="num">+0.0374</td><td class="num">+0.0434</td></tr>
+                  <tr><td>The APU, silent</td><td class="num">—</td><td class="num">+0.0034</td></tr>
+                  <tr><td>The APU, producing samples</td><td class="num">+0.0255</td><td class="num">+0.0400</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>
+              Our renderer is within 16% of theirs, and our APU is an order of magnitude
+              cheaper when silent — which is the configuration a collector actually runs in.
+              The whole difference is peripheral bookkeeping happening once per
+              <em>instruction</em> here and once per <em>horizon</em> there.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The claim that did not hold</p>
+            <h3>43×, not 1,000×</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              The figure in circulation is that a fast Game Boy interpreter reaches
+              1,000–10,000× real time. On this hardware, with this method, <strong>the
+              reference cycle-accurate emulator reaches 43×</strong> — and it is not a slow
+              implementation. It is written in C, compiled with <code>-ffast-math</code> and
+              LTO, and it is the accuracy oracle this project uses to settle disputes.
+            </p>
+            <p>
+              Some arithmetic for why: 1,000× is 16.7 µs for 70,224 emulated T-cycles —
+              about <em>one host clock per Game Boy T-cycle</em>. 10,000× would be a tenth
+              of a host clock per T-cycle, which is not an interpreter at all.
+            </p>
+            <p>
+              There is no technique to copy from SameBoy here, because we are already ahead
+              of it. That is not a boast; it is what closed the question.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SCALING ============ -->
+    <section id="scaling">
+      <div class="sec-head">
+        <h2>What twenty cores do</h2>
+        <p class="sub">
+          The unit that matters to a measurement campaign is not ms/frame — it is how many
+          measurements fit in a day.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-bd">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th class="num">Workers</th><th class="num">Frames/s</th><th class="num">× real time</th><th class="num">Per instance</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="num">1</td><td class="num">16,590</td><td class="num">278×</td><td class="num">0.0602 ms</td></tr>
+                <tr><td class="num"><strong>4</strong></td><td class="num"><strong>63,687</strong></td><td class="num"><strong>1,066×</strong></td><td class="num">0.0624 ms</td></tr>
+                <tr><td class="num">8</td><td class="num">126,633</td><td class="num">2,120×</td><td class="num">0.0627 ms</td></tr>
+                <tr><td class="num">12</td><td class="num">153,455</td><td class="num">2,569×</td><td class="num">0.0679 ms</td></tr>
+                <tr><td class="num">16</td><td class="num">197,543</td><td class="num">3,307×</td><td class="num">0.0727 ms</td></tr>
+                <tr><td class="num">20</td><td class="num">223,073</td><td class="num">3,735×</td><td class="num">0.0770 ms</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="margin-top:20px;">
+            <strong>Four cores are already past 1,000×.</strong> The per-instance figure rises
+            only 28% from one worker to twenty, which is what silicon-limited rather than
+            contention-limited looks like on a box with 8 P-cores and 12 E-cores.
+          </p>
+        </div>
+        <div class="card-ft">
+          A fan-out figure is wall clock by definition and has no CPU clock to fall back on.
+          Quote the load average or do not quote the number.
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top:26px;">
+        <p class="eyebrow">Two different 1,000× targets, and they are not the same work</p>
+        <p>
+          <strong>Aggregate 1,000× is already met, on four cores.</strong> Single-core 1,000×
+          is about 3× away and <em>is not available by shaving</em>: pricing the per-access
+          bus tick at +21% of a collector's frame, the whole APU at +16.7% and the whole
+          timer at +14%, deleting all three outright — which would not be an emulator any
+          more — is about 1.9×, roughly 550×. Everything else is a few per cent each. It
+          needs a different execution model, not another optimisation pass. When somebody
+          quotes a throughput figure for this emulator, they should say which one they mean.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ ENGINES ============ -->
+    <section id="engines">
+      <div class="sec-head">
+        <h2>Two picture engines, and what exactness costs</h2>
+        <p class="sub">
+          Not a quality setting and not an appearance setting. On ordinary games the two
+          produce byte-identical framebuffers; the only axis between them is exactness
+          against speed.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-bd">
+          <p>
+            The <code>standard</code> engine draws a whole scanline in one step at the end of
+            mode 3, from whatever the registers hold at that instant. The
+            <code>identical</code> engine walks the real hardware pixel pipeline dot by dot —
+            the background fetcher, the eight-pixel FIFO, sprite fetches, the window restart,
+            the <code>SCX &amp; 7</code> discard. Only the second can represent "the wrong
+            tile source for one dot in the middle of a line", which is why only the second
+            can <em>catch</em> that.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Reference suite</th>
+                  <th class="num"><code>standard</code></th>
+                  <th class="num"><code>identical</code></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Mooneye GB (acceptance + emulator-only)</td><td class="num">95 / 103</td><td class="num">103 / 103</td></tr>
+                <tr><td>Mealybug Tearoom, pixel-exact rows</td><td class="num">3 / 79</td><td class="num">29 / 79</td></tr>
+                <tr><td>Gambatte</td><td class="num">3,176 / 5,320</td><td class="num">3,622 / 5,320</td></tr>
+                <tr><td>GBMicrotest</td><td class="num">252 / 513</td><td class="num">339 / 513</td></tr>
+                <tr><td>AGE</td><td class="num">3 / 59</td><td class="num">11 / 59</td></tr>
+                <tr><td>Mooneye (wilbertpol)</td><td class="num">62 / 122</td><td class="num">82 / 122</td></tr>
+                <tr><td>Scribbltests</td><td class="num">7 / 13</td><td class="num">9 / 13</td></tr>
+                <tr><td>Frame cost, Pokémon Blue, one P-core</td><td class="num">0.0454 ms</td><td class="num">0.4962 ms</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            The accurate engine costs roughly an order of magnitude more per frame and is
+            <em>still</em> only a few per cent of a frame's 16.7 ms budget on a desktop core.
+            That is cheap enough to be the default, and it is. But it is not free everywhere:
+            on the PSP frontend, where the CPU budget is tight, the emulator deliberately pins
+            <code>standard</code> — an unplayable-but-exact picture helps nobody.
+          </p>
+        </div>
+        <div class="card-ft">
+          Every row above was re-derived for this page directly from the project's own
+          checked-in baseline files, by counting <code>PASS</code> lines — not read off a
+          summary. The baselines <em>are</em> the expectations, so the count and the claim
+          cannot drift apart.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ METHOD ============ -->
+    <section id="method">
+      <div class="sec-head">
+        <h2>The method, and three things learned by getting it wrong</h2>
+        <p class="sub">
+          Four things about the benchmark command are load-bearing, and three of them were
+          learned by producing a wrong answer first.
+        </p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd"><p class="kicker">One</p><h3>Pin it</h3></div>
+          <div class="card-bd">
+            <p>
+              8 P-cores at 5.3 GHz, 12 E-cores at 4.6 GHz. A fresh process lands on whichever
+              the scheduler picks, so the per-instance figure moves by 15% or more between
+              invocations of the <em>identical binary</em> — even though it is CPU time.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><p class="kicker">Two</p><h3>Report the load average</h3></div>
+          <div class="card-bd">
+            <p>
+              The benchmark reports thread CPU time and prints the wall figure beside it so the
+              gap is visible. Contention still reaches it through frequency scaling: the same
+              binary measured <strong>0.0581 ms/frame at load 0.3 and 0.0909 at load 16</strong>
+              — a 56% spread, on the same code.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><p class="kicker">Three</p><h3>Use long rounds</h3></div>
+          <div class="card-bd">
+            <p>
+              2,000-frame rounds are mostly the frequency governor ramping up after process
+              start, and they reorder the variants between runs — which looks exactly like a
+              real difference between them.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><p class="kicker">Four</p><h3>Know which tool you reached for</h3></div>
+          <div class="card-bd">
+            <p>
+              The obvious "the core stands alone" demo reads 90× rather than 288×, and that is
+              <em>correct</em>: it renders every pixel, hashes the whole framebuffer,
+              round-trips a save state and runs 60 more frames to check it. It is not a
+              throughput benchmark and does not claim to be.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURES ============ -->
+    <section id="features">
+      <div class="sec-head">
+        <h2>What it can actually do</h2>
+        <p class="sub">
+          The surface, grouped. Everything here is built and shipping; the things that are
+          designed but not built are not on this list.
+        </p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd"><p class="kicker">The machine</p><h3>Three consoles, four mappers</h3></div>
+          <div class="card-bd">
+            <ul>
+              <li>DMG, Game Boy Color and Super Game Boy models</li>
+              <li>Cartridge mappers 1, 2, 3 and 5, with a real-time clock</li>
+              <li>Battery saves in the ecosystem's own format</li>
+              <li>Versioned save states, portable to the browser build</li>
+              <li>Optional user-supplied boot ROM</li>
+              <li>Two picture engines: <code>standard</code>, or hardware-exact <code>identical</code></li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><p class="kicker">In your terminal</p><h3>Degrades, never refuses</h3></div>
+          <div class="card-bd">
+            <ul>
+              <li>Kitty, Sixel, iTerm2 and half-block rendering</li>
+              <li>Shared-memory frame transport — 87 bytes a frame</li>
+              <li>Four upscalers, palettes, HiDPI correction</li>
+              <li>Runs in any terminal, whatever it supports</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><p class="kicker">Sound</p><h3>Full audio hardware</h3></div>
+          <div class="card-bd">
+            <ul>
+              <li>Complete APU emulation, 36 ms latency</li>
+              <li>Volume control that never touches emulation</li>
+              <li>Chiptune renderer — instructions in, real audio out</li>
+              <li>Music mode: ROMs as a shelf, with export</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><p class="kicker">Linking</p><h3>Two consoles on one cable</h3></div>
+          <div class="card-bd">
+            <ul>
+              <li>Two instances linked locally, trade proven</li>
+              <li>BGB network protocol over TCP</li>
+              <li>Virtual trade partner — no second cartridge needed</li>
+              <li>Cable Club battles against that partner</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><p class="kicker">Plugins</p><h3>Reading the running cartridge</h3></div>
+          <div class="card-bd">
+            <ul>
+              <li>Live trainer view: party, stats, sprites, catch rate</li>
+              <li>Shiny hunting from Gen 1 hidden values</li>
+              <li>Battle control — start any battle from outside</li>
+              <li>An agent substrate for autonomous play</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><p class="kicker">Beyond the terminal</p><h3>Desktop, browser, and a wire</h3></div>
+          <div class="card-bd">
+            <ul>
+              <li>Virtual camera — appears to the system as a webcam</li>
+              <li>Screenshots, recording, a telemetry stream</li>
+              <li>An MCP server, so any Claude client can drive it</li>
+              <li>Embeddable core — one third-party dependency</li>
+              <li>A browser build via WebAssembly, and a reusable conformance action</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ GAPS ============ -->
+    <section id="gaps">
+      <div class="sec-head">
+        <h2>Stated plainly: the gaps</h2>
+        <p class="sub">
+          A total on its own is not evidence. Each remaining red row has a named reason, and
+          one of them must stay red forever.
+        </p>
+      </div>
+
+      <ul class="gaps">
+        <li>
+          <b>Mid-scanline picture timing is still the real ceiling.</b> Most of the Mealybug
+          Tearoom suite is red even on the exact engine — though <b>45 of its 79 rows cannot
+          be won by picture work at all</b>, and that denominator is published rather than
+          quietly dropped.
+        </li>
+        <li>
+          <b>Nine Mooneye rows are other consoles</b> — machine variants deliberately not
+          emulated, pinned as failures on purpose rather than removed from the denominator.
+        </li>
+        <li>
+          <b>One test must stay red.</b> A Color memory-corruption defect does not exist in
+          Color silicon, so real hardware fails that ROM too. Passing it would be the bug.
+        </li>
+        <li>
+          <b>Mealybug's score is not a pixel count.</b> That suite compares by shade-rank
+          distance, which is deliberately unforgiving — a frame introducing one extra distinct
+          shade can report on the order of a whole screen "wrong" regardless of how much of it
+          is perfect. Those figures are treated as an ordering signal, never converted into a
+          percentage.
+        </li>
+        <li>
+          <b>Single-core 1,000× is not reachable by optimisation.</b> Named above with the
+          arithmetic: deleting the bus tick, the APU and the timer entirely gets to roughly
+          550×, and would not be an emulator.
+        </li>
+        <li>
+          <b>The field comparison predates the engine default changing.</b> Those rows were
+          taken with the fast engine, which is the fair comparator against two emulators
+          running with their rendering off — but a bare run of the same command today uses the
+          exact engine and reads about four times slower. Different measurement, not a
+          regression.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <div class="provenance">
+        <p>
+          <strong>Where these numbers come from.</strong> Every throughput figure was produced
+          by the project's own <code>core_bench</code> example on one machine, pinned to a
+          named core class, reporting thread CPU time, with the load average recorded beside
+          it. The three-emulator comparison was run in a single session with every side built
+          in its own release configuration and its rendering and sound off.
+        </p>
+        <p>
+          <strong>Re-derived, not quoted.</strong> The accuracy table on this page was counted
+          directly from the repository's checked-in baseline files while the page was written,
+          rather than copied from a summary — and it matched.
+        </p>
+        <p>
+          <strong>What is not claimed.</strong> No percentage accuracy figure, no "99% correct"
+          statement, and no comparison against a published marketing number. Where a suite's
+          metric is not a pixel count, the page says so.
+        </p>
+      </div>
+
+      <p class="note" style="margin-top:24px;">
+        The bug that made the exact engine worth its cost has its own write-up:
+        <a href="posts/terminalgb-double-speed-accuracy.html">the double-speed bug that cost
+        2,304 pixels</a>. The rest of the project is on the
+        <a href="projects/terminalgb.html">TerminalGB project page</a>.
+      </p>
+
+      <a class="backlink" href="./">← Back to devlog</a>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

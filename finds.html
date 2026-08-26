@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cartridge finds — devlog</title>
+  <meta name="description" content="A standing collection of Game Boy and Gen 1 cartridge discoveries: what each one is, the addresses it lives at, the mechanism behind it, and exactly how it was verified. Nothing here is quoted from an outside write-up without being run.">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Cartridge finds">
+  <meta property="og:description" content="Gen 1 cartridge discoveries, each with its addresses, its mechanism, and how it was verified against a real ROM.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/finds.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="./">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="./#projects">Projects</a>
+        <a href="./#writing">Writing</a>
+        <a href="finds.html">Finds</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="page-hero">
+      <p class="eyebrow">Standing page · Gen 1 cartridge</p>
+      <h1>Cartridge finds.</h1>
+      <p class="lead">
+        Things the cartridge actually does, collected as they are found. Each entry
+        carries the same four parts: what it is, the addresses it lives at, the
+        mechanism underneath it, and <em>how it was checked</em> — because a fact
+        about a ROM that nobody re-ran is a rumour with a hex number attached.
+      </p>
+      <div class="hero-facts">
+        <span>Cartridge <b>Pokémon Blue</b>, USA/Europe</span>
+        <span>SHA-1 <b class="lc">d7037c83…d4c48ce2</b></span>
+        <span><b>1,048,576</b> bytes</span>
+        <span><b>5</b> entries</span>
+        <span>Updated <b>27 Aug 2026</b></span>
+      </div>
+    </section>
+
+    <section>
+      <div class="toc">
+        <p class="eyebrow">On this page</p>
+        <ol>
+          <li><a href="#ninten-sony">NINTEN and SONY are the real defaults</a></li>
+          <li><a href="#learnsets">The learnset table is not indexed by dex number</a></li>
+          <li><a href="#nidoran">Two species share one printable name</a></li>
+          <li><a href="#sightline">A trainer sees through walls</a></li>
+          <li><a href="#two-levels">Crossing two levels loses the move between them</a></li>
+        </ol>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>The rule this page is kept to</h2>
+        <p class="sub">
+          Every claim below was checked against a real cartridge image before it was
+          written down — by reading the bytes, by reading the routine that uses them,
+          and where the claim is about behaviour, by running the game and watching the
+          memory change.
+        </p>
+      </div>
+      <div class="callout">
+        <p class="eyebrow">Three steps, in this order</p>
+        <p>
+          Find the bytes. Read the code that touches them. Then run it. Each step is
+          allowed to <em>kill</em> the claim rather than decorate it — a string existing
+          in a ROM says nothing about whether the game ever loads it, and a routine that
+          looks like it runs is not the same as one that was watched running.
+        </p>
+      </div>
+    </section>
+
+    <!-- ==================== 1 ==================== -->
+    <section id="ninten-sony">
+      <div class="sec-head">
+        <h2>01 — NINTEN and SONY are the real defaults</h2>
+        <p class="sub">
+          Before either naming screen runs, the player is already called NINTEN and the
+          rival is already called SONY. Not merely two strings sitting in the ROM — two
+          strings the game unconditionally copies into the live name fields on every
+          single new game.
+        </p>
+      </div>
+
+      <div class="tiles" style="margin-bottom:26px;">
+        <div class="tile">
+          <div class="t-num"><span class="accent">1</span></div>
+          <div class="t-label">Occurrences of each string</div>
+          <div class="t-note">In the whole 1,048,576-byte image. Once each is what a real data table looks like.</div>
+        </div>
+        <div class="tile">
+          <div class="t-num">$45AA</div>
+          <div class="t-label">NINTEN, ROM bank 1</div>
+          <div class="t-note">7 bytes, Gen 1 text encoding, <code>$50</code>-terminated.</div>
+        </div>
+        <div class="tile">
+          <div class="t-num">$45B1</div>
+          <div class="t-label">SONY, ROM bank 1</div>
+          <div class="t-note">5 bytes. Directly after NINTEN, with nothing between them.</div>
+        </div>
+        <div class="tile">
+          <div class="t-num">bit 1</div>
+          <div class="t-label">What decides if they survive</div>
+          <div class="t-note"><code>wStatusFlags6</code> <code>$D732</code> — cleared on every ordinary new game.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd">
+          <p class="kicker">The mechanism</p>
+          <h3>The copy happens before the decision to run the naming screens</h3>
+        </div>
+        <div class="card-bd">
+          <p>
+            <code>PrepareOakSpeech</code> zero-fills the block from <code>wPlayerName</code>
+            through <code>wBoxDataEnd</code> and then copies two 11-byte fields in — the
+            labels at those two ROM addresses, <code>DebugNewGamePlayerName</code> and
+            <code>DebugNewGameRivalName</code>. Only <em>afterwards</em> does
+            <code>OakSpeech</code> test bit 1 of <code>wStatusFlags6</code> and decide
+            whether to run <code>ChoosePlayerName</code> and <code>ChooseRivalName</code>
+            at all.
+          </p>
+          <p>
+            On a retail cartridge that bit is explicitly cleared by
+            <code>StartNewGame</code> every time, so the naming screens always run and
+            always overwrite the defaults a moment later. The defaults are real, they are
+            written on every new game, and they last a fraction of a second.
+          </p>
+          <p>
+            This is not an emulator quirk and not a Japanese-only leftover. It is the
+            retail USA/Europe cartridge's own code path — one that exists, is reachable,
+            and is simply never taken in ordinary play.
+          </p>
+        </div>
+      </div>
+
+      <figure class="scrollfig" style="margin-top:26px;" aria-labelledby="fig-bytes-cap">
+        <svg viewBox="0 0 720 232" role="img" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
+          <style>
+            .cel  { fill: var(--code-bg); stroke: var(--hairline); stroke-width: 1; }
+            .cel.t{ fill: var(--card); }
+            .cel.x{ fill: none; }
+            .hex  { fill: var(--ink-soft); font-size: 10px; }
+            .gly  { fill: var(--ink); font-size: 13px; font-weight: 700; }
+            .gly.t{ fill: var(--accent); }
+            .gly.q{ fill: var(--ink-soft); font-weight: 500; }
+            .addr { fill: var(--accent); font-size: 10.5px; font-weight: 700; letter-spacing: .05em; }
+            .bar  { fill: var(--accent); opacity: .12; }
+            .barb { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+            .barl { fill: var(--ink); font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+            .barn { fill: var(--ink-soft); font-size: 10.5px; }
+          </style>
+          <text x="9" y="20" class="addr">$45AA</text>
+          <text x="282" y="20" class="addr">$45B1</text>
+          <line x1="9" y1="26" x2="9" y2="44" stroke="var(--accent)" stroke-width="1.5"/>
+          <line x1="282" y1="26" x2="282" y2="44" stroke="var(--accent)" stroke-width="1.5"/>
+          <rect x="9" y="44" width="39" height="46" class="cel"/>
+          <text x="28.5" y="62" text-anchor="middle" class="hex">8D</text>
+          <text x="28.5" y="81" text-anchor="middle" class="gly">N</text>
+          <rect x="48" y="44" width="39" height="46" class="cel"/>
+          <text x="67.5" y="62" text-anchor="middle" class="hex">88</text>
+          <text x="67.5" y="81" text-anchor="middle" class="gly">I</text>
+          <rect x="87" y="44" width="39" height="46" class="cel"/>
+          <text x="106.5" y="62" text-anchor="middle" class="hex">8D</text>
+          <text x="106.5" y="81" text-anchor="middle" class="gly">N</text>
+          <rect x="126" y="44" width="39" height="46" class="cel"/>
+          <text x="145.5" y="62" text-anchor="middle" class="hex">93</text>
+          <text x="145.5" y="81" text-anchor="middle" class="gly">T</text>
+          <rect x="165" y="44" width="39" height="46" class="cel"/>
+          <text x="184.5" y="62" text-anchor="middle" class="hex">84</text>
+          <text x="184.5" y="81" text-anchor="middle" class="gly">E</text>
+          <rect x="204" y="44" width="39" height="46" class="cel"/>
+          <text x="223.5" y="62" text-anchor="middle" class="hex">8D</text>
+          <text x="223.5" y="81" text-anchor="middle" class="gly">N</text>
+          <rect x="243" y="44" width="39" height="46" class="cel t"/>
+          <text x="262.5" y="62" text-anchor="middle" class="hex">50</text>
+          <text x="262.5" y="81" text-anchor="middle" class="gly t">·</text>
+          <rect x="282" y="44" width="39" height="46" class="cel"/>
+          <text x="301.5" y="62" text-anchor="middle" class="hex">92</text>
+          <text x="301.5" y="81" text-anchor="middle" class="gly">S</text>
+          <rect x="321" y="44" width="39" height="46" class="cel"/>
+          <text x="340.5" y="62" text-anchor="middle" class="hex">8E</text>
+          <text x="340.5" y="81" text-anchor="middle" class="gly">O</text>
+          <rect x="360" y="44" width="39" height="46" class="cel"/>
+          <text x="379.5" y="62" text-anchor="middle" class="hex">8D</text>
+          <text x="379.5" y="81" text-anchor="middle" class="gly">N</text>
+          <rect x="399" y="44" width="39" height="46" class="cel"/>
+          <text x="418.5" y="62" text-anchor="middle" class="hex">98</text>
+          <text x="418.5" y="81" text-anchor="middle" class="gly">Y</text>
+          <rect x="438" y="44" width="39" height="46" class="cel t"/>
+          <text x="457.5" y="62" text-anchor="middle" class="hex">50</text>
+          <text x="457.5" y="81" text-anchor="middle" class="gly t">·</text>
+          <rect x="477" y="44" width="39" height="46" class="cel x"/>
+          <text x="496.5" y="62" text-anchor="middle" class="hex">FA</text>
+          <text x="496.5" y="81" text-anchor="middle" class="gly q">?</text>
+          <rect x="516" y="44" width="39" height="46" class="cel x"/>
+          <text x="535.5" y="62" text-anchor="middle" class="hex">5F</text>
+          <text x="535.5" y="81" text-anchor="middle" class="gly q">?</text>
+          <rect x="555" y="44" width="39" height="46" class="cel x"/>
+          <text x="574.5" y="62" text-anchor="middle" class="hex">DA</text>
+          <text x="574.5" y="81" text-anchor="middle" class="gly q">?</text>
+          <rect x="594" y="44" width="39" height="46" class="cel x"/>
+          <text x="613.5" y="62" text-anchor="middle" class="hex">EA</text>
+          <text x="613.5" y="81" text-anchor="middle" class="gly q">?</text>
+          <rect x="633" y="44" width="39" height="46" class="cel x"/>
+          <text x="652.5" y="62" text-anchor="middle" class="hex">91</text>
+          <text x="652.5" y="81" text-anchor="middle" class="gly q">?</text>
+          <rect x="672" y="44" width="39" height="46" class="cel x"/>
+          <text x="691.5" y="62" text-anchor="middle" class="hex">CF</text>
+          <text x="691.5" y="81" text-anchor="middle" class="gly q">?</text>
+          <rect x="9" y="112" width="429" height="24" class="bar"/>
+          <rect x="9" y="112" width="429" height="24" class="barb"/>
+          <text x="17" y="128" class="barl">wPlayerName  $D158  ← 11 bytes copied</text>
+          <text x="9" y="154" class="barn">reads NINTEN, its terminator, then four bytes of the string that follows it</text>
+          <rect x="282" y="172" width="429" height="24" class="bar"/>
+          <rect x="282" y="172" width="429" height="24" class="barb"/>
+          <text x="290" y="188" class="barl">wRivalName  $D34A  ← 11 bytes copied</text>
+          <text x="9" y="214" class="barn">reads SONY, its terminator, then six bytes of whatever code sits after it</text>
+        </svg>        <figcaption id="fig-bytes-cap">
+          <strong>The eighteen bytes at ROM bank 1 <code>$45AA</code>, read out of the
+          cartridge image.</strong> Both source strings are shorter than the 11-byte
+          field they are copied into, so each copy runs past its own terminator: the
+          player's name field ends up holding NINTEN, its terminator, and the first four
+          letters of SONY. Harmless — the game reads a name only as far as its
+          <code>$50</code> — but it is a second, independent confirmation that the two
+          sit contiguously in exactly the order a straight-line copy would overrun. Drawn
+          from the real byte values, not a sketch.
+        </figcaption>
+      </figure>
+
+      <div class="card" style="margin-top:26px;">
+        <div class="card-hd">
+          <p class="kicker">How it was verified</p>
+          <h3>Read, then run — and the control run is the half that matters</h3>
+        </div>
+        <div class="card-bd">
+          <p>
+            A one-off trace drives a genuine cold boot — no save file, deliberately,
+            because the thing under test only exists before any save has a chosen name in
+            it — through the title screen and into a new game, twice. The second run is
+            the control, and it is what turns "the strings are there" into "the strings
+            are the defaults":
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Run</th>
+                  <th><code>wPlayerName</code> <span class="mono">$D158</span></th>
+                  <th><code>wRivalName</code> <span class="mono">$D34A</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Debug bit forced on every frame</td>
+                  <td class="mono">NINTEN from frame 368, unchanged to frame 6600</td>
+                  <td class="mono">SONY from frame 368, unchanged to frame 6600</td>
+                </tr>
+                <tr>
+                  <td>Same script, bit not forced — a plain new game</td>
+                  <td class="mono">NINTEN at frame 368, overwritten with BLUE at 1784</td>
+                  <td class="mono">SONY at frame 368, overwritten with RED at 2270</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            BLUE and RED are the first canned choices the two naming screens offer on this
+            cartridge — the button-mash landing on them is the naming screen behaving
+            exactly as a naming screen should, which is the entire point of running the
+            control. The bit is forced on <em>every</em> frame rather than once, because
+            <code>StartNewGame</code>'s own reset of it lands at an unknown frame during
+            the mash, and a one-shot force could be silently undone.
+          </p>
+        </div>
+        <div class="card-ft">
+          Verified independently for this page: both encoded strings searched across the
+          full 1,048,576-byte image — exactly one hit each, at file offsets
+          <code>0x45AA</code> and <code>0x45B1</code>, on the cartridge whose SHA-1 is
+          <code>d7037c83e1ae5b39bde3c30787637ba1d4c48ce2</code>.
+        </div>
+      </div>
+
+      <dl class="spec" style="margin-top:26px;">
+        <dt>Lives at</dt>
+        <dd>ROM bank 1 <code>$45AA</code> (NINTEN) and <code>$45B1</code> (SONY) → WRAM <code>$D158</code> (<code>wPlayerName</code>) and <code>$D34A</code> (<code>wRivalName</code>), 11 bytes each</dd>
+        <dt>Gate</dt>
+        <dd><code>wStatusFlags6</code> <code>$D732</code>, bit 1 — set means skip both naming screens</dd>
+        <dt>Kind</dt>
+        <dd>Cartridge mechanic — an outside claim, checked against our own cartridge and confirmed</dd>
+        <dt>Scope</dt>
+        <dd>Pokémon Blue, USA/Europe only. <strong>Not</strong> checked against the Japanese release — no such cartridge is available here, so no claim is made about it either way</dd>
+      </dl>
+    </section>
+
+    <!-- ==================== 2 ==================== -->
+    <section id="learnsets">
+      <div class="sec-head">
+        <h2>02 — The learnset table is not indexed by dex number</h2>
+        <p class="sub">
+          It is indexed by a species' <em>internal</em> index — the number the engine uses
+          on the bus. Read the first 151 slots, which is the obvious thing to do, and you
+          lose all three starters without a single error being raised.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-hd">
+          <p class="kicker">The trap</p>
+          <h3>Both wrong answers parse cleanly and look plausible</h3>
+        </div>
+        <div class="card-bd">
+          <p>
+            <code>EvosMovesPointerTable</code> has <strong>190</strong> slots. Internal
+            index 1 is RHYDON, not BULBASAUR. Thirty-nine of the 190 belong to no species
+            at all — the table that says which is <code>PokedexOrder</code>, and a zero
+            there is what everybody calls MissingNo.
+          </p>
+          <p>
+            So there are two ways to get this wrong and they are not the same mistake.
+            Reading all 190 slots is fine. Reading <em>the first 151</em> is not — and it
+            is the one that looks right.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>How the table is read</th>
+                  <th class="num">Learn entries</th>
+                  <th class="num">Evolutions</th>
+                  <th class="num">By level</th>
+                  <th class="num">By stone</th>
+                  <th class="num">By trade</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>The first 151 slots</td><td class="num">580</td><td class="num">56</td><td class="num">40</td><td class="num">12</td><td class="num">4</td></tr>
+                <tr><td><strong>Filtered by <code>PokedexOrder</code></strong></td><td class="num"><strong>728</strong></td><td class="num"><strong>72</strong></td><td class="num"><strong>52</strong></td><td class="num"><strong>16</strong></td><td class="num"><strong>4</strong></td></tr>
+                <tr><td>All 190 slots, unfiltered</td><td class="num">728</td><td class="num">72</td><td class="num">52</td><td class="num">16</td><td class="num">4</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            The third row names the mistake precisely. Every one of the 39 MissingNo slots
+            has its own distinct pointer, and every one of those records is empty — so
+            walking all 190 gives exactly the right totals. <strong>The error is not
+            reading too many slots. It is reading the wrong 151.</strong>
+          </p>
+        </div>
+      </div>
+
+      <div class="cards" style="margin-top:16px;">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">What the wrong 151 loses</p>
+            <h3>Twenty-seven real species, starting with all three starters</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              Exactly 27 real species sit at an internal index above 151, and the first
+              151 slots hold 27 MissingNo in their place. Among the 27:
+              <strong>BULBASAUR (internal 153), CHARMANDER (176) and SQUIRTLE (177)</strong>,
+              with their whole evolution lines, plus ODDISH, BELLSPROUT, RATTATA, GEODUDE,
+              PONYTA, AERODACTYL and PORYGON.
+            </p>
+            <p>
+              A tool built on the naive read reports that Charmander learns nothing at all,
+              ever, and never says anything is wrong.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The discriminating check</p>
+            <h3>Count the stone evolutions, not the trade ones</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              Gen 1 has <strong>16</strong> stone evolutions. The naive read produces 12,
+              so that count catches the mistake immediately.
+            </p>
+            <p>
+              <strong>Trade evolutions are not a check.</strong> There are 4, and the wrong
+              read also produces 4 — all four of KADABRA, MACHOKE, GRAVELER and HAUNTER
+              happen to sit below internal index 152. A validator built on the trade count
+              alone would have passed a table missing every starter in the game.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <dl class="spec" style="margin-top:26px;">
+        <dt>Lives at</dt>
+        <dd>ROM only — no WRAM address. <code>EvosMovesPointerTable</code> at bank <code>$0E</code> <code>$705C</code>; <code>PokedexOrder</code> at file offset <code>$41024</code>, on this cartridge</dd>
+        <dt>Found by</dt>
+        <dd>Property, not by a remembered address: the one offset in the image whose 190 consecutive little-endian words all land in <code>$4000-$7FFF</code> <em>and</em> whose records parse as valid evolution and learnset bytes throughout</dd>
+        <dt>How it was verified</dt>
+        <dd>Re-derived for this page directly from the cartridge image: 190 slots located by that property (a unique hit across all 63 banks), <code>PokedexOrder</code> read back as 39 zero entries and 151 real species, 27 of them above internal index 151 — and every figure in the table above reproduced exactly, both wrong rows and both right ones</dd>
+        <dt>Kind</dt>
+        <dd>Cartridge mechanic, and the trap it sets for every reader of it</dd>
+      </dl>
+    </section>
+
+    <!-- ==================== 3 ==================== -->
+    <section id="nidoran">
+      <div class="sec-head">
+        <h2>03 — Two species share one printable name</h2>
+        <p class="sub">
+          NIDORAN♂ and NIDORAN♀ are two species with two internal indices, two base-stat
+          records and two different learnsets. Their names differ by one gender glyph.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-bd">
+          <p>
+            Any name lookup that normalises away characters outside the alphabet collapses
+            both to <code>NIDORAN</code> and returns whichever the cartridge lists first.
+            There is nothing wrong with that rule; there is something wrong with using a
+            <em>name</em> to identify a species at all. The party stores an internal index,
+            and so does every table in the cartridge.
+          </p>
+          <p>
+            It stayed invisible until a second bug was fixed. A scale-out script filed each
+            plan under a sanitised stem, so one of the two NIDORAN plans was written twice
+            and the other silently never ran — 140 lines planned, 139 files on disk, and a
+            total that looked complete. Giving them distinct filenames exposed the real
+            fault underneath: the female's plan armed a <em>male</em>, which learned HORN
+            ATTACK at level 8 where the plan said SCRATCH.
+          </p>
+          <p>
+            It was settled by reading the species byte the game had actually generated
+            (<code>wPartyMon1Species</code> = 3, the male) beside the plan that had asked
+            for 15. The screen said <code>NIDORAN</code> in both runs and could not have
+            told anybody apart.
+          </p>
+        </div>
+        <div class="card-ft">
+          The rule it earns: anything identifying a Pokémon, a move or a map by its printed
+          name should carry the index beside it. The name is for the reader.
+        </div>
+      </div>
+      <dl class="spec" style="margin-top:26px;">
+        <dt>Lives at</dt>
+        <dd><code>wPartyMon1Species</code> <code>$D16B</code></dd>
+        <dt>How it was verified</dt>
+        <dd>Both lines drill to 6 of 6 events once each is identified by index rather than by name — the male learning HORN ATTACK at level 8 and the female SCRATCH, as the tables say they should</dd>
+        <dt>Kind</dt>
+        <dd>A cartridge fact, and the trap it sets for every name lookup</dd>
+      </dl>
+    </section>
+
+    <!-- ==================== 4 ==================== -->
+    <section id="sightline">
+      <div class="sec-head">
+        <h2>04 — A trainer sees through walls</h2>
+        <p class="sub">
+          Gen 1's trainer detection is a coordinate comparison, not a raycast. It never
+          asks what is between the trainer and the player.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-bd">
+          <p>
+            Cerulean Gym's swimmer stands at <code>(8,7)</code> facing <strong>left</strong>,
+            with <code>(7,7)</code> and <code>(6,7)</code> both solid — the only walkable
+            ground beside him is to his right. He engages anyway, from <code>(5,7)</code>:
+            three tiles away, with two walls in between.
+          </p>
+          <p>
+            It showed up on the first scripted attempt at that gym, when the player crossed
+            open floor three tiles from the swimmer and the battle simply started, with no
+            line of sight the terrain could plausibly have supplied. Reading the engagement
+            check rather than assuming a sight cone settled it: it establishes that the
+            player is somewhere on the row or column the trainer faces, within range, and
+            tests nothing about the tiles the line crosses.
+          </p>
+          <p>
+            A trainer that "sees" through solid tiles is not a bug in the usual sense. The
+            cartridge was never testing occlusion in the first place.
+          </p>
+        </div>
+        <div class="card-ft">
+          Why it generalises: a sweep that blocks a trainer's cone and asks whether the map
+          still connects is the right model for <em>may the player stand here</em>. It is
+          not a model of occlusion, and this entry is the reason none of ours ever assumed
+          a wall between a trainer and a route bought anything.
+        </div>
+      </div>
+      <dl class="spec" style="margin-top:26px;">
+        <dt>Lives at</dt>
+        <dd><code>wXCoord</code> <code>$D362</code> · <code>wYCoord</code> <code>$D361</code> — what the engagement check compares against the trainer's own facing and position</dd>
+        <dt>How it was verified</dt>
+        <dd>Observed live on the cartridge, then confirmed by reading the check itself rather than inferring a cone from the behaviour</dd>
+        <dt>Kind</dt>
+        <dd>Cartridge mechanic</dd>
+      </dl>
+    </section>
+
+    <!-- ==================== 5 ==================== -->
+    <section id="two-levels">
+      <div class="sec-head">
+        <h2>05 — Crossing two levels loses the move between them</h2>
+        <p class="sub">
+          Gen 1 announces one level per battle and checks the learnset for the level it
+          <em>ended</em> on. Skip a boundary and the move belonging to it is never offered,
+          and there is no second chance.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-bd">
+          <p>
+            A level 6 BULBASAUR was pointed at a single level 5 CHANSEY — 182 experience,
+            the highest base-experience Pokémon in the cartridge — to make it learn LEECH
+            SEED at level 7. It reported <code>LEARNER grew to level 8!</code> and offered
+            no learn prompt of any kind. The first version of that drill read this as "the
+            prompt does not fire" and went looking for a bug in itself.
+          </p>
+          <p>
+            Nothing needed fixing. The arithmetic did: start the BULBASAUR at level 12 and
+            feed it two CHANSEY, so that exactly one boundary falls inside the run — 973
+            experience for level 12, +182 → 1155 (still level 12), +182 → 1337, which is
+            level 13 and VINE WHIP.
+          </p>
+        </div>
+        <div class="card-ft">
+          The general rule it earns: when a harness reports that something never happens,
+          check that the harness put the game in a state where it <em>could</em>.
+        </div>
+      </div>
+      <dl class="spec" style="margin-top:26px;">
+        <dt>Lives at</dt>
+        <dd><code>wPartyMon1Level</code> <code>$D18C</code>, and the experience triple below it</dd>
+        <dt>How it was verified</dt>
+        <dd>Measured on the cartridge with the full prompt trace recorded — the failing single-CHANSEY run and the two-CHANSEY run that produces the prompt, side by side</dd>
+        <dt>Kind</dt>
+        <dd>Cartridge mechanic</dd>
+      </dl>
+    </section>
+
+    <section>
+      <div class="provenance">
+        <p>
+          <strong>Where these come from.</strong> Every entry is drawn from the discovery
+          log of an evidence-only Gen 1 memory atlas, which records each finding with its
+          addresses, the messy symptom that produced it, the wrong turns, and the run that
+          settled it. Entries 01 and 02 were additionally re-derived from the cartridge
+          image while this page was written, and both reproduced exactly.
+        </p>
+        <p>
+          <strong>The cartridge.</strong> Pokémon Blue, USA/Europe, SHA-1
+          <code>d7037c83e1ae5b39bde3c30787637ba1d4c48ce2</code>, 1,048,576 bytes. Where a
+          finding is version-specific or region-specific, the entry says so rather than
+          generalising quietly.
+        </p>
+        <p>
+          <strong>This page grows.</strong> New entries are appended as they are found and
+          checked; nothing goes on it that has only been read about.
+        </p>
+      </div>
+
+      <a class="backlink" href="./">← Back to devlog</a>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

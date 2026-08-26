@@ -20,7 +20,9 @@ resource is Google Fonts. It must still work untouched in two years — keep it 
 
 ## Structure
 
-- `index.html` — landing page + post list.
+- `index.html` — landing page: hero, project grid, standing-page cards, post list.
+- `finds.html` · `agentgb-progress.html` · `terminalgb-performance.html` — the standing
+  pages (see **Standing pages**). Root-level, same self-contained shape as a post.
 - `posts/*.html` — one self-contained file per post (each wires its own fonts, CSS,
   masthead, footer). Add a new post's `<li>` to the list in `index.html`.
 - `projects/*.html` — one long-form page per project, same self-contained shape as a post.
@@ -99,6 +101,52 @@ Project pages live in `projects/` and draw their facts from private repos under
   two separate projects.
 - `projects/gbselftest.html` → `gbselftest/`.
 - `projects/terminalgb-portal.html` → `terminalgb-portal/`.
+
+## Standing pages (added 2026-08-27)
+
+Three pages at the repository root accumulate rather than being published once. Each is
+linked from `index.html`'s own `#pages` section and follows the same shape: `.page-hero`
+with a `.hero-facts` strip, a `.toc` card, sections built from `.tiles` / `.card` /
+`dl.spec`, and a closing `.gaps` list plus `.provenance`.
+
+- `finds.html` — Gen 1 cartridge discoveries, one `<section>` per entry, each ending in a
+  `dl.spec` with *lives at* / *how it was verified* / *kind*. Source is atlasgb's
+  `atlases/pokemon-rb/docs/discoveries.md`. **Append entries; do not renumber existing ones**
+  (the `#id` anchors are linked from elsewhere).
+- `agentgb-progress.html` — the arc as a `.timeline`, the current standing, and the honest
+  gaps. Source is agentgb's `docs/progress.md` (stages 0-8, dated) plus `docs/return-leg-adapter.md`
+  and `AGENTS.md` for everything after 24 Aug 2026; `docs/results.md` is **stale** (3 links).
+- `terminalgb-performance.html` — throughput and the feature surface. Source is the gameboy
+  repo's `docs/measured/throughput-baseline.md`, `docs/measured/against-the-field.md` and
+  `docs/status.md` § Abilities. **Every throughput figure must carry its load average** —
+  the same binary reads 0.0581 vs 0.0909 ms/frame between load 0.3 and load 16.
+
+The design-system additions these needed are at the bottom of `main.css` under
+*Extensions for the standing pages*: `.page-hero`/`.hero-facts`, `.toc`, `.sec-head`,
+`.tiles`/`.tile`, `.card`/`.card-hd`/`.card-bd`/`.card-ft`/`.cards`, `a.card`, `.chip`,
+`dl.spec`, `.gaps`, and `figure.scrollfig` (a wide data SVG scrolls sideways under 700px
+instead of shrinking to unreadable — apply it to any SVG wider than about 500px).
+
+## ROM figures re-derived here, and how
+
+Verified against `Pokemon - Blue Version (USA, Europe) (SGB Enhanced).gb` (sha1
+`d7037c83e1ae5b39bde3c30787637ba1d4c48ce2`), which lives under the gameboy repo's
+`target/` — atlasgb ships no ROM. Re-run these before requoting:
+
+- **NINTEN / SONY**: encode `A`-`Z` as `$80`-`$99` with a `$50` terminator and search the
+  whole image — exactly one hit each, at file offsets `0x45AA` and `0x45B1` (= bank 1
+  `$45AA`/`$45B1`, since bank 1 maps 1:1). The 18 bytes from `0x45AA` are what the
+  byte-map figure on `finds.html` is drawn from.
+- **`EvosMovesPointerTable` is at bank `$0E` `$705C`** (file `0x3B05C`), found by property:
+  the unique offset in the whole ROM whose 190 consecutive little-endian words all land in
+  `$4000-$7FFF` *and* whose records parse as valid evolution/learnset bytes. `PokedexOrder`
+  is at file `0x41024`. Parsing gives 580/56 for the naive first-151 read and 728/72 for
+  both the `PokedexOrder`-filtered and the all-190 read — all four figures reproduced.
+- **Suite scores are countable, not quotable.** Every row of the picture-engine table on
+  `terminalgb-performance.html` was counted from the gameboy repo's `testharness/*baseline*.txt`
+  by tallying lines whose value starts `PASS`. `*_accurate_baseline.txt` is the `identical`
+  engine; the bare name is `standard`. `mooneye_baseline.txt` is acceptance + emulator-only
+  pooled (95/103 standard, 103/103 accurate).
 
 ## Images
 

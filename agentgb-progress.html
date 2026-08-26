@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgentGB progress — devlog</title>
+  <meta name="description" content="Where AgentGB has got to, in order, with the number that was true at each point: from a random-walk floor that never leaves Pallet Town to an 18-link chain, a 122,330-weight screen-only student, and the gaps that are still open.">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="AgentGB progress">
+  <meta property="og:description" content="The arc, in order, with the number that was true at each point — and the gaps that are still open.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/agentgb-progress.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="./">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="./#projects">Projects</a>
+        <a href="./#writing">Writing</a>
+        <a href="finds.html">Finds</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="page-hero">
+      <p class="eyebrow">Standing page · AgentGB</p>
+      <h1>AgentGB, over time.</h1>
+      <p class="lead">
+        A neural player that reads nothing but the screen. This page is the arc in order,
+        with the number that was true at each point — and then the ledger of what is
+        still not true. Nothing on it is a plan. Every row is something that was measured
+        and written down at the time.
+      </p>
+      <div class="hero-facts">
+        <span>Student <b>122,330</b> weights</span>
+        <span>Observation <b>4 × 36 × 40</b></span>
+        <span>Actions <b>6</b></span>
+        <span>Longest certified chain <b>16 links</b></span>
+        <span>Updated <b>27 Aug 2026</b></span>
+      </div>
+    </section>
+
+    <section>
+      <div class="toc">
+        <p class="eyebrow">On this page</p>
+        <ol>
+          <li><a href="#standing">Where it stands today</a></li>
+          <li><a href="#floor">The floor it had to beat</a></li>
+          <li><a href="#arc">The arc, stage by stage</a></li>
+          <li><a href="#growth">Chain length, by date</a></li>
+          <li><a href="#rules">Three rules the failures wrote</a></li>
+          <li><a href="#gaps">What is still not true</a></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ STANDING ============ -->
+    <section id="standing">
+      <div class="sec-head">
+        <h2>Where it stands today</h2>
+        <p class="sub">
+          One committed set of weights, named and hashed, driving a sixteen-link chain
+          from a cold boot to the Pokédex in Oak's hand. Every rate below carries the
+          model it belongs to, because a rate with no model name attached is not a
+          verified rate.
+        </p>
+      </div>
+
+      <div class="tiles">
+        <div class="tile">
+          <div class="t-num"><span class="accent">145</span><small>&nbsp;/ 150</small></div>
+          <div class="t-label">Whole 16-link chain, cold boot</div>
+          <div class="t-note">96.67% [92.4–98.6%]. Sampled at T=1.0, gate 0.80, from the bedroom.</div>
+        </div>
+        <div class="tile">
+          <div class="t-num">122,330</div>
+          <div class="t-label">Weights in the shipped file</div>
+          <div class="t-note">118,806 of them the inference core; the rest goal conditioning.</div>
+        </div>
+        <div class="tile">
+          <div class="t-num">6</div>
+          <div class="t-label">Buttons it may press</div>
+          <div class="t-note">From a 4 × 36 × 40 picture. No memory read reaches the policy.</div>
+        </div>
+        <div class="tile">
+          <div class="t-num">0</div>
+          <div class="t-label">Retrains of the base network</div>
+          <div class="t-note">Every fix since the star pupil is an adapter nudging a frozen base.</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:26px;">
+        <div class="card-hd">
+          <p class="kicker">The standing reporting rule</p>
+          <h3>Per starter, every certification, every swarm</h3>
+        </div>
+        <div class="card-bd">
+          <p>
+            The aggregate number is not allowed to stand alone any more, and the reason is
+            on the record: a 26-agent swarm once read 23/26, and every one of the three
+            failures was the same starter. Since then every rate is broken out.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Starter</th>
+                  <th class="num">Completed</th>
+                  <th class="num">Rate</th>
+                  <th class="num">95% interval</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>BULBASAUR</td><td class="num">87 / 90</td><td class="num">96.7%</td><td class="num">90.7–98.9%</td></tr>
+                <tr><td>CHARMANDER</td><td class="num">13 / 13</td><td class="num">100.0%</td><td class="num">77.2–100.0%</td></tr>
+                <tr><td>SQUIRTLE</td><td class="num">45 / 47</td><td class="num">95.7%</td><td class="num">85.8–98.8%</td></tr>
+                <tr><td><strong>All</strong></td><td class="num"><strong>145 / 150</strong></td><td class="num"><strong>96.7%</strong></td><td class="num"><strong>92.4–98.6%</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            No starter anywhere near zero, all three intervals overlapping heavily. The
+            starter itself is the student's own choice and is read back off the cartridge
+            by the harness — the network never sees which one it took.
+          </p>
+        </div>
+        <div class="card-ft">
+          N=150 cold boots. Not this project's usual 3,000-attempt convention, and stated
+          so the number is not mistaken for one — 150 clean runs bound a failure rate near
+          2%, not 0.1%.
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-hd">
+          <p class="kicker">What it chooses when nobody forces it</p>
+          <h3>A real three-way starter split, measured on the shipped weights</h3>
+        </div>
+        <div class="card-bd">
+          <p>
+            An earlier generation of this student collapsed at the entry tile — one button
+            at probability 1.0000, zero bits of entropy, the same starter every single
+            boot. The committed weights do not. At the chain's own entry state the first
+            decision carries <strong>0.992 bits</strong> of entropy, and over 500 sampled
+            attempts the outcome is genuinely three-way:
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>BULBASAUR</th><th>CHARMANDER</th><th>SQUIRTLE</th><th class="num">Reached the goal</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>254 (50.8%)</td><td>118 (23.6%)</td><td>127 (25.4%)</td><td class="num">499 / 500 = 99.8%</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            This is the honest learned distribution, not a broken selection mechanism.
+            It also does not mean Bulbasaur's roughly two-to-one edge is <em>desirable</em>
+            — it is a property of one training draw on a network with a measured 23-point
+            run-to-run band. But "push harder on the corpus at this one decision" is not
+            the fix, because the decision is already reading real signal.
+          </p>
+        </div>
+        <div class="card-ft">
+          <code>models/pixel-student.npz</code> · sha256 <code>b2bb7908…7262c109</code> ·
+          N=500, sampled T=1.0, gate 0.80
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FLOOR ============ -->
+    <section id="floor">
+      <div class="sec-head">
+        <h2>The floor it had to beat</h2>
+        <p class="sub">
+          Before anything was trained, the opposite of a trained agent was measured, so
+          that every later number would have something to be better than.
+        </p>
+      </div>
+
+      <div class="fig-pair">
+        <div>
+          <p class="cap">Twenty-four Game Boys · <span class="accent">no learning at all</span></p>
+          <figure class="pixel">
+            <img src="assets/img/agentgb/swarm-baseline.png"
+                 alt="Twenty-four small Game Boy views stacked in a column, each showing a separate emulator instance at its own world position after ten emulated minutes of random button presses; nearly all of them are still inside Pallet Town.">
+            <figcaption>
+              Twenty-four emulated Game Boys, one save state, ten emulated minutes each.
+              Every instance draws a different button schedule from the same stream so that
+              they diverge — no rewards, no goals, no training. The backgrounds are captured
+              out of the running cartridge.
+            </figcaption>
+          </figure>
+        </div>
+        <div>
+          <p class="cap">What the floor actually reads</p>
+          <div class="card">
+            <div class="card-bd">
+              <dl class="spec">
+                <dt>Still in Pallet Town</dt>
+                <dd><strong>54.97%</strong> of samples, after ten emulated minutes</dd>
+                <dt>Northern Route 1</dt>
+                <dd>Empty in <strong>every</strong> frame</dd>
+                <dt>Reached Viridian City</dt>
+                <dd><strong>No agent, ever</strong> — not here, and not in a longer control</dd>
+                <dt>Concentration</dt>
+                <dd><strong>5%</strong> of the tiles visited hold <strong>37%</strong> of the time</dd>
+              </dl>
+              <p style="margin-top:20px;">
+                Route 1's ledges are a one-way valve: a random walk drifts south through
+                them and cannot climb back. That is the shape of the problem, and it is why
+                "the agent reached Viridian City" is a claim worth making at all.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ARC ============ -->
+    <section id="arc">
+      <div class="sec-head">
+        <h2>The arc, stage by stage</h2>
+        <p class="sub">
+          Dates begin on 16 August 2026, where this repository's history begins. The
+          stages before that are ordered but not dated — inventing a date would be exactly
+          the kind of tidying this project refuses.
+        </p>
+      </div>
+
+      <div class="timeline wide">
+
+        <div class="tl-item">
+          <div class="tl-date">Stage 0 · undated</div>
+          <p class="tl-title">The floor, measured before anything else</p>
+          <p>
+            Twenty-four emulated Game Boys on a decorrelated random walk. Nobody reaches
+            Viridian City. Published because a target with nothing under it is not a target.
+          </p>
+          <p class="tl-detail"><b>0</b> agents leave the first town</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">Stage 1 · undated</div>
+          <p class="tl-title">The cartridge keeps its own score</p>
+          <p>
+            The reward substrate: success is a byte the cartridge writes, read out of the
+            machine at the moment a goal is claimed, with host-enforced no-memory-writes so
+            nothing the policy does can make that byte lie.
+          </p>
+          <p class="tl-detail"><b>2,660</b> tiered tests, generated from a pinned atlas</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">Stage 2 · undated</div>
+          <p class="tl-title">The teacher walks to Cerulean City</p>
+          <p>
+            A scripted expert that solves the route it is pointed at. Not the product —
+            the thing a student is trained to imitate, and the yardstick every student
+            failure is measured against.
+          </p>
+          <p class="tl-detail">cold cartridge → Cerulean City · <b>26 links</b> · 1 m 44 s</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">Stage 3 · undated</div>
+          <p class="tl-title">The first trained thing</p>
+          <p>
+            A student on a feature vector — reading structured game state, not pixels.
+            Three links, certified hard, and two of its own published numbers corrected in
+            the same pass.
+          </p>
+          <p class="tl-detail">100% · 100% · 99.8% at <b>3,000</b> attempts each</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">Stage 4 · 16 Aug 2026</div>
+          <p class="tl-title">A network that sees the screen<span class="status">screen only</span></p>
+          <p>
+            The features go away. From here on the policy gets a 4 × 36 × 40 picture and
+            nothing else — no coordinates, no map id, no memory read of any kind.
+          </p>
+          <p class="tl-detail"><b>5 links</b> · 300/300 cold boots</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">Stage 5 · 17 Aug 2026</div>
+          <p class="tl-title">The first fight, on three foreign emulators</p>
+          <p>
+            The rival battle, and the same weights driven on emulators this project did not
+            write. Reaching a milestone and <em>winning</em> the fight are separated in the
+            reporting, because the cartridge sets the milestone whoever won.
+          </p>
+          <p class="tl-detail"><b>6 links</b> · 300/300 reached · <b>245/300</b> won</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">Stage 6 · 18 Aug 2026</div>
+          <p class="tl-title">The day that added nothing, and was necessary</p>
+          <p>
+            No new links. A day spent proving that two numbers this project had already
+            published were not readable — and finding a run-to-run training band nobody had
+            controlled for. Stages 7 and 8 are trustworthy because of it.
+          </p>
+          <p class="tl-detail">a <b>23-point</b> band between identical training runs</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">Stage 8 · 19 Aug 2026</div>
+          <p class="tl-title">Out of Pallet Town, into Viridian City</p>
+          <p>
+            Nine links end to end from a cold boot — the floor's own impossible result,
+            reached from a starting point of 7 runs in 300.
+          </p>
+          <p class="tl-detail"><b>9 links</b> · <b>300/300</b> cold boots, up from 7/300</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">24 Aug 2026</div>
+          <p class="tl-title">Adapters instead of retrains<span class="status">frozen base</span></p>
+          <p>
+            Two failures that had nothing to do with walking — a nickname prompt and a
+            trainer battle — were fixed without touching the base network, by small learned
+            nudges that fire only when their own recogniser sees their own screen. This is
+            the mechanism everything after it is built on.
+          </p>
+          <p class="tl-detail">base weights proven <b>byte-identical</b> before and after every adapter</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">25 Aug 2026</div>
+          <p class="tl-title">The star pupil is committed, and runs on somebody else's emulator</p>
+          <p>
+            One named, hashed file becomes the thing that ships, exported to ONNX and driven
+            through the opening chain on mGBA's libretro core from a genuine cold power-on —
+            every matrix multiply through a foreign runtime, none through our own.
+          </p>
+          <p class="tl-detail"><b>11 milestones</b> · 578 decisions · seed 0 · mGBA</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">25–26 Aug 2026</div>
+          <p class="tl-title">The route doubles back, and a text trigger solves it</p>
+          <p>
+            Viridian City and Route 1 are each crossed twice, in opposite directions, and a
+            screen-only policy provably cannot tell the crossings apart. A recogniser on the
+            cartridge's own announcement latches a different behaviour instead.
+          </p>
+          <p class="tl-detail"><b>16 links</b> · both doubling-back rooms <b>100.0%</b> · whole chain 145/150</p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">26 Aug 2026</div>
+          <p class="tl-title">Eighteen links attempted — and reported short<span class="status">not certified</span></p>
+          <p>
+            Two more links past the Pokédex, driven by a second latched stage with no
+            trained nudge at all. Two independent N=16 draws read 13/16 and then 9/16, and a
+            third mechanism layered on to help made it measurably worse. Left as it measured.
+          </p>
+          <p class="tl-detail">18 links · <b>13/16</b>, then <b>9/16</b> · the helper retired from the default</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ GROWTH ============ -->
+    <section id="growth">
+      <div class="sec-head">
+        <h2>Chain length, by date</h2>
+        <p class="sub">
+          How far one cold boot gets, and what it was measured at each time. The last bar
+          is drawn open because it is an attempt, not a certification.
+        </p>
+      </div>
+      <figure class="scrollfig" aria-labelledby="fig-chain-cap">
+        <svg viewBox="0 0 720 320" role="img" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
+          <style>
+            .ax  { stroke: var(--hairline); stroke-width: 1; }
+            .grd { stroke: var(--hairline-2); stroke-width: 1; }
+            .bar { fill: var(--accent); opacity: .22; }
+            .bab { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+            .bar.p { opacity: .10; }
+            .bab.p { stroke-dasharray: 4 3; }
+            .val { fill: var(--ink); font-size: 14px; font-weight: 700; }
+            .dat { fill: var(--ink-soft); font-size: 10.5px; letter-spacing: .04em; }
+            .rat { fill: var(--ink-soft); font-size: 9.5px; }
+            .yl  { fill: var(--ink-soft); font-size: 10px; }
+          </style>
+          <line x1="44" y1="246.0" x2="710" y2="246.0" class="ax"/>
+          <text x="34" y="249.5" text-anchor="end" class="yl">0</text>
+          <line x1="44" y1="193.0" x2="710" y2="193.0" class="grd"/>
+          <text x="34" y="196.5" text-anchor="end" class="yl">5</text>
+          <line x1="44" y1="140.0" x2="710" y2="140.0" class="grd"/>
+          <text x="34" y="143.5" text-anchor="end" class="yl">10</text>
+          <line x1="44" y1="87.0" x2="710" y2="87.0" class="grd"/>
+          <text x="34" y="90.5" text-anchor="end" class="yl">15</text>
+          <line x1="44" y1="34.0" x2="710" y2="34.0" class="grd"/>
+          <text x="34" y="37.5" text-anchor="end" class="yl">20</text>
+          <text x="34" y="20" text-anchor="end" class="yl">links</text>
+          <rect x="63.0" y="193.0" width="57.1" height="53.0" class="bar"/>
+          <rect x="63.0" y="193.0" width="57.1" height="53.0" class="bab"/>
+          <text x="91.6" y="184.0" text-anchor="middle" class="val">5</text>
+          <text x="91.6" y="264.0" text-anchor="middle" class="dat">16 Aug</text>
+          <text x="91.6" y="279.0" text-anchor="middle" class="rat">300/300</text>
+          <rect x="158.2" y="182.4" width="57.1" height="63.6" class="bar"/>
+          <rect x="158.2" y="182.4" width="57.1" height="63.6" class="bab"/>
+          <text x="186.7" y="173.4" text-anchor="middle" class="val">6</text>
+          <text x="186.7" y="264.0" text-anchor="middle" class="dat">17 Aug</text>
+          <text x="186.7" y="279.0" text-anchor="middle" class="rat">300/300 reached</text>
+          <rect x="253.3" y="150.6" width="57.1" height="95.4" class="bar"/>
+          <rect x="253.3" y="150.6" width="57.1" height="95.4" class="bab"/>
+          <text x="281.9" y="141.6" text-anchor="middle" class="val">9</text>
+          <text x="281.9" y="264.0" text-anchor="middle" class="dat">19 Aug</text>
+          <text x="281.9" y="279.0" text-anchor="middle" class="rat">300/300</text>
+          <rect x="348.5" y="129.4" width="57.1" height="116.6" class="bar"/>
+          <rect x="348.5" y="129.4" width="57.1" height="116.6" class="bab"/>
+          <text x="377.0" y="120.4" text-anchor="middle" class="val">11</text>
+          <text x="377.0" y="264.0" text-anchor="middle" class="dat">25 Aug</text>
+          <text x="377.0" y="279.0" text-anchor="middle" class="rat">committed + on mGBA</text>
+          <rect x="443.6" y="76.4" width="57.1" height="169.6" class="bar"/>
+          <rect x="443.6" y="76.4" width="57.1" height="169.6" class="bab"/>
+          <text x="472.1" y="67.4" text-anchor="middle" class="val">16</text>
+          <text x="472.1" y="264.0" text-anchor="middle" class="dat">25 Aug</text>
+          <text x="472.1" y="279.0" text-anchor="middle" class="rat">21/26</text>
+          <rect x="538.7" y="76.4" width="57.1" height="169.6" class="bar"/>
+          <rect x="538.7" y="76.4" width="57.1" height="169.6" class="bab"/>
+          <text x="567.3" y="67.4" text-anchor="middle" class="val">16</text>
+          <text x="567.3" y="264.0" text-anchor="middle" class="dat">26 Aug</text>
+          <text x="567.3" y="279.0" text-anchor="middle" class="rat">145/150</text>
+          <rect x="633.9" y="55.2" width="57.1" height="190.8" class="bar p"/>
+          <rect x="633.9" y="55.2" width="57.1" height="190.8" class="bab p"/>
+          <text x="662.4" y="46.2" text-anchor="middle" class="val">18</text>
+          <text x="662.4" y="264.0" text-anchor="middle" class="dat">26 Aug</text>
+          <text x="662.4" y="279.0" text-anchor="middle" class="rat">13/16</text>
+          <text x="662.4" y="291.0" text-anchor="middle" class="rat">then 9/16</text>
+        </svg>        <figcaption id="fig-chain-cap">
+          <strong>Links completed from a cold boot, with the figure recorded at the
+          time.</strong> The two bars on 25 August are the same day: eleven links committed
+          and portable in the morning, sixteen with the return leg wired in by the evening
+          at 21/26. The 26 August pair are the sixteen-link certification (145/150) and the
+          eighteen-link attempt that has not earned a certification. Drawn from the dated
+          measurements listed above; every one of them is a real recorded run.
+        </figcaption>
+      </figure>
+
+      <figure class="pixel" style="margin-top:26px;">
+        <img src="assets/img/agentgb/pixel-student-nine-milestones.png"
+             alt="A sheet of nine Game Boy screenshots in a three-by-three grid, each captioned with a milestone name, the decision number it fired on, and the memory condition the cartridge used to set it — from leaving the bedroom to crossing Route 1.">
+        <figcaption>
+          <strong>Stage 8, as it was captured at the time.</strong> Each frame is the exact
+          instant the cartridge set that milestone's own byte, driven by the screen-only
+          student live from a power-on. The seventh panel is dark because leaving a building
+          fires the map register mid-warp — the coordinates are still the old map's, which
+          is why an exit state is settled before the next link starts from it. The parameter
+          count printed on the sheet belongs to <em>that</em> student, not to the one that
+          ships today.
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- ============ RULES ============ -->
+    <section id="rules">
+      <div class="sec-head">
+        <h2>Three rules the failures wrote</h2>
+        <p class="sub">
+          Each of these came out of something going wrong in a way that the obvious summary
+          number would have hidden.
+        </p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Rule one</p>
+            <h3>A rate with no model name attached is not a verified rate</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              This repository names its models. A number quoted without its
+              <code>.npz</code> identity has been separated from the only thing that makes
+              it re-runnable — and separated numbers drift. Every rate on this page carries
+              the file it was measured on.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Rule two</p>
+            <h3>Report per starter, on everything</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              A swarm that read 88.5% was hiding a split of 21/21, 2/2 and 0/3. The
+              aggregate was fine; one whole third of the population was failing every time.
+              Nothing about the headline said so.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Rule three</p>
+            <h3>More epochs is not a fix for a blind tile</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              A junction the student got wrong stayed wrong across two independent training
+              draws — more epochs, more corpus, different seed, identical failure. That is
+              a competence gap in one place, not seed noise, and it needs a different
+              answer.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ GAPS ============ -->
+    <section id="gaps">
+      <div class="sec-head">
+        <h2>What is still not true</h2>
+        <p class="sub">
+          Momentum is not the same as arrival, so this page ends with the ledger rather
+          than the highlight.
+        </p>
+      </div>
+
+      <ul class="gaps">
+        <li>
+          <b>Sixteen links is the game's opening, not the game.</b> The chain ends with the
+          Pokédex in hand, in the second town. Everything after that is unbuilt.
+        </li>
+        <li>
+          <b>The eighteen-link chain is not certified and is not close.</b> Two independent
+          N=16 draws read 13/16 and 9/16. On the new stage the split by starter is
+          SQUIRTLE 4/12 against BULBASAUR 17/18 — reproduced across both draws, not chased
+          to a cause.
+        </li>
+        <li>
+          <b>Part of that is the room, not the student.</b> The new link's own teacher —
+          the scripted expert, not a network — solves only <b>620 of 800</b> episodes in its
+          own corpus, with several held-out tiles dead at 16/16. That is a navigation trap
+          in the map, and it puts a ceiling under anything trained on it.
+        </li>
+        <li>
+          <b>The corpus-bias question cannot be answered from what is on disk.</b> No corpus
+          this project writes records which starter a rollout was playing. The honest
+          substitute was measured instead, and the limit is stated rather than worked
+          around.
+        </li>
+        <li>
+          <b>Exact recorded seeds do not replay.</b> Inference-time floating-point
+          non-associativity across BLAS-thread configurations flips a near-tie early in a
+          long sampled trajectory and the whole run diverges — so a per-decision replay is
+          not evidence about the specific episode it was meant to explain, and is not
+          quoted as such.
+        </li>
+        <li>
+          <b>N=150 is not N=3,000.</b> The headline certification bounds failure near 2%,
+          not 0.1%. The 3,000-attempt convention exists for a reason and this run did not
+          meet it.
+        </li>
+        <li>
+          <b>The foreign-emulator sweep is behind the student.</b> The mGBA run covers the
+          eleven-link opening. Nothing portable has been re-run at sixteen.
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <div class="provenance">
+        <p>
+          <strong>Where these numbers come from.</strong> Every rate on this page was
+          produced by this project's own certification and swarm tooling against a named
+          weights file, and each is recorded in the source repository beside the command
+          that produced it, its sample size, its temperature and its confidence interval.
+          Where a figure belongs to an earlier student, the page says so rather than
+          letting it stand for the current one.
+        </p>
+        <p>
+          <strong>Two things deliberately not claimed.</strong> Percentages are never
+          converted into an overall "accuracy", and a milestone reached is never reported as
+          a fight won — the cartridge sets the milestone either way, and the two are counted
+          separately everywhere they appear.
+        </p>
+      </div>
+
+      <p class="note" style="margin-top:24px;">
+        The mechanism behind the sixteen-link result has its own write-up:
+        <a href="posts/the-doubling-back-wall.html">the doubling-back wall</a>. The
+        per-starter rule came out of
+        <a href="posts/every-failure-was-the-same-starter.html">watching a swarm film</a>.
+        The network itself is on the <a href="projects/agentgb.html">AgentGB project page</a>.
+      </p>
+
+      <a class="backlink" href="./">← Back to devlog</a>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>
