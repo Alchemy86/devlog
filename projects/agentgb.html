@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AgentGB — devlog</title>
-  <meta name="description" content="AgentGB: a 118,806-parameter network that plays Pokémon Blue from the screen alone, trained by imitation. Updates, milestones and honest failures.">
+  <meta name="description" content="AgentGB teaches a 118,806-parameter network to play Pokémon Blue from the 160x144 screen alone — picture in, button out. The interesting part is not the network; it is what happened when the project turned its instruments on its own published numbers.">
   <meta name="color-scheme" content="light dark">
   <meta property="og:type" content="website">
   <meta property="og:title" content="AgentGB — devlog">
@@ -31,14 +31,14 @@
   <main class="container">
 
     <header class="post-header">
-      <p class="eyebrow">Project · Neural agent</p>
+      <p class="eyebrow">Project · Machine learning</p>
       <h1>AgentGB</h1>
       <p class="lead">
         Teaching a small local network to play Pokémon Blue from the screen alone — a
-        picture in, a button out, at effectively zero inference cost. One network of
-        118,806 parameters, given nothing but the 160×144 image, powers on a retail
-        cartridge and works its way from the bedroom out onto Route 1. This is the log of
-        how far it gets, and the single missing skill that stops it going further.
+        picture in, a button out, on any emulator, at zero inference cost. Pokémon Blue has
+        already been beaten by AI. It was beaten <em>expensively</em>, by a frontier model
+        reading a text description of the game through a Lua bridge into one specific
+        emulator. This project is about the part nobody has done.
       </p>
     </header>
 
@@ -46,180 +46,555 @@
       <div class="metrics">
         <div class="metric">
           <div class="num">118,806</div>
-          <div class="label">Parameters, whole network</div>
+          <div class="label">Parameters, inference core</div>
         </div>
         <div class="metric">
-          <div class="num">177<span style="color:var(--ink-soft)">/300</span></div>
-          <div class="label">Nine-link chain · ball3b-s0, argmax</div>
+          <div class="num">40×36</div>
+          <div class="label">The whole of its input</div>
         </div>
         <div class="metric">
-          <div class="num"><span class="accent">123</span></div>
-          <div class="label">Failures — every one on Route 1</div>
+          <div class="num">6</div>
+          <div class="label">Possible outputs</div>
         </div>
         <div class="metric">
-          <div class="num">499<span style="color:var(--ink-soft)">/500</span></div>
-          <div class="label">Takes a starter — shipped weights</div>
+          <div class="num"><span class="accent">0</span></div>
+          <div class="label">Bytes of cartridge memory it may read</div>
         </div>
       </div>
       <p class="note" style="margin-top:14px;">
-        The nine-link chain is one cold boot to Viridian City, nine milestones, seed 0, screen only, no state
-        loads. That 177/300 was measured on <code>ball3b-s0</code> under <strong>argmax</strong>, not sampling —
-        and under argmax the entry decision reads <code>right</code> at probability 1.0000, so all 300 boots take
-        the same starter. The 499/500 is the current committed
-        <code>models/pixel-student.npz</code> on the <code>take-a-starter</code> link, 500 runs sampled at T=1.0.
+        Counted directly out of the committed weights file
+        <code>models/pixel-student.npz</code> (sha256 <code>b2bb7908…</code>) — the arithmetic
+        is in the provenance note at the foot of this page.
       </p>
     </section>
 
     <section class="prose">
-      <h2>What it is</h2>
+      <h2>Two jobs, and only one of them is a learning problem</h2>
       <p>
-        AgentGB is a small convolutional network — three strided convolutions and a dense
-        layer, 118,806 parameters in total — that plays from perception alone. It sees
-        four consecutive frames of the screen, reduced to a 40×36 grid of four ink levels,
-        and returns one of six buttons. <strong>No memory read of any kind reaches it;</strong>
-        it is looking at the same pixels a person would.
+        Reinforcement learning on this problem asks one network to learn two different jobs at
+        once — <em>where to go</em> and <em>what am I looking at</em> — both from the same
+        scalar reward. AgentGB splits those apart and gives each one the tool that is already
+        good at it.
       </p>
+      <ul>
+        <li>
+          <strong>Where to go is a search problem, and search is solved.</strong> A
+          shortest-path algorithm over a walkable graph does it. No network is asked to
+          rediscover pathfinding.
+        </li>
+        <li>
+          <strong>What am I looking at is a perception problem, and perception is what networks
+          are good at.</strong> A network does that, and only that.
+        </li>
+      </ul>
       <p>
-        It is trained by imitation, not reinforcement — there is no reward and no
-        exploration. A privileged scripted <em>teacher</em>, which is allowed to read
-        memory and run shortest-path search, plays the game first; its play is recorded as
-        a corpus, and a separate training run turns that corpus into the <em>student</em>.
-        The student is what ships; the teacher is scaffolding and is not evidence about the
-        model. Splitting <em>where to go</em> (the teacher's search) from <em>what am I
-        looking at</em> (the network's perception) is why the player is 118,806 parameters
-        rather than millions.
+        That is where the numbers come from. The student never has to work out where to go —
+        the training label already answers it — so its entire job is to <em>see</em>, which is
+        a far smaller problem than the one an end-to-end agent is handed. It is why the shipped
+        player is a hundred thousand parameters rather than millions.
       </p>
-    </section>
-
-    <section class="prose">
-      <h2>The number we can stand behind</h2>
       <div class="callout">
-        <p class="eyebrow">Re-runnable only</p>
+        <p class="eyebrow">The price, in the same breath as the benefit</p>
         <p>
-          The 300/300 nine-link headline this project used to lead with was measured on
-          <code>fix9s0</code> — a student that always took Charmander, was never committed, and no longer
-          exists on any disk. It cannot be re-run, so it is not a number we quote. The best committed
-          figure is <strong>177 of 300 cold boots (59%)</strong>, and it belongs to <code>ball3b-s0</code>.
-          Being straight about the rest: the student shipping today is several training generations
-          past <code>ball3b-s0</code>, and <strong>no later arm has been given its own N=300 chain
-          run</strong> — so 177/300 is the last honest chain measurement, not a current one. We would
-          rather publish a stale number and say it is stale than a flattering one we cannot reproduce.
+          The split works only because the teacher half is allowed what the student never is:
+          the cartridge's memory, and a map walked in advance. An end-to-end agent needs
+          neither. That is the trade this design makes, and it is stated on the project's own
+          front page above every result rather than in a footnote below them.
+        </p>
+      </div>
+      <p>
+        The split itself is not novel either, and the project says so and credits the prior art
+        at length: the PokéAgent Challenge's winning entry decomposes a route into subgoals with
+        executable success conditions, solves each with a scripted policy and distils the result
+        into a network; the third-place entry paired deterministic pathfinding with a language
+        model for everything else. Two of the top three split the same seam.
+      </p>
+
+      <figure class="code">
+        <pre><code> ┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+ │ THE TEACHER  │───►│  THE CORPUS  │───►│   TRAINING   │───►│ THE STUDENT  │
+ ├──────────────┤    ├──────────────┤    ├──────────────┤    ├──────────────┤
+ │ a scripted   │    │ one pair per │    │ behavioural  │    │ the screen   │
+ │ program that │    │ decision:    │    │ cloning, and │    │ in, one      │
+ │ reads the    │    │ the screen   │    │ then DAgger  │    │ button out   │
+ │ cartridge's  │    │ seen and the │    │ rounds on    │    │              │
+ │ memory       │    │ button taken │    │ top of it    │    │              │
+ ├──────────────┤    ├──────────────┤    ├──────────────┤    ├──────────────┤
+ │ plays FIRST  │    │ a file, not  │    │ where the    │    │ THE          │
+ │ our emulator │    │ a player, no │    │ weights are  │    │ DELIVERABLE  │
+ │ only         │    │ weights in it│    │ made         │    │ any emulator │
+ └──────────────┘    └──────────────┘    └──────────────┘    └──────────────┘</code></pre>
+        <figcaption>
+          Three steps, not two. The teacher does not produce the weights — it produces
+          <em>data</em>, and a separate training run produces the weights from the data. Nothing
+          the teacher knows reaches the student except as pictures and buttons. Three quarters
+          of the collection runs are the teacher's and a quarter a random driver, because a
+          competent teacher never produces the picture of facing a wall.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="prose">
+      <h2>What the student actually sees</h2>
+    </section>
+
+    <figure class="pixel">
+      <img src="../assets/img/agentgb/pixel-observation.png" width="1472" height="928"
+           alt="Three frames of Pallet Town in a top row, each showing the 160 by 144 Game Boy screen with buildings, fences and grass. Beneath each, a much coarser 40 by 36 grid of four ink levels, blown back up to the same size, in which buildings and fences are still recognisable but people are only small dark blobs.">
+      <figcaption>
+        Top row: what the emulator draws. Bottom row: the <strong>whole</strong> of the
+        student's input, blown back up so the two can be compared — a 4×4 mean pool of the
+        160×144 picture, four ink levels, four frames stacked. Regenerated by
+        <code>agentgb pixelcheck</code>; the file's own metadata records the input shape as
+        <code>[4, 36, 40]</code>.
+      </figcaption>
+    </figure>
+
+    <section class="prose">
+      <p>
+        Fences, buildings and tall grass survive the reduction and stay distinct from each
+        other. People survive as small dark blobs — <strong>visible</strong>, which is the point
+        of pooling 4×4 rather than 8×8, and <strong>only just</strong>, which is a real limit of
+        this observation and is written up as one rather than glossed.
+      </p>
+      <p>
+        There is one measurement that makes the case for pixels better than any argument about
+        representation. An earlier student read the cartridge's memory as a feature vector.
+        Letting the map's own people wander for up to 3,000 frames before an episode starts —
+        rather than the 0–96 frames a state pool frozen from one traversal gives you — took that
+        student from <strong>100 % to 52.7 %</strong> on the same policy at the same tile, 150
+        attempts. A person standing in the way is <em>drawn</em>. It does not need a feature
+        describing them, and the screen-only student pays nothing measurable for the same
+        perturbation: across the nine chain links, at 3,000 attempts in each spread, the wide and
+        narrow counts are identical link for link, with one exception — the off-chain catch in Mt
+        Moon, 2,585 wide against 2,633 narrow.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>Where the parameters actually are</h2>
+    </section>
+
+    <figure class="narrow" style="margin-inline:auto;">
+      <img src="../assets/img/agentgb/pixel-network.png" width="1240" height="2771"
+           alt="A tall technical diagram of the student network. From the top: a real 160 by 144 Game Boy frame, a 4 by 4 mean pool, a 40 by 36 four-ink grid, a four-frame stack, then three convolution layers each with its output shape, kernel, stride and parameter count and a strip of that frame's own feature maps beside it, then a dense layer, a 128-unit trunk and a six-way output with a bar chart of the softmax probabilities the network produced on that frame.">
+      <figcaption>
+        The student, drawn. Three things on this sheet are real rather than illustrative: the
+        <strong>feature maps</strong> beside each convolution are that frame's own activations as
+        the student computed them; the <strong>six bars</strong> at the bottom are the softmax it
+        actually produced on that frame; and the shapes and counts are read off a live policy
+        object, not typed in, so the sheet cannot drift from the code. Regenerated by
+        <code>tools/draw_network.py</code>.
+      </figcaption>
+    </figure>
+
+    <section class="prose">
+      <p>
+        The thing a reader usually does not expect is the shape of the bars.
+        <strong>86 % of the model is the single dense layer</strong> between the last convolution
+        and the 128-unit trunk — 102,400 weights of 118,806. The three convolutions together are
+        13 %. The perception machinery everybody pictures when they hear "convolutional network"
+        is the cheap part; the expensive part is the flattening.
+      </p>
+      <p>
+        The file that ships is a little larger than the inference core, because it is
+        goal-conditioned: on top of the 118,806 it carries a 5×32 pair of conditioning
+        coefficients and a four-way goal head, so the network can derive which part of the chain
+        it is in rather than being told. That is 122,330 weights and one metadata string —
+        counted, not quoted, from the committed file.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The floor: what no learning at all looks like</h2>
+      <p>
+        Before any result means anything there has to be something to beat, and it has to be
+        measured on the same rig rather than assumed.
+      </p>
+    </section>
+
+    <figure class="narrow" style="max-width:392px;margin-inline:auto;">
+      <img src="../assets/img/agentgb/swarm-baseline.png" width="352" height="926"
+           alt="A tall map of Pallet Town and Route 1 captured from a running cartridge, overlaid with many small coloured dots marking the positions of twenty-four independent emulated Game Boys. The dots are densely clustered in Pallet Town at the bottom and thin out going north, with none at all in the northern half of the route.">
+      <figcaption>
+        Twenty-four emulated Game Boys, one save state, ten emulated minutes each. Every coloured
+        dot is a separate instance at its own world position; the backgrounds are captured out of
+        the running cartridge. <strong>These agents are not learning</strong> — the policy is a
+        decorrelated random walk, each instance drawing a different button schedule from the same
+        stream so they diverge, and that is the whole of it. No rewards, no goals, no training,
+        and no weights of any kind involved.
+      </figcaption>
+    </figure>
+
+    <section class="prose">
+      <p>
+        The floor, measured on this rig and reproducible from a seed:
+      </p>
+      <ul>
+        <li><strong>54.97 %</strong> of samples are still in Pallet Town after ten minutes;</li>
+        <li>the <strong>northern half of Route 1 is empty in every frame</strong>;</li>
+        <li><strong>no agent ever reaches Viridian City</strong> — not here, and not in a longer control;</li>
+        <li><strong>5 % of the tiles visited hold 37 % of the time.</strong></li>
+      </ul>
+      <p>
+        And the reason is a property of the cartridge, not of the policy: <strong>Route 1's
+        ledges are a one-way valve.</strong> A random walk drifts south through them and cannot
+        climb back — the same mechanism <a href="atlasgb.html">AtlasGB</a> measured on Viridian
+        City's row 27, at scale, with 42 one-way drops on Route 1 alone. Determinism is tested
+        both ways: the same seed in two separate processes produces byte-identical images, a
+        different seed does not.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>A rate with no model name attached is not a verified rate</h2>
+      <p>
+        This is the section the rest of the page depends on, and it is not about machine learning
+        at all.
+      </p>
+      <p>
+        On 21 August 2026, in one evening, this project reported a rate to the captain as
+        belonging to the committed network when it did not — twice. Once because a results page
+        never named which weights produced its headline. Once because a sampling result measured
+        on one student was carried onto a different one. Both reports were plausible, both were
+        wrong, and nothing in the repository could have caught either.
+      </p>
+      <div class="pullquote">
+        <p>The fix is not "be more careful next time"; it is a check that fails a build the same
+          way it failed the captain.</p>
+        <cite><code>tools/docs_check.py</code>, its own docstring</cite>
+      </div>
+      <p>
+        A page opts in by carrying a literal marker in its first forty lines. Every Markdown table
+        on an opted-in page that contains a percentage-looking cell is then a <em>rate table</em>,
+        and each one independently must carry one of: a per-row attribution column headed
+        <code>student</code>, <code>policy</code>, <code>network</code>, <code>model</code>,
+        <code>arm</code> or <code>tag</code>; a weights filename in its own rows; or the literal
+        word <em>unattributed</em>. A short, bounded look-back above the table counts, so a caption
+        directly above one still works.
+      </p>
+      <p>
+        The opt-in is deliberate. Most tables in the repository are about the <em>teacher</em> — a
+        scripted program, never versioned by weights — or about cartridge mechanics, and neither
+        has this ambiguity. Only pages reporting a trained network's own success rate need to say
+        which network.
+      </p>
+      <p>
+        The best part is the bug in the checker itself. An earlier version carried a sticky
+        "have we seen a model name anywhere in this file yet" flag — which meant a single mention
+        in a page's opening paragraph made every table below it, no matter how far below and no
+        matter what it was about, unfailable. That was caught by <strong>deleting a real table's
+        attribution column and watching the check still pass.</strong> Each table is now judged on
+        its own.
+      </p>
+      <p class="note">
+        The general lesson this repository draws from it, and the reason this page carries a model
+        name beside almost every figure: <strong>this project names its models, and a rate without
+        a model name attached is not a verified rate.</strong>
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>What the committed student actually does, measured directly</h2>
+      <p>
+        A worked example of the rule above, because it also overturned an assumption.
+      </p>
+      <p>
+        The obvious explanation for the starter distribution the shipped student produces was that
+        an earlier corpus-balancing fix explains it. That answer was given before anyone checked
+        whether the current weights were trained on the balanced corpus at all — so it was checked,
+        two candidate explanations at a time.
+      </p>
+      <p>
+        <strong>Candidate one, confirmed:</strong> the training history records which corpus each
+        link's gradient came from, and the file's SHA-256 is byte-identical to the balanced one.
+        <strong>Candidate two, refuted:</strong> the entropy at the chain's entry state is not the
+        near-zero collapse an earlier arm showed. Measured directly against
+        <code>models/pixel-student.npz</code> (sha256
+        <code>b2bb79082c88c486c8d6e146be000627a59af3efaa19a9fc75641e957262c109</code>) at the
+        entry state, the first decision is a genuine two-way split — <code>down</code> 0.590,
+        <code>right</code> 0.408, <strong>0.992 bits of entropy</strong> out of a possible 2.585.
+      </p>
+      <p>
+        And then the full-episode outcome rather than one decision.
+        <code>pixeleval take-a-starter --policy models/pixel-student.npz --split entry
+        --settle-party 8 --attempts 500 --goal 0</code>, default driver, sampled at temperature
+        1.0, N = 500:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th class="num">BULBASAUR</th>
+              <th class="num">CHARMANDER</th>
+              <th class="num">SQUIRTLE</th>
+              <th class="num">Reached the goal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">models/pixel-student.npz<br><span style="font-size:11px">b2bb7908…</span></td>
+              <td class="num">254 (50.8 %)</td>
+              <td class="num">118 (23.6 %)</td>
+              <td class="num">127 (25.4 %)</td>
+              <td class="num"><strong>499 / 500 = 99.8 %</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        So the roughly half / quarter / quarter split this student produces is its honest, learned
+        distribution, not a broken selection mechanism that the corpus balance never reached.
+        Which does not make the split desirable — it is a property of one training draw, on a
+        network this repository has already measured a large run-to-run band on. It means only
+        that "boost the corpus harder at this one decision" is not the fix, because the decision is
+        already reading real signal.
+      </p>
+      <div class="callout">
+        <p class="eyebrow">A figure this page deliberately does not print</p>
+        <p>
+          There is a well-known cold-boot number attached to an earlier arm of this student, and it
+          reads well. It is not published here, because it was measured under argmax — where the
+          chain's entry tile reads one direction at probability 1.0000, so all 300 boots take the
+          <em>same</em> starter — and because it belongs to weights several generations behind what
+          ships. No later arm has an N=300 chain run at all. The number above is what has actually
+          been measured for the file that is committed.
         </p>
       </div>
     </section>
 
     <section class="prose">
-      <h2>One missing skill: the Route 1 whiteout</h2>
+      <h2>The instrument turned on itself</h2>
       <p>
-        The 59% is not scattered failure — it is a single failure, repeated. The starter decides it.
-        Three arms were trained, one seed each, and run over 300 cold boots apiece: the Squirtle arm
-        completed the chain <strong>300 of 300</strong>, the Charmander control <strong>300 of
-        300</strong>, and the Bulbasaur arm <strong>177 of 300</strong> — and <strong>every one of
-        those 123 failures ended in a battle on Route 1.</strong> These are separate trained networks,
-        not one network with its starter forced; only the varied arm was ever committed, on a
-        deliberate call to ship one model rather than a per-starter zoo.
+        On 18 August 2026 this project spent a day adding no capability whatsoever. What it did
+        instead was prove that two numbers it had already published were not readable — and every
+        result since is trustworthy because of it.
       </p>
       <p>
-        The cause is mechanical and honest: the rival takes the counter-starter, the
-        student has no healing behaviour yet, and Route 1's wild grass whites out a lead
-        that walked in already hurt. Squirtle survives the same gauntlet on stat advantage
-        alone. So the opening chain is not gated by perception or navigation — it is gated
-        by one skill the student has never been taught. That is the next link, and the
-        scoreboard names exactly how much it is worth.
+        <strong>The training run is the largest term in every ablation, and it had never been
+        controlled for.</strong> Five runs of the identical configuration on one link scored:
       </p>
-    </section>
-
-    <section class="prose">
-      <h2>Skills that cannot damage each other</h2>
-      <p>
-        New behaviours are added without retraining the base, through a mechanism called an
-        <code>AdapterHead</code>: a small, completely separate module that outputs a nudge
-        added to the frozen base policy's own pre-softmax logits before a button is chosen.
-        Its final layer starts at exactly zero, so an untrained adapter contributes nothing,
-        and it is only consulted when its own region recogniser fires. The freezing is
-        proven, not asserted — the trainer takes a SHA-256 of every base layer before and
-        after and refuses to write if any of them changed. New skills therefore cannot
-        quietly damage old ones, because the old ones are literally unwritable while the new
-        one is learned.
-      </p>
-      <p class="note">
-        The adapter path is an incremental-skill add-on, distinct from the imitation run
-        that trains the main chain student. It is early — two skills so far — and it can
-        only nudge behaviour the base can already see.
-      </p>
-    </section>
-
-    <section class="prose">
-      <h2>Milestones</h2>
-      <div class="timeline">
-
-        <div class="tl-item">
-          <div class="tl-date">24 Aug 2026</div>
-          <p class="tl-title">House default set to sampling, plus a regression net</p>
-          <p>
-            The driver's default moved to temperature 1.0 with a 0.80 gate, and a
-            fast <code>basics</code> regression suite was added after three separate
-            regressions landed in a single afternoon.
-          </p>
-        </div>
-
-        <div class="tl-item">
-          <div class="tl-date">23 Aug 2026</div>
-          <p class="tl-title">Switch-trap fix becomes the committed student</p>
-          <p>
-            The shipped weights became <code>pixel-fix7-round1</code>. A masking-only
-            student shipped the same day and was rolled straight back after a filmed
-            regression — 5 of 9 milestones against the prior 8 of 9.
-          </p>
-        </div>
-
-        <div class="tl-item">
-          <div class="tl-date">21 Aug 2026</div>
-          <p class="tl-title">Natural starter variety</p>
-          <p>
-            A seeded choice in the teacher broke the always-one-starter collapse. Measured on
-            <code>ball3b-s0</code>, sampled at temperature 1 — Bulbasaur 467, Charmander 298,
-            Squirtle 231 of 1,000 — with 996 of 1,000 still reaching the goal.
-          </p>
-        </div>
-
-        <div class="tl-item">
-          <div class="tl-date">19 Aug 2026</div>
-          <p class="tl-title">Out of Pallet Town, into Viridian City</p>
-          <p>
-            The chain reached nine links end to end, from a cold cartridge to Viridian City —
-            up from 7 of 300 before one missing teacher rule was restored.
-          </p>
-        </div>
-
-        <div class="tl-item">
-          <div class="tl-date">17 Aug 2026</div>
-          <p class="tl-title">The first fight</p>
-          <p>
-            Six links, validated on three foreign emulators the student had never trained
-            against: 300 of 300 reached the rival battle, 245 of 300 won it.
-          </p>
-        </div>
-
-        <div class="tl-item">
-          <div class="tl-date">16 Aug 2026</div>
-          <p class="tl-title">The screen student appears</p>
-          <p>
-            Five links, on the screen alone — no memory reads — completing 300 of 300 cold
-            boots. The first version that played the way a person sees the game.
-          </p>
-        </div>
-
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Run of an identical configuration</th><th class="num">1</th><th class="num">2</th><th class="num">3</th><th class="num">4</th><th class="num">5</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Cold success rate</td><td class="num">100.00 %</td><td class="num">92.33 %</td><td class="num">92.33 %</td><td class="num">84.63 %</td><td class="num">77.00 %</td></tr>
+          </tbody>
+        </table>
       </div>
-    </section>
-
-    <section id="writing" class="prose">
-      <h2>Writing</h2>
-      <p class="note">
-        A full write-up of the teacher–student split and the Route 1 whiteout is in
-        progress. It will appear here and in the <a href="../#writing">Writing</a> index.
+      <p>
+        A <strong>23-point band</strong>, most of it the seed and the rest the BLAS thread count.
+        Every ablation published before that day lacked the control, which means every one of them
+        could have been measuring the draw rather than the change. A fit does not reproduce: same
+        seed, same recipe, a differently-loaded machine, and you get different weights.
+      </p>
+      <p>
+        The second finding from the same day is the reason the wide/narrow split exists at all.
+        <strong>Cold evaluation over a start-state pool is optimistic, by about a factor of two on
+        a map with people in it.</strong> Every state in a pool is frozen from one traversal, so
+        the map's own people barely move between them: same policy, same tile, 150 attempts — 100 %
+        under a 0–96 frame start offset, <strong>52.7 %</strong> under 0–3,000. Six distinct
+        people-layouts against twenty-two. Every rate published since carries both spreads, because
+        the gap between them is the honest measure of how brittle a student is.
       </p>
     </section>
+
+    <section class="prose">
+      <h2>The chain collapsed to 7 of 300, and it was a label bug</h2>
+      <p>
+        Adding the three links that leave Pallet Town made a nine-link chain collapse from 300 of
+        300 to <strong>7 of 300</strong>. Every one of the 293 lost runs stopped in the same room,
+        in the same posture, on the same text box: Oak's Lab, tile (5,3),
+        <em>"Gramps! What about me?"</em> — the student pressing a direction at a text box for 400
+        decisions out of 400 without moving a tile.
+      </p>
+      <p>
+        The cause was <strong>one missing rule in the teacher</strong>, not anything about the
+        student. Every teacher in the repository answers an open text box with <code>B</code> —
+        except the navigation teacher, which gated that rule on a mode flag, and
+        <strong>that flag reads "overworld" while a box is on the screen.</strong> For five links
+        nothing noticed, because no navigation link had ever been in a room with a conversation in
+        it. The link that leaves the lab is the first, and it put thousands of frames of an open
+        text box into the corpus <em>labelled with a direction</em>. A direction press re-triggers
+        the box. The student learned that faithfully and did it four hundred times.
+      </p>
+      <p>
+        It was a label bug, not a perception bug. The picture was fine and the student did exactly
+        what its supervisor said. The fix is one shared helper; the blast radius was measured
+        rather than assumed — <strong>12.84 % label drift</strong> on the link that leaves the lab
+        and 1.43–3.63 % on the four other navigation links — and both the before and the after are
+        published, because the after is not legible without the before.
+      </p>
+      <p class="note">
+        Both figures in that headline belong to an <em>earlier, uncommitted</em> arm of the student
+        which always took Charmander, and the project's own front page says so above the table. They
+        are quoted here as a before-and-after on one training arm, which is what they are, and not as
+        a score for the file that ships.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The one failure in twelve thousand, run down rather than counted</h2>
+      <p>
+        Four cells of one certification table are 3,000 attempts each — two links, two spreads — and
+        exactly one attempt of the twelve thousand fails. That is the only evidence the pair has
+        produced about how it can still go wrong, so it was chased instead of rounded away.
+      </p>
+      <p>
+        <strong>It reproduces exactly.</strong> A certification's start states are a pure function of
+        the link, the held-out split, the seed and the spread, so no rollout has to be kept for an
+        attempt to be run again: it is attempt #705 of 3,000, held-out start (31,26), start offset
+        1,772 frames. Re-run, it fails the same way. The fifteen other attempts from the same tile
+        all reach the goal in 30 to 67 decisions.
+      </p>
+    </section>
+
+    <figure class="pixel narrow" style="margin-inline:auto;">
+      <img src="../assets/img/agentgb/bagcheck-the-one-failure.png" width="760" height="528"
+           alt="The last frame of a failing run, in four-shade Game Boy grey: the player character standing in a street column with the Mart's roof and door visible at the top of the screen, and another character standing directly in the way one tile above the player.">
+      <figcaption>
+        The last frame of the run. The Mart is at the top of the screen and the student never
+        reaches it: it walks up column 31, meets somebody standing on <strong>(31,20)</strong> — the
+        corner tile, the one place its route has to turn — and presses <code>up</code> into that
+        person. The shop is in view, the person is in the way, the budget is gone.
+      </figcaption>
+    </figure>
+
+    <section class="prose">
+      <p>
+        The anatomy of it is unusually complete, and every alternative explanation was closed by
+        measurement rather than by argument:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><td>Where it stood</td><td class="num">(31,21) for <strong>533</strong> of 600 decisions</td></tr>
+            <tr><td>What it pressed there</td><td class="num"><code>up</code> 177, <code>start</code> 89, and 267 more with a menu on screen</td></tr>
+            <tr><td>What the teacher would have pressed</td><td class="num"><code>left</code> 177 — a clean 177-for-177 divergence</td></tr>
+            <tr><td>Its own probabilities on those 177</td><td class="num">p(<code>up</code>) median 0.926; p(<code>left</code>) median 0.020, max 0.107</td></tr>
+            <tr><td>One press of <code>left</code>, at the moment it is stuck</td><td class="num"><strong>reaches the goal, 79 decisions</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li>
+          <strong>Not the route.</strong> The teacher driving from the same tile with the same
+          offset reaches the Mart in 30 decisions. There is a way round and the privileged player
+          finds it.
+        </li>
+        <li>
+          <strong>Not a starved wanderer waiting it out.</strong> The person steps twice, at
+          decisions 13 and 61, reaches (31,20), and then does not move for the remaining 533
+          decisions — about 17,000 frames, or 4.7 minutes of game time. Checked under four
+          different player behaviours from the stuck moment, including backing off a tile and
+          standing still, and pacing 266 tiles up and down. It stays parked in all four.
+        </li>
+        <li>
+          <strong>Not the bag check.</strong> The run spends 301 of its 600 decisions with a menu
+          on screen, but the menus are not what pins the person: the arm that presses only
+          <code>b</code> runs the overworld continuously for 533 decisions and the person does not
+          move either.
+        </li>
+      </ul>
+      <p class="note">
+        <strong>The condition on these figures, carried from the source.</strong> Every rate for
+        this link predates a corpus re-collection on 23 Aug 2026: the round-0 corpus it was trained
+        from carried 105 leaked frames, a fresh corpus collected under the fix audits clean, and no
+        student has been retrained or re-certified on it. The results page's own attribution column
+        reads <em>unattributed</em> for these rows — the certification tooling does not yet write
+        which weights it ran into the certification file — and that is recorded as an honest gap
+        rather than filled in from a directory convention. This account is a measurement of one
+        specific reproducible attempt, flagged, not re-measured.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>Reading the screen without reading the letters</h2>
+      <p>
+        At 40×36, individual letterforms do not survive. So the natural question — can this
+        observation tell one message from another at all? — got measured, and
+        <strong>the first two answers were both wrong</strong>, in the same way.
+      </p>
+      <p>
+        Attempt one tested two message pairs at N = 5 and got balanced accuracy 0.50: chance.
+        Attempt two sharpened the question and got 0.33: still chance. Both verdicts were
+        undermined by the same thing — a sample of three to five examples per class, which lets a
+        probe predict one class always and <em>look</em> like chance.
+      </p>
+      <p>
+        Attempt three used real N: dozens of genuine frames per message, taken from the typing
+        animation itself, over six distinct in-game messages. Nearest-centroid across all six
+        identities, with a temporal split — train on each message's first 65 % of typing, test on
+        the last 35 % it never saw — gives <strong>97.2 % accuracy against 20.0 % chance</strong>,
+        N = 36 held out, permutation p &lt; 0.005. The confusion matrix is essentially the identity
+        matrix.
+      </p>
+      <p>
+        <strong>What survives is shape, not letters</strong> — line length, word-wrap position,
+        letter density per region. And a background confound was checked for, found, and shown not
+        to matter: one of the six messages had to be captured from a separate session, and its
+        background differs from the other five by 14 of 1,440 cells, all inside one small icon.
+        Removing that message entirely, or masking those 14 cells, moves the headline by about one
+        point.
+      </p>
+      <p class="note">
+        Unattributed on purpose: these are fresh linear probes and nearest-centroid classifiers fit
+        on frozen observations, not a trained student network, so there is no weights file to name.
+      </p>
+      <p>
+        The structural version of the same finding is the one that mattered in practice. Compare the
+        bag opened with an empty item pocket against the same bag holding Oak's parcel:
+        <strong>57 cells of the 40×36 observation separate the two states perfectly, and none of
+        them require reading a letter.</strong> A goal marker does not have to be legible text; a
+        reliable change in layout is enough.
+      </p>
+    </section>
+
+    <figure class="pixel narrow" style="margin-inline:auto;">
+      <img src="../assets/img/agentgb/bag-parcel-structural.png" width="872" height="1284"
+           alt="Six panels in two columns. Left column: a 160 by 144 Game Boy bag screen showing only CANCEL, its 40 by 36 reduction, and a difference map. Right column: the same bag screen holding OAK's PARCEL above CANCEL, its 40 by 36 reduction, and the difference map highlighting the cells that changed.">
+      <figcaption>
+        The real 160×144 screen, the actual 40×36 observation, and a difference map, for the bag
+        with an empty item pocket against the same bag holding the parcel. The separating cells are
+        a change in layout, not a legible word — which is what a marker at this resolution has to be.
+      </figcaption>
+    </figure>
+
+    <hr>
+
+    <div class="provenance">
+      <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
+      <p>
+        <strong>The parameter counts on this page were counted, not quoted.</strong> Loading
+        <code>models/pixel-student.npz</code> with NumPy and summing <code>.size</code> over the
+        arrays gives: three convolutions 15,504 · the dense layer 102,528 (102,400 weights plus 128 biases) · the six-way head 774 —
+        <strong>118,806</strong> for the inference core, which is 86.3 % dense layer and 13.1 %
+        convolution. The committed goal-conditioned file adds 320 conditioning coefficients and a
+        3,204-parameter goal head for <strong>122,330</strong> weights plus one metadata string,
+        and its own metadata records <code>in_shape [4, 36, 40]</code>, <code>n_actions 6</code>,
+        <code>observation "screen"</code>. Its sha256 is
+        <code>b2bb79082c88c486c8d6e146be000627a59af3efaa19a9fc75641e957262c109</code>.
+      </p>
+      <p>
+        <strong>Every rate here carries the condition it was measured under</strong>, because this
+        project has been burned by a rate that did not. The starter distribution names its policy
+        file, its sha256, its command, its sample size (N=500) and its temperature (1.0). The
+        23-point band and the 100 %/52.7 % spread are the project's own published controls. The
+        chain figures (7 of 300 and 300 of 300) belong to an earlier uncommitted arm and are labelled
+        as such. The one-failure account carries its corpus caveat and its <em>unattributed</em>
+        status. The swarm baseline involves no weights at all.
+      </p>
+      <p>
+        All four images are committed artefacts of real runs in the AgentGB repository, regenerated
+        by named tools, and copied here byte-for-byte apart from PNG re-compression (verified
+        pixel-identical). Game art is Nintendo and Game Freak's and appears here as documentation of
+        a measurement; the project ships no cartridge, no save and no game data, and every frame is
+        rendered from a cartridge the user supplies.
+      </p>
+    </div>
 
     <a class="backlink" href="../#projects">← All projects</a>
 

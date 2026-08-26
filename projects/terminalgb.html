@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TerminalGB — devlog</title>
-  <meta name="description" content="TerminalGB: a cycle-accurate Game Boy / Color emulator measured against hardware-captured reference frames. Updates, milestones and achievements.">
+  <meta name="description" content="TerminalGB: a cycle-accurate Game Boy / Color emulator measured against hardware-captured reference frames. Two picture engines, an honest denominator, and the bugs that only a per-dot pipeline can see.">
   <meta name="color-scheme" content="light dark">
   <meta property="og:type" content="website">
   <meta property="og:title" content="TerminalGB — devlog">
@@ -34,10 +34,11 @@
       <p class="eyebrow">Project · Emulator</p>
       <h1>TerminalGB</h1>
       <p class="lead">
-        A cycle-accurate Game Boy and Game Boy Color emulator. Correctness is not a
-        claim here — it is a number: every frame is compared against hardware-captured
-        reference images and public test ROMs, on every build. This is the running log
-        of what has been fixed and what it cost.
+        A cycle-accurate Game Boy and Game Boy Color emulator, written in Rust, that
+        runs on the desktop, in a terminal, and in a browser. Correctness here is not
+        a claim, it is a number: every frame is compared against hardware-captured
+        reference images and public test ROMs, on every build, and the reds are
+        published beside the greens.
       </p>
     </header>
 
@@ -52,33 +53,396 @@
           <div class="label">SameSuite</div>
         </div>
         <div class="metric">
-          <div class="num">4<span style="color:var(--ink-soft)">/4</span></div>
-          <div class="label">CasualPokePlayer</div>
+          <div class="num">243<span style="color:var(--ink-soft)">/264</span></div>
+          <div class="label">GB Emulator Shootout</div>
         </div>
         <div class="metric">
-          <div class="num">29<span style="color:var(--ink-soft)">/79</span></div>
+          <div class="num"><span class="accent">29</span><span style="color:var(--ink-soft)">/79</span></div>
           <div class="label">Mealybug pixel-exact</div>
         </div>
       </div>
-      <p class="note" style="margin-top:14px;">Current standing on the default <code>identical</code> picture engine.</p>
+      <p class="note" style="margin-top:14px;">
+        Current standing on the default <code>identical</code> picture engine. The
+        Mealybug figure is the honest one on this page and the section below does the
+        arithmetic on why <strong>45 of those 79 rows cannot be won by picture-processor
+        work at all</strong>.
+      </p>
+    </section>
+
+    <figure class="pixel">
+      <img src="../assets/img/terminalgb/tui-acid2.png" width="1600" height="1120"
+           alt="A terminal window showing the dmg-acid2 test ROM's demon face rendered at full resolution in the left pane, with a Status panel to the right listing ROM, transport, input mode, palette, PPU engine, speed, video, audio and volume, and a Controls panel below it.">
+      <figcaption>
+        The terminal frontend running <a href="https://github.com/mattcurrie/dmg-acid2">dmg-acid2</a>
+        — real pixels in a terminal via the kitty graphics protocol, not text art.
+        This frame is <strong>0 of 23,040 pixels different</strong> from the test
+        author's own hardware reference image, on both picture engines and on both
+        consoles. Capture taken by the emulator's own <code>c</code> key.
+      </figcaption>
+    </figure>
+
+    <section class="prose">
+      <h2>Two picture engines, and why both ship</h2>
+      <p>
+        A Game Boy draws its picture one dot at a time. Almost every emulator does not:
+        it waits until the end of a scanline, reads whatever the registers hold at that
+        moment, and paints all 160 pixels of the line at once. That is fast, and for the
+        overwhelming majority of software it is also correct, because most games do not
+        change the picture registers halfway through a line.
+      </p>
+      <p>
+        TerminalGB carries both. <code>standard</code> is the whole-scanline engine, with
+        mode 3 fixed at 172 dots. <code>identical</code> walks the real pipeline: the
+        background fetcher, the eight-pixel FIFO, sprite fetches, the window restart, the
+        <code>SCX &amp; 7</code> discard — and mode 3's length falls out of the machine
+        rather than being asserted.
+      </p>
+      <p>
+        They are <em>not</em> a quality or an appearance setting. Palette, upscaler,
+        transport and every other visual option live above the picture processor and are
+        byte-identical either way; the accuracy harness renders 600 frames of dmg-acid2
+        and of Blargg's <code>cpu_instrs</code> through both and requires the framebuffers
+        to match exactly. The only axis between them is exactness against speed:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Suite</th>
+              <th class="num"><code>identical</code> (default)</th>
+              <th class="num"><code>standard</code></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Mooneye GB <span class="mono">acceptance</span></td><td class="num">75 / 75</td><td class="num">67 / 75</td></tr>
+            <tr><td>Mooneye GB <span class="mono">emulator-only</span></td><td class="num">28 / 28</td><td class="num">28 / 28</td></tr>
+            <tr><td>SameSuite</td><td class="num">73 / 76</td><td class="num">73 / 76</td></tr>
+            <tr><td>CasualPokePlayer</td><td class="num">4 / 4</td><td class="num">4 / 4</td></tr>
+            <tr><td>Mealybug Tearoom (pixel-exact rows)</td><td class="num">29 / 79</td><td class="num">3 / 79</td></tr>
+            <tr><td>Frame cost, Pokémon Blue, one P-core</td><td class="num">0.373 ms</td><td class="num">0.094 ms</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Four times the cost per frame, and still only about 2.2 % of a frame's budget on a
+        desktop core — cheap enough to be the default, and it has been since 20 August 2026.
+        But four times is not free everywhere. The PSP frontend deliberately pins
+        <code>standard</code>: an exact picture nobody can play is worth nothing.
+      </p>
+
+      <figure class="narrow pixel" style="margin-inline:auto;">
+        <img src="../assets/img/terminalgb/tui-status-picture-mode.png" width="640" height="256"
+             alt="A close-up of the terminal Status panel. The PPU row reads &quot;identical ~2.1x&quot;.">
+        <figcaption>
+          The Status panel's <code>PPU</code> row, live. It names the engine and, for
+          <code>identical</code>, what it is costing right now. <code>P</code> switches
+          between the two without a pause or a reload — both engines share every register
+          and the framebuffer, and <code>identical</code> rebuilds its pipeline at the head
+          of the next scanline.
+        </figcaption>
+      </figure>
     </section>
 
     <section class="prose">
-      <h2>What it is</h2>
+      <h2>The denominator nobody publishes</h2>
       <p>
-        TerminalGB emulates the original DMG and the Color hardware down to the machine
-        cycle. It ships <strong>two picture engines</strong>: <code>standard</code>, which
-        draws a scanline at a time and is fast enough for modest hardware, and
-        <code>identical</code>, which walks the real pixel pipeline dot by dot and is
-        exact enough to catch single-dot timing bugs. On ordinary games the two produce
-        byte-identical frames; the only axis between them is exactness against speed.
+        29 of 79 on Mealybug Tearoom looks like a bad score, and quoting it without the
+        next paragraph would be dishonest in the other direction. Mealybug is the suite
+        that separates the two or three most accurate emulators in the world from
+        everybody else; on the GB Emulator Shootout's own published per-test data for the
+        24 DMG rows, SameBoy — the reference implementation — scores 15.
       </p>
       <p>
-        Nothing on this page is asserted without a test behind it. The reference suites
-        cited — Mooneye GB, SameSuite, Mealybug Tearoom, AGE, Gambatte — are public, and
-        every comparison is re-run against hardware-photographed frames each build.
+        More importantly, <strong>45 of the 79 failing rows cannot be won by
+        picture-processor work at all</strong>, and the breakdown is written down rather
+        than waved at: 27 need the boot ROM's <code>®</code> glyph sitting in video RAM,
+        which is a licensing decision this project has deliberately not taken; 8 compare a
+        greyscale render against a colour reference; and 7 are a ROM-versus-reference
+        mismatch inside the suite itself. The honest denominator is <strong>34</strong>.
+      </p>
+      <div class="callout">
+        <p class="eyebrow">Why the score is a pixel count, not a pass rate</p>
+        <p>
+          The baseline records <em>how many of the 23,040 pixels differ</em> on every row,
+          not just pass or fail. That matters because it lets progress show up when no row
+          flips — a row going from 2,304 wrong pixels to 8 is real work, and a pass/fail
+          column would report it as nothing at all. It also stops the reverse trick: a row
+          that starts passing is a baseline change too, and CI is red on a change in
+          <em>either</em> direction.
+        </p>
+      </div>
+      <p>
+        Two figures that used to sit on the project's own front page are out of date and
+        are marked as such rather than quietly deleted: "Mooneye acceptance 13/66" and
+        "SameSuite APU 2/61" both predate the timer rewrite, the five-machine-cycle
+        interrupt dispatch and the timed OAM DMA.
       </p>
     </section>
+
+    <section class="prose">
+      <h2>A one-line filter that put 271 colours in a four-shade picture</h2>
+      <p>
+        This one is not an accuracy bug at all — it is a rendering bug, and it is the
+        clearest example on this page of a fault whose cause is a single line of somebody
+        else's code.
+      </p>
+      <p>
+        A terminal that speaks no image protocol gets the picture drawn out of the
+        upper-half-block glyph <code>▀</code>: the foreground colour paints the top half of
+        a character cell, the background the bottom, two vertical pixels per cell. That is
+        crisp <em>by construction</em> — a cell is two flat colours and there is nothing
+        inside it that can be soft. And yet on GNOME-family terminals the picture was
+        visibly blurry.
+      </p>
+    </section>
+
+    <div class="fig-pair">
+      <figure class="pixel">
+        <p class="cap">Before · <code>render_path = legacy</code></p>
+        <img src="../assets/img/terminalgb/halfblocks-blurry.png" width="1000" height="572"
+             alt="The dmg-acid2 demon face drawn with half-block characters, visibly soft and smeared, with grey fringes around every edge.">
+        <figcaption>
+          The library's half-block encoder. Every cell is a weighted average of the Game
+          Boy pixels underneath it.
+        </figcaption>
+      </figure>
+      <figure class="pixel">
+        <p class="cap"><span class="accent">After</span> · default path</p>
+        <img src="../assets/img/terminalgb/halfblocks-crisp.png" width="1000" height="572"
+             alt="The same dmg-acid2 demon face drawn with half-block characters, now with hard edges and flat blocks of tone.">
+        <figcaption>
+          Sampled nearest-neighbour at pixel centres, straight out of the framebuffer.
+          Same terminal, same size, same scale.
+        </figcaption>
+      </figure>
+    </div>
+    <p class="note" style="max-width:66ch;margin-top:14px;">
+      Both captures taken in Ptyxis 50.1 (VTE) at 80×24 cells, 2.8× scale, with
+      <code>Proto halfblocks</code> — the same terminal on the same machine, one binary,
+      the two render paths.
+    </p>
+
+    <section class="prose">
+      <p>
+        The softness was never in the glyph. It was in the sampling, and the cause was four
+        lines down in a dependency:
+      </p>
+
+      <figure class="code">
+        <pre><code>let img = img.resize_exact(rect.width as u32, (rect.height * 2) as u32,
+                          FilterType::Triangle);</code></pre>
+        <figcaption>
+          <code>ratatui-image-4.2.0/src/protocol/halfblocks.rs</code> — a smoothing filter
+          hard-coded into one encoder. The same crate's Sixel encoder does no such thing,
+          and <code>Resize::Scale</code>'s own default filter is
+          <code>FilterType::Nearest</code>. Half-blocks was the single path with a filter
+          baked in, which is exactly why WezTerm looked right and Ptyxis did not.
+        </figcaption>
+      </figure>
+
+      <p>
+        Measured on dmg-acid2 at 80×24 cells: <strong>271 distinct colours in a four-shade
+        picture</strong>, 268 of which no Game Boy shade maps to. The fix samples the cells
+        directly — nearest-neighbour at pixel centres, the same rule the video scaler
+        already used — and writes a uniform cell as a space rather than <code>▀</code>, so a
+        font with a poor block glyph cannot soften the large flat areas a Game Boy picture is
+        mostly made of.
+      </p>
+      <p>
+        The part that is genuinely counter-intuitive is the cost. Doing the sampling
+        ourselves is <em>cheaper</em>: over roughly 1,070 frames at 146×54 cells, same ROM
+        and window both sides, whole-frame time went <strong>0.460 ms → 0.349 ms</strong>.
+        The new path pays its full sampling cost on every single frame and still wins,
+        because it replaces two <code>image</code>-crate resizes — a nearest upscale to the
+        display's pixel size followed by a Triangle downscale back to the cell grid.
+      </p>
+      <p>
+        Blur has now been reported twice, so the regression guard asserts the property
+        rather than the pixels: <strong>every colour on screen must be a colour that was in
+        the framebuffer</strong>, which no interpolating resampler can satisfy. One unit
+        test runs a one-pixel checkerboard — the worst case for a smoothing filter — at five
+        window sizes; one end-to-end test drives the real render on dmg-acid2 at four.
+      </p>
+      <div class="callout">
+        <p class="eyebrow">The same trap, one repository over</p>
+        <p>
+          <a href="pixelgb.html">PixelGB</a> extracts map art from a running cartridge and
+          guards its output on exactly this rule — no colour may appear that was not in the
+          source — and cites this incident as the reason. A family that has been bitten once
+          writes the assertion down.
+        </p>
+      </div>
+    </section>
+
+    <section class="prose">
+      <h2>Nine consoles, because a boot ROM is part of the silicon</h2>
+      <p>
+        The emulator picks its console from the cartridge header — a Color flag at
+        <code>$0143</code> boots a Game Boy Color, anything else boots a DMG, which is what a
+        person with both machines on the shelf would do. What is less obvious is that
+        <code>auto</code>, <code>dmg</code>, <code>dmg0</code>, <code>mgb</code>,
+        <code>cgb</code>, <code>cgb0</code>, <code>agb</code>, <code>sgb</code> and
+        <code>sgb2</code> are <em>nine different machines</em> and not four with knobs.
+      </p>
+      <p>
+        A DMG 0, a Game Boy Pocket, a CGB 0 and a Game Boy Advance present identical hardware
+        to a cartridge from <code>PC=$0100</code> onwards. What differs is the state they hand
+        it: <code>A = $FF</code> is how a game detects a Pocket, and bit 0 of <code>B</code>
+        is how it detects an Advance and offers the brighter palette that screen needs.
+        Mooneye ships a <code>boot_regs</code>, a <code>boot_div</code> and a
+        <code>boot_hwio</code> ROM per machine, <strong>no two of which can pass at
+        once</strong>, and all eleven are green.
+      </p>
+      <p>
+        Before this existed, everything booted a Color, so a DMG-only game always ran in the
+        Color's compatibility mode — a genuinely different machine, with different boot
+        registers (<code>A=0x11 HL=0x007C</code> rather than <code>A=0x01 HL=0x014D</code>)
+        and the undocumented Color registers still answering. Nine Mooneye acceptance tests
+        print those registers and can tell.
+      </p>
+      <p>
+        The Super Game Boy support is the place this project is most careful about how wide a
+        claim sounds. All three of the shootout's published SGB rows pass, 0 of 23,040 pixels
+        different, and of the eighteen emulators in the shootout's own table only GSE passes
+        all three. That is real — and it is a much narrower claim than it reads as. All three
+        of those ROMs are plain 160×144 grey screens, because each measures the same thing:
+        the ICD2 command-packet receiver and the <code>MLT_REQ</code> joypad index, which is
+        the <em>only</em> part of a Super Game Boy that a Game Boy program can read back.
+        The border, the palettes and the SGB sound are one-way traffic to a screen the
+        cartridge cannot see, so no test ROM can assert them and this emulator has nowhere to
+        put them. The score is real and so is the limit; neither belongs in a sentence without
+        the other.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The transfer controller drives the address bus too</h2>
+      <p>
+        Object DMA — the routine every Game Boy game uses to push sprite data into object
+        memory — is usually modelled as a copy that takes 640 cycles and blocks the CPU from
+        most of the memory map. That is the <em>data</em> half of one physical rule. The
+        address half is the interesting one.
+      </p>
+      <p>
+        The transfer controller has no address bus of its own. While a transfer runs it drives
+        the object-memory address lines, and the picture processor's object scan is on the
+        other end of them. So for the eighty dots of the scan the PPU cannot read a single
+        entry — its Y/X latch keeps whatever it last held, and all forty object slots are
+        judged against that one stale pair.
+      </p>
+      <p>
+        Modelling that took the shootout score from <strong>238 to 239 of 264</strong> and
+        Gambatte from 3,613 to 3,617 of 5,225 scored rows, with zero losses and everything
+        else byte-identical on both engines. One row — but it was
+        <code>ashiepaws/strikethrough.gb</code>, the first row that suite has ever scored here.
+      </p>
+      <p>
+        The part worth copying is how the one remaining free parameter was pinned. The
+        controller takes the bus a fixed number of dots after the write to <code>$FF46</code>,
+        and that number was <strong>derived from eight ROMs rather than chosen</strong>:
+        Gambatte's <code>late_sp{00,01,02,39}x_{1,2}</code> each put the write one machine
+        cycle either side of one scan slot, <code>sp00x_2</code> finds object 0 while
+        <code>sp01x_1</code> misses object 1, and the <code>sp02x</code>/<code>sp39x</code>
+        pair — same DMA phase, different slot — rules out every uniform shift. Then it was
+        swept across the whole 811-row <code>oamdma/</code> group:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Arm delay (dots)</th><th class="num">0</th><th class="num">1</th><th class="num">2</th><th class="num">3</th><th class="num">4</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Gambatte <span class="mono">oamdma/</span> rows passing, of 811</td><td class="num">742</td><td class="num"><strong>744</strong></td><td class="num"><strong>744</strong></td><td class="num">738</td><td class="num">738</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The scan reads on even dots, so 1 and 2 are the same machine. That is what a derived
+        constant looks like: a curve with a flat top two dots wide and a physical reason for
+        the width, rather than the one value that made a favourite test go green.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The bug a hundred short test ROMs structurally cannot find</h2>
+      <p>
+        <a href="gbselftest.html">GBSelfTest</a> is a sibling project: one self-contained
+        cartridge that boots anywhere and runs a hundred-odd checks back to back on one
+        machine. The very first thing its new object-DMA check did was find a real bug in
+        TerminalGB, and the shape of that bug is the argument for the cartridge in a
+        paragraph.
+      </p>
+      <p>
+        The transfer's idle arm — whose own comment claimed the default machine never reached
+        it — cleared the memory unit's busy flag and not the picture processor's. It does
+        reach it: the transfer's last machine cycle leaves the position counter at its limit
+        inside the bus tick without the flag moving, so the <em>instruction's remainder</em>
+        is where the transfer gets noticed to be over. The PPU's "the transfer owns object
+        memory" flag then latched on for the rest of the session, and <strong>the object scan
+        never read object memory again</strong> — 192 of 550 frames of a real cartridge.
+      </p>
+      <div class="pullquote">
+        <p>
+          Every c-sp, Mooneye, Mealybug and SameSuite row is byte-identical either way,
+          because they run one short ROM each. A cartridge that runs a hundred checks back to
+          back in one session is a shape no test ROM has.
+        </p>
+        <cite>TerminalGB's own working notes on the find</cite>
+      </div>
+      <p>
+        Thousands of rows across five public suites could not see it, and that is not a
+        criticism of those suites — it is a property of their shape. Each ROM boots, measures
+        one thing and stops. A latch that needs a transfer to end on an instruction boundary
+        and a scan to follow it never gets the chance.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The reds that are meant to stay red</h2>
+      <p>
+        Two rows on the scoreboard are expected failures, and both are kept rather than
+        excluded, because a suppressed red is indistinguishable from a fixed one six months
+        later.
+      </p>
+      <ul>
+        <li>
+          <strong>Blargg's <code>oam_bug</code> on a Color console.</strong> All eight
+          sub-tests pass on DMG, where the object-memory corruption defect is modelled
+          faithfully. Color silicon has no such defect, so the Color row is red and should be.
+        </li>
+        <li>
+          <strong><code>csp/bully</code>.</strong> Its black screen was one failing check — the
+          Color-mode boot system counter — and chasing it produced a genuinely instructive
+          non-fix. The obvious move was to sweep the counter until bully went green. It was
+          not taken, and not out of timidity: bully waits for <code>LY &gt;= $90</code> before
+          reading the divider, so what it pins is the <em>phase between the system counter and
+          the picture processor</em> at hand-off, not the counter alone — and no published ROM
+          measures where a Color boot ROM leaves the PPU for a Color cartridge. Fitting one
+          unknown to absorb another would have moved every Color cartridge's divider, and so
+          its audio phase and its random number generator, on the evidence of a single row.
+        </li>
+      </ul>
+      <p>
+        The counter did change later, when a second independent source arrived: Gambatte's
+        <code>div/start_inc_{1,2}_cgb04c</code> hardware tests take the genuine Color path and
+        pin both the divider's value <em>and</em> the exact machine cycle its low byte wraps
+        on, at a fixed distance with no <code>LY</code> wait — so they measure the counter
+        alone, which is precisely the confound the original objection named. Bully's row is
+        still red, byte-identical in both picture modes, because the PPU half is untouched.
+        Two crews' work, not one.
+      </p>
+    </section>
+
+    <figure class="pixel narrow" style="margin-inline:auto;">
+      <img src="../assets/img/terminalgb/psp-dmg-acid2.png" width="800" height="453"
+           alt="A PlayStation Portable screen showing the dmg-acid2 demon face rendered by TerminalGB.">
+      <figcaption>
+        The same emulator on a PSP. This frontend deliberately pins the
+        <code>standard</code> picture engine — the accurate one costs four times as much per
+        frame, and on a handheld with that CPU budget an exact picture nobody can play is
+        worth nothing.
+      </figcaption>
+    </figure>
 
     <section class="prose">
       <h2>Milestones</h2>
@@ -99,11 +463,13 @@
 
         <div class="tl-item">
           <div class="tl-date">21 Aug 2026</div>
-          <p class="tl-title">OAM DMA drives the right bus</p>
+          <p class="tl-title">OAM DMA drives the address bus</p>
           <p>
-            OAM DMA now drives the address bus the picture processor reads sprite memory
-            on, matching how real hardware behaves for sprites during a transfer — the
-            source and the PPU are no longer allowed to disagree about what OAM holds.
+            The transfer controller takes the object-memory address lines, so the object
+            scan reads nothing while a transfer runs and judges all forty slots against one
+            stale latch. Shootout 238 → 239 of 264 —
+            <code>ashiepaws/strikethrough.gb</code>, the first row that suite has ever
+            scored here — and Gambatte 3,613 → 3,617 of 5,225, with zero losses.
           </p>
         </div>
 
@@ -112,18 +478,20 @@
           <p class="tl-title">The accurate engine becomes the default</p>
           <p>
             <code>identical</code> stopped losing accuracy rows that the fast engine was
-            still passing, so it was promoted to the shipping default. The GB Emulator
-            Shootout score moved 223 → 238 rows on the switch.
+            still passing, so it was promoted to the shipping default. Fifteen shootout
+            rows gained and none lost on the flip — 223 → 238 — and <code>cgb-acid2</code>,
+            the one row the per-dot engine used to lose, is pixel-exact on both now.
           </p>
         </div>
 
         <div class="tl-item">
           <div class="tl-date">18 Aug 2026</div>
-          <p class="tl-title"><code>$FEA0–$FEFF</code> is not a hole</p>
+          <p class="tl-title">OAM DMA has a bus, and the CPU has to share it</p>
           <p>
-            The "forbidden" region between OAM and I/O is modelled as unmasked RAM rather
-            than dead space, which is what the two accuracy suites that actually reach it
-            expect — closing a class of Color failures (cgb-acid-hell).
+            The data half of the same physical rule. Gambatte went
+            <strong>2,682 → 3,083 of 5,225</strong> scored rows on the
+            <code>standard</code> engine — four hundred rows, from modelling a bus
+            conflict rather than a copy.
           </p>
         </div>
 
@@ -149,6 +517,32 @@
         </li>
       </ul>
     </section>
+
+    <hr>
+
+    <div class="provenance">
+      <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
+      <p>
+        Every suite score on this page is read from TerminalGB's own checked-in conformance
+        baselines, which are re-run in CI on every push and are red on a change in either
+        direction. The reference suites cited — Mooneye GB, SameSuite, Mealybug Tearoom,
+        CasualPokePlayer, Gambatte, AGE and the GB Emulator Shootout — are public; the ROMs
+        are never vendored, they are fetched at run time from pinned commits, and every
+        verdict is the ROM's own or its author's reference image, never a hash of the
+        emulator's previous output.
+      </p>
+      <p>
+        The half-block timing figures (0.460 → 0.349 ms) come from the emulator's own opt-in
+        telemetry over roughly 1,070 frames at 146×54 cells, same ROM and window both sides.
+        The two half-block screenshots were taken in Ptyxis 50.1 on the machine the fix was
+        made on; the per-terminal matrix in the source marks which rows were actually executed
+        there and which state only which code path a terminal takes.
+      </p>
+      <p>
+        TerminalGB ships no ROMs, no boot ROM and no extracted game assets. The screenshots
+        here are of test ROMs the project is free to show.
+      </p>
+    </div>
 
     <a class="backlink" href="../#projects">← All projects</a>
 

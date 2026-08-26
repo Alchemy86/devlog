@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>GBSelfTest — devlog</title>
-  <meta name="description" content="GBSelfTest: a single-file Game Boy test cartridge that boots anywhere and tells you what is broken and where to read about it — 102 checks across 11 hardware areas.">
+  <meta name="description" content="GBSelfTest: one Game Boy cartridge that boots anywhere, runs 102 checks unattended and says what is broken in hardware terms. No host, no reference images, and no expected value ever measured from an emulator.">
   <meta name="color-scheme" content="light dark">
   <meta property="og:type" content="website">
   <meta property="og:title" content="GBSelfTest — devlog">
-  <meta property="og:description" content="A self-testing Game Boy cartridge that says what is broken, in hardware terms, and where to read about it.">
+  <meta property="og:description" content="A single-file test cartridge that boots anywhere and says what is broken, in hardware terms.">
   <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/gbselftest.html">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,11 +34,11 @@
       <p class="eyebrow">Project · Test cartridge</p>
       <h1>GBSelfTest</h1>
       <p class="lead">
-        A single-file Game Boy test cartridge. Boot it on any emulator or a real console
-        and it tells you what is broken and where to read about it — no host, no reference
-        images, no setup. It runs 102 checks unattended in under ten seconds and reports
-        the verdict twice over: as text on the screen, and as the same text out of the link
-        port, so a machine can read it with nobody watching.
+        One file. Boot it on any emulator or on a real console and it runs 102 checks
+        unattended, then reports the verdict twice over — as text on the screen, and as
+        the same text out of the link port so a machine can read it with nobody watching.
+        No host, no reference images, no setup. And not one expected value in it was
+        measured from an emulator.
       </p>
     </header>
 
@@ -46,148 +46,444 @@
       <div class="metrics">
         <div class="metric">
           <div class="num">102</div>
-          <div class="label">Checks</div>
+          <div class="label">Checks, eleven areas</div>
         </div>
         <div class="metric">
-          <div class="num">11</div>
-          <div class="label">Hardware areas</div>
+          <div class="num">100<span style="color:var(--ink-soft)">/102</span></div>
+          <div class="label">SameBoy, DMG</div>
         </div>
         <div class="metric">
-          <div class="num">&lt;10<span style="color:var(--ink-soft)">s</span></div>
-          <div class="label">Unattended run</div>
+          <div class="num"><span class="accent">68</span><span style="color:var(--ink-soft)">/102</span></div>
+          <div class="label">Peanut-GB</div>
         </div>
         <div class="metric">
-          <div class="num">2</div>
-          <div class="label">Ways it reports the verdict</div>
+          <div class="num">0</div>
+          <div class="label">Reference images needed</div>
         </div>
       </div>
-    </section>
-
-    <section class="prose">
-      <h2>What it is</h2>
-      <p>
-        Most test suites tell you a number. GBSelfTest tells you which behaviour is
-        missing, in hardware terms an author can act on, and where the write-up is. Every
-        check prints a stable code with its failure; the link port carries the whole story,
-        including the measured value, one line of hardware explanation, and the URL to read.
-        For CI, an existing runner captures the link port and reads the last line —
-        <code>Passed</code> or <code>Failed</code> — with no changes.
-      </p>
-      <p>
-        The design rule that makes it trustworthy: <strong>no check's expected value may be
-        a number measured from an emulator.</strong> Every expectation is either computed a
-        second, independent way on the machine itself, or is a documented hardware constant.
-        Anything that cannot be settled that way is listed as untested, with its reason.
-      </p>
-      <p>
-        The eleven areas: the CPU's instruction results and flags; instruction and memory
-        timing (<code>CYC</code>); the divider and timer; interrupts, including the
-        <code>HALT</code> defect and <code>EI</code>'s delay; the memory map; PPU display
-        timing and bus blocking; the object-transfer DMA; the sound registers; MBC banking;
-        the state the boot ROM handed over; and the link port itself.
+      <p class="note" style="margin-top:14px;">
+        Measured 24 Aug 2026 by <code>tools/scoreboard.sh</code>, which runs every row and
+        names the exact revision of each emulator it measured. The spread is the property
+        this project exists to have.
       </p>
     </section>
 
+    <div class="fig-pair">
+      <figure class="pixel">
+        <p class="cap">SameBoy — the reference</p>
+        <img src="../assets/img/gbselftest/report-sameboy-dmg.png" width="480" height="432"
+             alt="A Game Boy screen, twenty columns by eighteen rows, listing eleven areas each marked ok, then TOTAL 100/102 checks, 2 skipped, and the word Passed.">
+        <figcaption>
+          Every area green, <span class="mono">100/102</span> with two skipped,
+          <span class="mono">Passed</span>. This is the whole user interface: eleven area
+          lines and a total.
+        </figcaption>
+      </figure>
+      <figure class="pixel">
+        <p class="cap"><span class="accent">Peanut-GB</span> — built for speed</p>
+        <img src="../assets/img/gbselftest/report-peanut.png" width="480" height="432"
+             alt="The same Game Boy screen layout, now with several areas marked FAIL, a total of 68 of 102 checks with 3 skipped, and a list of failing check codes below it.">
+        <figcaption>
+          Per-area <span class="mono">FAIL</span>s, <span class="mono">68/102</span>, then
+          the failing codes and where to read about each. Not injected for the picture — a
+          real run of an emulator whose own README says to seek an alternative if accuracy
+          is what you need.
+        </figcaption>
+      </figure>
+    </div>
+    <p class="note" style="max-width:66ch;margin-top:14px;">
+      Both frames are regenerated by <code>tools/screenshots.sh</code> straight out of the
+      emulators' own framebuffers — no hand-editing, and CI fails if they have drifted from
+      what a run produces.
+    </p>
+
     <section class="prose">
-      <h2>The cartridge discriminates</h2>
+      <h2>A code, a measurement, and somewhere to read</h2>
       <p>
-        Run on several implementations, the results spread out — which is the point. This is
-        evidence that the cartridge tells machines apart, not a league table.
+        The screen is 20 columns by 18 rows, so what fits there is the area verdicts and a
+        list of <em>codes</em>. The link port carries the whole story. This is the failure
+        from the Peanut-GB run above, verbatim, straight from the run that took the picture:
+      </p>
+
+      <figure class="code">
+        <pre><code>GB-CYC-07 FAIL an access lands on its own cycle
+      got $00FF  want $0001
+      -&gt; the four-cycle read came out further than one tick from the
+         three-cycle read at the same delay. They are one machine cycle
+         apart and a tick is four, so the only differences possible are
+         none and one
+      -&gt; https://github.com/Alchemy86/TerminalGB/blob/main/docs/gbselftest.md#gb-cyc-07</code></pre>
+        <figcaption>
+          <code>docs/screenshots/failure-excerpt.txt</code> — committed, and
+          <code>tools/check-readme.py</code> fails CI if the README's copy of it stops
+          matching a real run.
+        </figcaption>
+      </figure>
+
+      <p>
+        The <code>-&gt;</code> lines are the point. Any suite can print <code>FAIL</code>.
+        What an emulator author actually needs is a hypothesis about <em>what behaviour is
+        missing</em>, in hardware terms they can act on, and somewhere to read about it. Every
+        code is a stable anchor: codes are never reused and never renumbered, so one printed
+        by a two-year-old build still means what it meant.
+      </p>
+      <p>
+        That is also why a failing run is more than twice as expensive as a passing one. The
+        committed SameBoy DMG transcript is <strong>8,423 bytes</strong>; the Peanut-GB one is
+        <strong>18,064</strong>. A Game Boy's link port runs at 8,192 bits per second, so the
+        passing run spends about eight seconds shifting its report out and the failing one
+        about eighteen. The explanations <em>are</em> the product, and they cost. A host that
+        only wants the verdict can stop the moment it sees <code>Passed</code> or
+        <code>Failed</code> — Blargg's convention, on purpose, so an existing test runner
+        needs no changes at all.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The rule that makes the verdict worth anything</h2>
+      <div class="pullquote">
+        <p>No check's expected value may be a number measured from an emulator.</p>
+        <cite>GBSelfTest — the one rule</cite>
+      </div>
+      <p>
+        It sounds obvious and it is not, because the easy way to write a test cartridge is to
+        run something on an emulator you trust, write down what it did, and assert that
+        forever. That produces a suite which certifies agreement with one implementation and
+        calls it accuracy.
+      </p>
+      <p>
+        Every expectation here is instead one of two things. Either it is
+        <strong>computed a second, independent way on the machine itself</strong>:
+      </p>
+      <ul>
+        <li>
+          the adder is checked against a counter built from <code>INC HL</code>, which sets no
+          flags at all and goes through a different unit;
+        </li>
+        <li>the logic operations are checked against De Morgan's law;</li>
+        <li>the rotates are checked by the fact that eight of them are the identity;</li>
+        <li><code>DAA</code> is checked against decimal arithmetic done a digit at a time.</li>
+      </ul>
+      <p>
+        Or it is <strong>a documented constant that is a fact about the hardware</strong> — a
+        register's read-back mask, an instruction's published cycle count, the 456 cycles in a
+        scanline. A behaviour that can be checked neither way does not go in; it is listed as
+        untested instead, with the reason, in the coverage statement the cartridge prints at
+        the end of every run.
+      </p>
+      <p>
+        The second half of that rule is that the cartridge is validated against implementations
+        nobody here wrote. It is developed against three at once, and a disagreement is
+        investigated before anything ships. <strong>Two of the checks in this repository were
+        wrong and were found that way</strong> — not by reasoning about them.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>Catching a shortcut, not just a mistake</h2>
+      <p>
+        Most checks look for something an emulator got wrong. Two look for something it
+        deliberately left out, and those are much harder, because <strong>a good shortcut is
+        exactly one that keeps every total right</strong>.
+      </p>
+      <p>
+        An emulator that advances its peripherals once per instruction — or lets the processor
+        run a batch of instructions and advances everything afterwards — still runs every clock
+        at the correct rate. The frame is still 70,224 cycles. The timer still ticks at the
+        documented rate. The interrupt is still delivered exactly once. Nothing measured over a
+        <em>run</em> of instructions can see the difference, which is why the existing suites do
+        not catch it and why emulators that do it can say so in their own documentation without
+        ever failing anything.
+      </p>
+      <p>
+        What gives it away is an observation that depends on <strong>phase inside an
+        instruction</strong> rather than on a rate:
       </p>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr>
-              <th>Implementation</th>
-              <th class="num">Result</th>
-            </tr>
+            <tr><th>Check</th><th>What it does</th><th>What a batched machine reports</th></tr>
           </thead>
           <tbody>
-            <tr><td>SameBoy · DMG</td><td class="num">100 / 102</td></tr>
-            <tr><td>SameBoy · CGB-E</td><td class="num">97 / 102</td></tr>
-            <tr><td>TerminalGB · per-dot renderer</td><td class="num">94 / 102</td></tr>
-            <tr><td>TerminalGB · whole-scanline renderer</td><td class="num">86 / 102</td></tr>
-            <tr><td>Peanut-GB</td><td class="num">68 / 102</td></tr>
+            <tr>
+              <td class="mono">GB-CYC-07</td>
+              <td>Reads one register twice from the same starting phase, once with a
+                  three-cycle instruction and once with a four-cycle one. The reads land on
+                  different cycles of their own instructions, so over four one-cycle delays the
+                  longer instruction must overtake the shorter exactly once.</td>
+              <td>Both reads see the instruction's start. It never overtakes.</td>
+            </tr>
+            <tr>
+              <td class="mono">GB-CYC-08</td>
+              <td>Lets the timer overflow inside a sled of <code>NOP</code>s and has the handler
+                  read the return address off the stack, which names the instruction the
+                  interrupt landed on. Entering the sled one cycle later must move that landing
+                  back by exactly one instruction, eight times over.</td>
+              <td>Delivery happens at a batch boundary. The landing stops moving.</td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <p class="note">
-        Measured 24 Aug 2026. The two TerminalGB rows are the same emulator behind its two
-        renderers, run against a deliberately old pinned build — the number is a fixed
-        reference, not a live score, and predates a good deal of accuracy work on the other
-        side. A skip is not a pass and not a failure; each skipped check prints its own
-        reason.
+      <p>
+        Neither needs a reference, a host, or a number measured from anything. They are the
+        cartridge doing the one job no external suite can do for you: telling you what your
+        speed cost.
       </p>
     </section>
 
     <section class="prose">
-      <h2>Milestones</h2>
-      <div class="timeline">
-
-        <div class="tl-item">
-          <div class="tl-date">24 Aug 2026</div>
-          <p class="tl-title">Double-speed checks land</p>
-          <p>
-            <code>GB-CYC-09</code> and <code>GB-PPU-07</code> verify that the Color speed
-            switch takes effect and that the dot clock does not speed up with it.
-          </p>
-        </div>
-
-        <div class="tl-item">
-          <div class="tl-date">21 Aug 2026</div>
-          <p class="tl-title">The shared bus, in checks</p>
-          <p>
-            New DMA, BOOT and PPU checks — an object transfer takes the object scan's bus,
-            and the boot ROM's header logo actually decompresses at <code>$0100</code>.
-          </p>
-        </div>
-
-        <div class="tl-item">
-          <div class="tl-date">20 Aug 2026</div>
-          <p class="tl-title">Ten checks from a week of accuracy work</p>
-          <p>
-            Six of them drawn straight from TerminalGB's accumulated findings, and skipped
-            checks now print the reason they were skipped rather than staying silent.
-          </p>
-        </div>
-
-        <div class="tl-item">
-          <div class="tl-date">15 Aug 2026</div>
-          <p class="tl-title">A cartridge that says what is broken</p>
-          <p>
-            The founding version: one file, boots anywhere, and reports its own verdict on
-            the screen and out the link port — with a stable code and a documentation page
-            behind every check.
-          </p>
-        </div>
-
+      <h2>Rendering leaves a trace, even though the picture does not</h2>
+      <p>
+        A cartridge cannot see the screen. The picture processor streams pixels to the panel
+        and keeps none of them; there is no framebuffer to read back and no way to judge one
+        from the inside. So on the face of it a self-test cartridge can say nothing about
+        rendering at all.
+      </p>
+      <p>
+        Except that <strong>mode 3 lasts exactly as long as the fetcher takes</strong>, and the
+        fetcher takes longer when there is more to draw — a fine scroll offset, an object on
+        the line, the window starting. So the cartridge lays out a scene whose cost is
+        documented and measures how long mode 3 actually took. That is a real test of rendering
+        behaviour with no reference image anywhere in it, and in practice it is the most
+        discriminating thing here: it is what separates a renderer that draws a whole line at
+        once from one that models the fetcher.
+      </p>
+      <p>
+        The measurement is worth spelling out, because it solves a problem that looks fatal.
+        The coincidence interrupt is armed on one scanline, and the handler runs a variable
+        number of <code>NOP</code>s before reading <code>STAT</code> once; a binary search over
+        that delay finds the exact machine cycle at which the mode changes. The delay from the
+        interrupt to the first <code>NOP</code> is <em>unknown</em> — and does not matter,
+        because every result is the <strong>difference</strong> between two such edges and the
+        unknown cancels. The floor is four dots, because a machine cycle is four dots and the
+        processor cannot look between them.
+      </p>
+      <div class="callout">
+        <p class="eyebrow">And where that technique stops</p>
+        <p>
+          The STAT-sled measures <em>durations</em>. It has nothing to say about
+          <em>content</em>. TerminalGB's double-speed write-commit bug —
+          <a href="../posts/terminalgb-double-speed-accuracy.html">the one written up here</a>
+          — changes only <em>which</em> tile source the fetcher reads from at a given dot: not
+          how long anything takes, not any readable register, nothing DMA or interrupt related.
+          <code>GB-PPU-07</code>'s double-speed half checks the general fact that bug depended
+          on (the dot clock does not speed up with the CPU) but cannot and does not check the
+          bug itself, and no rewording of a timing check ever will. When a picture bug's only
+          effect is which of two already-equal-cost sources gets read, it needs Mealybug or a
+          screenshot, not this cartridge. Being exact about the limit is what makes the rest of
+          it worth trusting.
+        </p>
       </div>
     </section>
 
     <section class="prose">
-      <h2>What it structurally cannot check</h2>
+      <h2>A hundred checks in one session is a shape no test ROM has</h2>
       <p>
-        Being exact about the limit is what makes the rest worth trusting. A cartridge
-        cannot see <strong>the picture</strong> — the PPU streams pixels to the panel and
-        keeps none of them, so there is no framebuffer to read back; pixel accuracy is left
-        to the Mealybug Tearoom tests and TerminalGB's own conformance tool. It cannot see
-        anything <strong>finer than four dots</strong>, because the CPU only observes on
-        machine-cycle boundaries, nor hear <strong>sound as sound</strong> — register
-        behaviour is checked, what leaves the speaker is not. A double-speed bug that only
-        changes which tile a single dot samples is purely a pixel, and no cartridge can read
-        one; that failure mode is exactly what
-        <a href="../posts/terminalgb-double-speed-accuracy.html">TerminalGB's pixel harness</a>
-        exists to catch instead.
+        <code>GB-DMA-06</code> found a real bug in <a href="terminalgb.html">TerminalGB</a> on
+        the day it was written, and the bug was invisible to every public suite that emulator
+        gates on — thousands of rows across Gambatte, Mooneye, Mealybug, SameSuite and the c-sp
+        aggregation were byte-identical either way.
+      </p>
+      <p>
+        The fault was a flag the picture processor kept about a running object transfer,
+        cleared on one of the two paths that can notice the transfer has ended and not the
+        other. Once it latched, <strong>the object scan never read object memory again for the
+        rest of the run</strong>.
+      </p>
+      <p>
+        A suite of short ROMs cannot see that. Each one boots, measures one thing and stops, so
+        a latch that needs a transfer to end on an instruction boundary <em>and</em> a scan to
+        follow it never gets the chance. This cartridge runs a hundred checks back to back on
+        one machine, and that is the shape that catches it.
+      </p>
+      <p>
+        The check itself is a nice piece of indirection, because a cartridge cannot see which
+        objects the scan found. What it <em>can</em> see is how long mode 3 took, and ten
+        objects on a line cost the fetcher at least sixty dots. So: leave object memory
+        entirely empty, put the visible objects in the <em>transfer's source</em>, and start
+        the transfer so it covers the measured line's scan. A machine whose scan reads object
+        memory straight through the transfer finds the ten objects the transfer has already
+        written and is still drawing them; hardware finds none and is already in horizontal
+        blank.
+      </p>
+      <p>
+        Two details in that check are load-bearing rather than decorative. Object memory is
+        left empty <em>on purpose</em>, so that whatever slot the scan last managed to read, it
+        read a zero — the frozen Y puts the phantom object above the screen, and the check does
+        not depend on where the freeze landed. And the transfer is sourced from video memory
+        rather than work memory, because on a monochrome console work memory sits on the
+        cartridge's own bus and a transfer out of it would feed the processor its own bytes
+        instead of instructions. That is why every real game's transfer routine lives in high
+        RAM.
+      </p>
+      <p>
+        The standing rule this produced: <strong>when a check is written, run the whole
+        cartridge and read the total, not just that check's line.</strong> A new check that
+        passes in isolation and moves an unrelated area's verdict has found something.
       </p>
     </section>
 
-    <section id="writing" class="prose">
-      <h2>Writing</h2>
-      <p class="note">
-        A write-up of the "no expected value measured from an emulator" rule is in progress.
-        It will appear here and in the <a href="../#writing">Writing</a> index.
+    <section class="prose">
+      <h2>Three ways this cartridge has been wrong about itself</h2>
+      <p>
+        A project whose whole pitch is "measure it, do not assume it" collects a specific kind
+        of failure: the assumption you did not notice you were making. All three of these
+        shipped, and all three are written down beside the fix.
+      </p>
+
+      <h3>The run decided the verdict, not the machine</h3>
+      <p>
+        <code>GB-CYC-07</code> shipped once in a form that zeroed the timer counter and
+        <em>then</em> restarted the divider. Three cycles separate those two writes, and whether
+        the tapped bit falls inside them depends on the counter phase the check was entered in
+        — which is set by how much code ran above it. So the verdict was decided by
+        <em>which checks failed earlier</em> rather than by the machine. It passed on one
+        emulator and failed on SameBoy, and swapping the earlier failures swapped the answer.
+      </p>
+      <p>
+        The rule that came out of it: restart the counter first and zero the timer after it, and
+        sweep more than one delay rather than sampling once. Anything that reads a timer edge and
+        does not do both is measuring the rest of the run.
+      </p>
+
+      <h3>A subroutine that quietly ate the measurement</h3>
+      <p>
+        <code>FlipSpeed</code> runs the documented STOP-based speed-switch sequence and, like
+        every subroutine in that file, makes no promise about which registers survive it — it
+        loads <code>A</code> repeatedly on the way through. A check that measured something into
+        <code>A</code>, then called <code>FlipSpeed</code> to return to the starting speed, then
+        compared against <code>A</code>, was comparing <code>FlipSpeed</code>'s own leftover
+        value.
+      </p>
+      <p>
+        The dangerous part is that it does so silently, producing a plausible and
+        <em>constant</em> wrong number rather than a crash. It shipped in
+        <code>GB-PPU-07</code>'s double-speed half and was only caught because the wrong number
+        (<code>$1</code>) disagreed with an independent measurement on two unrelated emulators
+        that had already established the right one (<code>$2</code>). Save into a register
+        <code>FlipSpeed</code> does not touch.
+      </p>
+
+      <h3>Two checks that skipped on every console, forever</h3>
+      <p>
+        This is the best of the three, because nothing about it looks wrong. The build did not
+        pass <code>rgbfix -c</code>, so the ROM's header byte at <code>$0143</code> was
+        <code>$00</code> — and a real Color console boots a cartridge with no Color flag into
+        <strong>DMG compatibility mode</strong>, where <code>KEY1</code> and double speed do not
+        exist at all.
+      </p>
+      <p>
+        Meanwhile the cartridge's own console detection still correctly reported CGB, because it
+        reads the boot handover registers, which do not care about the cartridge's header. So a
+        double-speed check written the ordinary way built, linked, and <em>skipped on every run,
+        on every console, forever</em> — and nothing looked wrong until somebody specifically
+        asked whether it had ever run. Confirmed by building both ways and watching
+        <code>GB-CYC-09</code> and <code>GB-PPU-07</code> go from permanently-skip to
+        actually-run with zero change to any other check's verdict on any console.
+      </p>
+      <div class="callout">
+        <p class="eyebrow">Which is why a skip is counted separately</p>
+        <p>
+          A skip is not a pass, and it is not a failure either. Each one prints its own reason
+          in the run, so a skipped row is never silent — and two of the 102 do not judge at all:
+          they <em>report</em>, printing the number they saw and leaving the verdict to a reader
+          who has real hardware, because no published reference settles what the right answer is.
+        </p>
+      </div>
+    </section>
+
+    <section class="prose">
+      <h2>The scoreboard is evidence of discrimination, not a league table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Implementation</th><th class="num">Result</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>SameBoy, DMG</td><td class="num">100 / 102, 2 skipped</td></tr>
+            <tr><td>SameBoy, MGB (Pocket)</td><td class="num">100 / 102, 2 skipped</td></tr>
+            <tr><td>SameBoy, CGB-E</td><td class="num">97 / 102, 5 skipped</td></tr>
+            <tr><td>SameBoy, AGB</td><td class="num">98 / 102, 4 skipped</td></tr>
+            <tr><td>TerminalGB, per-dot renderer</td><td class="num">94 / 102, 2 skipped</td></tr>
+            <tr><td>TerminalGB, whole-scanline renderer</td><td class="num">86 / 102, 3 skipped</td></tr>
+            <tr><td>Peanut-GB</td><td class="num">68 / 102, 3 skipped</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        <strong>A suite everybody passes measures nothing</strong>, and the spread here is the
+        property this project exists to have. Every implementation in that table is doing what
+        it set out to do. TerminalGB's two rows are one emulator with two renderers behind it,
+        and the eight-row gap between them is the fetcher model alone. Peanut-GB is built to run
+        a Game Boy on a microcontroller and renders line by line. The rows are not a ranking;
+        they are the range the checks can tell apart.
+      </p>
+      <p>
+        One caveat is carried in the repository rather than hidden: the TerminalGB rows are
+        measured against a pinned revision that is old enough to predate a fair amount of
+        accuracy work on the other side — <em>including</em> the object-DMA bus-sharing model
+        <code>GB-DMA-06</code> itself prompted. So those rows will keep scoring below checks a
+        current TerminalGB build passes outright. That is the pin, not a finding, and re-pinning
+        is a deliberate action that moves every row in the table at once.
       </p>
     </section>
+
+    <section class="prose">
+      <h2>A check earns its place by being all four of these</h2>
+      <ol>
+        <li>
+          <strong>Self-verifying.</strong> Its expected value is computed on the machine or is a
+          documented hardware constant. If you had to measure it on an emulator to find out what
+          it should be, it does not go in.
+        </li>
+        <li>
+          <strong>Discriminating.</strong> A careful implementation and a rough one give
+          different answers. Something everything passes is a check that measures nothing.
+        </li>
+        <li>
+          <strong>Explained.</strong> One line saying what behaviour is missing, in hardware
+          terms an author can act on. A check that only says <code>FAIL</code> is half a check.
+        </li>
+        <li>
+          <strong>Bounded.</strong> It cannot hang. Anything that waits for an event waits with a
+          limit; anything that waits for an event a broken machine might never deliver checks
+          first that the machine <em>can</em> deliver it, and skips if not.
+        </li>
+      </ol>
+      <p>
+        Everything the documentation shows is regenerated rather than edited — the check
+        reference is written from the registry the ROM is built from, the screenshots are
+        re-taken from the emulators' own framebuffers, the scoreboard re-runs every row — and CI
+        is red if any of it has drifted. If a number in the README changes, it is because a run
+        said so.
+      </p>
+    </section>
+
+    <hr>
+
+    <div class="provenance">
+      <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
+      <p>
+        The scoreboard was measured on 24 Aug 2026 by <code>tools/scoreboard.sh</code>, which
+        runs every row and writes <code>docs/scoreboard.md</code>, naming the exact revision of
+        each emulator: SameBoy <code>213a12c</code>, TerminalGB <code>2467c65</code>, Peanut-GB
+        <code>8e65698</code>, with the cartridge built from the RGBDS version pinned in
+        <code>tools/fetch-rgbds.sh</code>. Nothing is vendored — each runner fetches, pins and
+        builds its own emulator.
+      </p>
+      <p>
+        Both screenshots and the failure excerpt are committed artefacts of real runs, regenerated
+        by <code>tools/screenshots.sh</code>; the byte counts (8,423 and 18,064) are read off the
+        committed transcripts' own <code>cost</code> lines. The eight- and eighteen-second serial
+        figures are those byte counts divided by the Game Boy link port's 8,192 bits per second.
+      </p>
+      <p>
+        The cartridge contains no third-party source, no boot-ROM extract and no game data of any
+        kind: the font is drawn for it, the register definitions are written out from the
+        public-domain Pan Docs, and the whole thing is MIT so anybody can take it, ship it and
+        change it.
+      </p>
+    </div>
 
     <a class="backlink" href="../#projects">← All projects</a>
 

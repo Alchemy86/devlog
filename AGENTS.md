@@ -23,7 +23,9 @@ resource is Google Fonts. It must still work untouched in two years — keep it 
 - `index.html` — landing page + post list.
 - `posts/*.html` — one self-contained file per post (each wires its own fonts, CSS,
   masthead, footer). Add a new post's `<li>` to the list in `index.html`.
+- `projects/*.html` — one long-form page per project, same self-contained shape as a post.
 - `assets/css/main.css` — the entire design system, documented inline.
+- `assets/img/<project>/` — real captures copied out of the source repos. See **Images**.
 
 ## Design system (do not drift)
 
@@ -33,6 +35,12 @@ white cards, hairline `#DDE1D4`, one amber accent `#A8431F`; mono uppercase eyeb
 `h2` = small uppercase mono with a 2px bottom rule (the signature move); metric bands;
 tables for comparison. Full light + dark via CSS custom properties and
 `prefers-color-scheme`. 1000px container, ~66ch prose measure, ~52px section rhythm.
+
+The long-form project pages added five components to the bottom of `main.css`, in the same
+style and using only the existing tokens: `figure.pixel` / `figure.narrow` (real captures),
+`.fig-pair` (a before/after pair, stacking under 640px), `figure.code` (a snippet with a
+caption), `.pullquote`, and `.provenance` (the "where these numbers come from" strip every
+project page ends with). Extend that list rather than inventing a parallel system.
 
 ## Editorial rule (non-negotiable)
 
@@ -92,8 +100,75 @@ Project pages live in `projects/` and draw their facts from private repos under
 - `projects/gbselftest.html` → `gbselftest/`.
 - `projects/terminalgb-portal.html` → `terminalgb-portal/`.
 
+## Images
+
+Real captures only — never stock art, never an invented screenshot, never a diagram of
+something that does not exist. Assets live in `assets/img/<project>/` and are copied out
+of the source repos, never re-rendered:
+
+```sh
+magick <src>.png -strip -define png:compression-level=9 -define png:compression-filter=5 <dst>.png
+magick compare -metric AE <src>.png <dst>.png null:      # must print 0
+```
+
+That re-compresses losslessly (typically 40-60% smaller, and 574K -> 12K on one badly
+stored file) and the `compare` step is the gate: a copy that is not pixel-identical to the
+source does not land. Game Boy screenshots carry `class="pixel"` on the `<figure>`
+(`image-rendering: pixelated`) — a four-shade picture must never be smoothed by the
+browser, which is the same rule PixelGB and TerminalGB both enforce in code.
+
+AtlasGB has no images of its own. Its chart is an inline SVG built from
+`atlases/pokemon-rb/data/atlas.tsv` (tally the `verify` column with `csv.DictReader` +
+`collections.Counter`), and the page says so in its own figcaption. Any future
+AtlasGB visual has to be generated from that repo's real contents the same way.
+
+## Two source-repo docs that disagree with themselves — trust these
+
+Verified 2026-08-26 while writing the project pages; re-check before requoting:
+
+- **agentgb `README.md` § "The student in this repository" is stale.** It still names
+  `pixel-fix7-round1` / sha `8963691…` as the committed file. The committed file is the
+  goal-conditioned **star pupil**, sha `b2bb79082c88c486c8d6e146be000627a59af3efaa19a9fc75641e957262c109`
+  (`git log` commit `e604ec6`, "models: promote the star pupil"). **`models/README.md` is
+  authoritative on which weights ship**; `sha256sum models/pixel-student.npz` settles it.
+- **mapgb `AGENTS.md` disagrees with `docs/verification.md` twice**, and
+  `docs/verification.md` is the one that came out of a run: it is **216 photographed**
+  (not 226) and **22 of 248 map ids are placeholders** (not twelve; 248 − 226 = 22).
+
+## Figures verified by counting, not by quoting
+
+`models/pixel-student.npz` loaded with NumPy, summing `.size` over the arrays:
+conv1/2/3 = 15,504 · `fc` = 102,528 · `action` = 774 → **118,806** inference core
+(86.3% is the single dense layer, 13.1% the three convolutions), plus `film3` 320 and
+`goal_head` 3,204 → **122,330** weights and one metadata string in the committed
+goal-conditioned file. The file's own `meta` records `in_shape [4, 36, 40]`,
+`n_actions 6`, `observation "screen"`.
+
+## Local preview and verification
+
+`python3 -m http.server` from the repo root, then screenshot with headless Chrome:
+
+```sh
+google-chrome --headless --disable-gpu --no-sandbox --hide-scrollbars \
+  --window-size=1280,16000 --virtual-time-budget=8000 --screenshot=out.png <url>
+```
+
+**`chrome-devtools-axi` does not work here** — every `snapshot`/`eval`/`screenshot` fails
+with `Invalid arguments ... Required at pageId`, in both the default and a named session.
+Use the Chrome command above instead. There is also a structural check worth re-running
+after any edit: parse every `.html` with `html.parser` for unclosed/mismatched tags,
+resolve every relative `src`/`href` against the filesystem, and assert every `<img>` has
+an `alt`.
+
 ## Git / accounts
 
 Pushes to this repo need the **Alchemy86** GitHub account, not RT-Aaron. No AI
 attribution in commits, PRs, or docs — this is a standing instruction and is about
 credit only (documenting an AI feature is fine; crediting an AI as author is not).
+
+## Maintaining this file
+
+Keep this file for knowledge useful to almost every future agent session in this project.
+Do not repeat what the codebase already shows; point to the authoritative file or command instead.
+Prefer rewriting or pruning existing entries over appending new ones.
+When updating this file, preserve this bar for all agents and keep entries concise.
