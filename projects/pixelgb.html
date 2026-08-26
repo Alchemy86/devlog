@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PixelGB — devlog</title>
+  <meta name="description" content="PixelGB: high-quality pictures extracted from a Game Boy cartridge and checked against the console that drew them — every map in Pokémon Red and Blue, photographed pixel for pixel.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="PixelGB — devlog">
+  <meta property="og:description" content="Pictures photographed from a running Game Boy and checked against it, pixel for pixel.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/pixelgb.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <header class="post-header">
+      <p class="eyebrow">Project · Picture extraction</p>
+      <h1>PixelGB</h1>
+      <p class="lead">
+        High-quality pictures extracted from a Game Boy cartridge and checked against the
+        console that drew them. Not reconstructed from a disassembly — photographed. PixelGB
+        puts the cartridge in a cycle-accurate emulator, walks the game to each of its 226
+        maps, and lets the game load its own tileset, apply its own palette and draw its own
+        screen. Then it renders the same map a second time from the data and compares the
+        two, pixel for pixel.
+      </p>
+    </header>
+
+    <section>
+      <div class="metrics">
+        <div class="metric">
+          <div class="num">226</div>
+          <div class="label">Maps, drawn by the game itself</div>
+        </div>
+        <div class="metric">
+          <div class="num">215<span style="color:var(--ink-soft)">/226</span></div>
+          <div class="label">Verified agreeing</div>
+        </div>
+        <div class="metric">
+          <div class="num"><span class="accent">11</span></div>
+          <div class="label">Unresolved — named, not hidden</div>
+        </div>
+        <div class="metric">
+          <div class="num">904</div>
+          <div class="label">PNGs published</div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px;">904 = 226 maps at four scales. Verified against a Pokémon Blue cartridge, checksum <code>$9D0A</code>.</p>
+    </section>
+
+    <section class="prose">
+      <h2>What it is</h2>
+      <p>
+        Every published Kanto map you have seen exists because the world was being rebuilt
+        from the outside, by something that is not the game. PixelGB is not outside — it is
+        holding the console. It plays the opening, saves the machine's state the moment it
+        stands on a real map, and for each of the 226 maps rewinds to that moment, points a
+        warp at the target and walks the player in. Everything after that is the game's own:
+        the map header, the tileset copy into video RAM, the palette, the objects, the
+        screen. The palette is learned, not asserted; and PixelGB cannot invent detail and
+        does not try — there is no upscaler and no "enhancement."
+      </p>
+      <p>
+        The addresses it uses to do this all come from <a href="atlasgb.html">AtlasGB</a>'s
+        evidenced Pokémon Red/Blue atlas, and the console it holds is
+        <a href="terminalgb.html">TerminalGB</a> — pixel-exact on dmg-acid2, 0 of 23,040
+        pixels different. They are siblings.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>How a picture is proved</h2>
+      <p>
+        A rendered map is not trusted because it looks right. Each one passes four checks, in
+        increasing order of proof — the last of which is a literal pixel-for-pixel comparison
+        of what the hardware drew:
+      </p>
+      <ol>
+        <li><strong>The header</strong> — the engine-loaded map header against the one PixelGB read from the same bytes. <span class="mono">226 of 226 agree.</span></li>
+        <li><strong>The art</strong> — the tileset graphics the game copied into video RAM, against the same graphics in the cartridge.</li>
+        <li><strong>The blocks</strong> — the engine's live overworld map, against the cartridge's block list. <span class="mono">204 identical, 22 changed by a map script.</span></li>
+        <li><strong>The pixels</strong> — the 160×144 the PPU actually drew, against the same window composed from the map data, pixel for pixel. <span class="mono">212 exact, 3 explained by a script, 11 unresolved and named.</span></li>
+      </ol>
+      <p class="note">
+        Alignment is searched, not assumed, and the excluded pixels — those an object may have
+        covered, and those outside the map proper — are recorded rather than quietly dropped.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>Milestones</h2>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-date">20 Aug 2026</div>
+          <p class="tl-title">The interior atlas settles</p>
+          <p>
+            The final placement pass: every interior is drawn at its own door, on the side of
+            its town the door is on — a presentation choice the stamp openly calls a
+            presentation choice.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">19 Aug 2026</div>
+          <p class="tl-title">The world, checked against the community's map</p>
+          <p>
+            Every room reached by the shortest way in, the whole cartridge's world observed
+            on a running machine and stitched together — 36 overworld maps with zero
+            placement disagreements.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">16 Aug 2026</div>
+          <p class="tl-title">Every map in one atlas</p>
+          <p>
+            The world's structure observed on a running cartridge and all 226 maps laid out
+            together in a single picture, 6848×7024 pixels at full scale.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">15 Aug 2026</div>
+          <p class="tl-title">Photographed, then named</p>
+          <p>
+            Every Pokémon Red/Blue map rendered from a running cartridge and published, each
+            PNG stamped with its own provenance. The project took the name PixelGB in the same
+            pass.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="prose">
+      <h2>What it does not claim</h2>
+      <p>
+        PixelGB ships no cartridge and no cartridge data. The eleven maps it could not verify
+        are named, not rounded away: ten have no reachable arrival point, so the camera lands
+        outside the map proper, and one is the Hall of Fame, where a script cannot be
+        dismissed. The published set is four-shade only — the Game Boy Color path was never
+        exercised end to end, because no Color boot ROM was available — and Super Game Boy
+        per-area colour is a documented non-goal. All the verification numbers are from a
+        single Pokémon Blue cartridge; Red is supported but unmeasured.
+      </p>
+    </section>
+
+    <section id="writing" class="prose">
+      <h2>Writing</h2>
+      <p class="note">
+        A write-up of "photographed, not reconstructed" — and the four-check evidence ladder —
+        is in progress. It will appear here and in the <a href="../#writing">Writing</a> index.
+      </p>
+    </section>
+
+    <a class="backlink" href="../#projects">← All projects</a>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

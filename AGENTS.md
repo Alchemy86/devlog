@@ -53,6 +53,22 @@ corrected against the repos:
 When building a project page or post, verify each briefed number against the source
 repo (`~/Github/firstmate/projects/<project>/`) before publishing it.
 
+## Source repositories (which page is backed by which repo)
+
+Project pages live in `projects/` and draw their facts from private repos under
+`~/Github/firstmate/projects/`:
+
+- `projects/terminalgb.html` → `gameboy/` (the emulator is named **TerminalGB**; the
+  repo/dir is `gameboy`).
+- `projects/agentgb.html` → `agentgb/` (the neural player).
+- `projects/atlasgb.html` → `atlasgb/`.
+- `projects/pixelgb.html` → `mapgb/`. **Gotcha:** the dir is `mapgb` but the project was
+  renamed to **PixelGB** (crate `pixelgb`, repo `Alchemy86/PixelGB`). It is the
+  picture-extraction project and is NOT AgentGB — the brief's "AgentGB/PixelGB" conflated
+  two separate projects.
+- `projects/gbselftest.html` → `gbselftest/`.
+- `projects/terminalgb-portal.html` → `terminalgb-portal/`.
+
 ## Git / accounts
 
 Pushes to this repo need the **Alchemy86** GitHub account, not RT-Aaron. No AI

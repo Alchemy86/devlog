@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GBSelfTest — devlog</title>
+  <meta name="description" content="GBSelfTest: a single-file Game Boy test cartridge that boots anywhere and tells you what is broken and where to read about it — 102 checks across 11 hardware areas.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="GBSelfTest — devlog">
+  <meta property="og:description" content="A self-testing Game Boy cartridge that says what is broken, in hardware terms, and where to read about it.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/gbselftest.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <header class="post-header">
+      <p class="eyebrow">Project · Test cartridge</p>
+      <h1>GBSelfTest</h1>
+      <p class="lead">
+        A single-file Game Boy test cartridge. Boot it on any emulator or a real console
+        and it tells you what is broken and where to read about it — no host, no reference
+        images, no setup. It runs 102 checks unattended in under ten seconds and reports
+        the verdict twice over: as text on the screen, and as the same text out of the link
+        port, so a machine can read it with nobody watching.
+      </p>
+    </header>
+
+    <section>
+      <div class="metrics">
+        <div class="metric">
+          <div class="num">102</div>
+          <div class="label">Checks</div>
+        </div>
+        <div class="metric">
+          <div class="num">11</div>
+          <div class="label">Hardware areas</div>
+        </div>
+        <div class="metric">
+          <div class="num">&lt;10<span style="color:var(--ink-soft)">s</span></div>
+          <div class="label">Unattended run</div>
+        </div>
+        <div class="metric">
+          <div class="num">2</div>
+          <div class="label">Ways it reports the verdict</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="prose">
+      <h2>What it is</h2>
+      <p>
+        Most test suites tell you a number. GBSelfTest tells you which behaviour is
+        missing, in hardware terms an author can act on, and where the write-up is. Every
+        check prints a stable code with its failure; the link port carries the whole story,
+        including the measured value, one line of hardware explanation, and the URL to read.
+        For CI, an existing runner captures the link port and reads the last line —
+        <code>Passed</code> or <code>Failed</code> — with no changes.
+      </p>
+      <p>
+        The design rule that makes it trustworthy: <strong>no check's expected value may be
+        a number measured from an emulator.</strong> Every expectation is either computed a
+        second, independent way on the machine itself, or is a documented hardware constant.
+        Anything that cannot be settled that way is listed as untested, with its reason.
+      </p>
+      <p>
+        The eleven areas: the CPU's instruction results and flags; instruction and memory
+        timing (<code>CYC</code>); the divider and timer; interrupts, including the
+        <code>HALT</code> defect and <code>EI</code>'s delay; the memory map; PPU display
+        timing and bus blocking; the object-transfer DMA; the sound registers; MBC banking;
+        the state the boot ROM handed over; and the link port itself.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The cartridge discriminates</h2>
+      <p>
+        Run on several implementations, the results spread out — which is the point. This is
+        evidence that the cartridge tells machines apart, not a league table.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Implementation</th>
+              <th class="num">Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>SameBoy · DMG</td><td class="num">100 / 102</td></tr>
+            <tr><td>SameBoy · CGB-E</td><td class="num">97 / 102</td></tr>
+            <tr><td>TerminalGB · per-dot renderer</td><td class="num">94 / 102</td></tr>
+            <tr><td>TerminalGB · whole-scanline renderer</td><td class="num">86 / 102</td></tr>
+            <tr><td>Peanut-GB</td><td class="num">68 / 102</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">
+        Measured 24 Aug 2026. The two TerminalGB rows are the same emulator behind its two
+        renderers, run against a deliberately old pinned build — the number is a fixed
+        reference, not a live score, and predates a good deal of accuracy work on the other
+        side. A skip is not a pass and not a failure; each skipped check prints its own
+        reason.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>Milestones</h2>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-date">24 Aug 2026</div>
+          <p class="tl-title">Double-speed checks land</p>
+          <p>
+            <code>GB-CYC-09</code> and <code>GB-PPU-07</code> verify that the Color speed
+            switch takes effect and that the dot clock does not speed up with it.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">21 Aug 2026</div>
+          <p class="tl-title">The shared bus, in checks</p>
+          <p>
+            New DMA, BOOT and PPU checks — an object transfer takes the object scan's bus,
+            and the boot ROM's header logo actually decompresses at <code>$0100</code>.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">20 Aug 2026</div>
+          <p class="tl-title">Ten checks from a week of accuracy work</p>
+          <p>
+            Six of them drawn straight from TerminalGB's accumulated findings, and skipped
+            checks now print the reason they were skipped rather than staying silent.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">15 Aug 2026</div>
+          <p class="tl-title">A cartridge that says what is broken</p>
+          <p>
+            The founding version: one file, boots anywhere, and reports its own verdict on
+            the screen and out the link port — with a stable code and a documentation page
+            behind every check.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="prose">
+      <h2>What it structurally cannot check</h2>
+      <p>
+        Being exact about the limit is what makes the rest worth trusting. A cartridge
+        cannot see <strong>the picture</strong> — the PPU streams pixels to the panel and
+        keeps none of them, so there is no framebuffer to read back; pixel accuracy is left
+        to the Mealybug Tearoom tests and TerminalGB's own conformance tool. It cannot see
+        anything <strong>finer than four dots</strong>, because the CPU only observes on
+        machine-cycle boundaries, nor hear <strong>sound as sound</strong> — register
+        behaviour is checked, what leaves the speaker is not. A double-speed bug that only
+        changes which tile a single dot samples is purely a pixel, and no cartridge can read
+        one; that failure mode is exactly what
+        <a href="../posts/terminalgb-double-speed-accuracy.html">TerminalGB's pixel harness</a>
+        exists to catch instead.
+      </p>
+    </section>
+
+    <section id="writing" class="prose">
+      <h2>Writing</h2>
+      <p class="note">
+        A write-up of the "no expected value measured from an emulator" rule is in progress.
+        It will appear here and in the <a href="../#writing">Writing</a> index.
+      </p>
+    </section>
+
+    <a class="backlink" href="../#projects">← All projects</a>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

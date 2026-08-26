@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TerminalGB Portal — devlog</title>
+  <meta name="description" content="TerminalGB Portal: sign in, add a friend by code, trade one Gen 1 Pokémon — an asynchronous link trade where only a ~250-byte description crosses the wire.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TerminalGB Portal — devlog">
+  <meta property="og:description" content="Trade one Gen 1 Pokémon over the web — no second Game Boy, no game bytes on the wire.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/terminalgb-portal.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <header class="post-header">
+      <p class="eyebrow">Project · Companion service</p>
+      <h1>TerminalGB Portal</h1>
+      <p class="lead">
+        Sign in, add a friend by code, trade one Gen 1 Pokémon. That is v1, whole. The
+        insight that makes it simple: a Game Boy link trade does not need two Game Boys —
+        it needs one Game Boy and something that answers the cable correctly, and the
+        TerminalGB emulator already ships that. So the portal is that partner, served over
+        HTTPS.
+      </p>
+    </header>
+
+    <section>
+      <div class="metrics">
+        <div class="metric">
+          <div class="num">~250<span style="color:var(--ink-soft)"> B</span></div>
+          <div class="label">Crosses the wire per trade</div>
+        </div>
+        <div class="metric">
+          <div class="num"><span class="accent">0</span></div>
+          <div class="label">Game bytes, saves or ROMs sent</div>
+        </div>
+        <div class="metric">
+          <div class="num">65</div>
+          <div class="label">End-to-end checks</div>
+        </div>
+        <div class="metric">
+          <div class="num">$0<span style="color:var(--ink-soft)">/mo</span></div>
+          <div class="label">Hosting at hobby scale</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="prose">
+      <h2>What it is</h2>
+      <p>
+        A companion web service for TerminalGB that lets two people trade a Gen 1 Pokémon
+        without either of them owning a second Game Boy. A link trade only ever needed one
+        real console and a partner on the other end of the cable that answers correctly —
+        and the emulator already ships that partner (its <code>gen1-link</code> virtual
+        partner, fed by a <code>PokemonSource</code>). The portal is simply a
+        <code>PokemonSource</code> served over HTTPS, so a trade becomes a handful of
+        ordinary HTTP requests.
+      </p>
+      <p>
+        Because of that, nothing is synchronised and nobody waits: each player trades
+        against their own local partner, in their own time. What actually crosses the wire
+        is a roughly 250-byte <strong>description</strong> of a Pokémon — species, level,
+        original trainer, moves, DVs — and <strong>never game bytes, never a save, never a
+        ROM</strong>. That is a deliberate licence boundary, not an implementation
+        shortcut.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The trade loop</h2>
+      <p>
+        v1 is a small, closed set of features, each one doing exactly one thing:
+      </p>
+      <ul>
+        <li><strong>Device-code login</strong> — <code>terminalgb login</code> runs the RFC 8628 device-code flow; the portal serves the endpoints the command calls and the approval page.</li>
+        <li><strong>Friends by code</strong> — you get a six-character code and paste a friend's; the codes are rate-limited and non-enumerable.</li>
+        <li><strong>Offer and accept</strong> — you offer one Pokémon to accepted friends; the first to accept locks it atomically, naming what they give back. The confirm screen states exactly what leaves and what arrives, because a trade is irreversible.</li>
+        <li><strong>Trade log</strong> — both parties see the same rows.</li>
+        <li><strong>Collection browser</strong> — a friend's party and boxes, browsable and filterable, with sprites held for the session only: they vanish when the terminal disconnects and the portal keeps no sprite store of its own.</li>
+      </ul>
+      <p class="note">
+        Stack: Next.js 15, Clerk for auth, Postgres, plain <code>pg</code> with no ORM,
+        deployed to Vercel — $0/month at hobby scale. The HTTP API is a shared contract
+        with the emulator repo.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>Milestones</h2>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-date">15 Aug 2026</div>
+          <p class="tl-title">Draw the card the emulator sends</p>
+          <p>
+            The portal reads the ~250-byte Pokémon description the terminal reports and
+            renders it as a card — one shared card shape used everywhere offers appear.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">14 Aug 2026</div>
+          <p class="tl-title">Collection browser with session-only sprites</p>
+          <p>
+            Live party-and-box listings of what a friend's own terminal reported, filterable
+            by species, type, level and storage — including the "would be shiny if traded to
+            Gen 2" prediction that Gen 1 itself cannot show.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">14 Aug 2026</div>
+          <p class="tl-title">v1: the whole trade loop</p>
+          <p>
+            Sign in, add a friend by code, offer and accept a single Gen 1 Pokémon with an
+            atomic lock, and a shared trade log — the complete first version, backed by 65
+            end-to-end checks against a running server.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="prose">
+      <h2>Deliberately not in v1</h2>
+      <p>
+        The UI says so where it matters: live link sessions and battles, the browser as a
+        primary client, strangers and public matchmaking, multi-Pokémon trades, Gen 2/3,
+        and mobile are all out of scope for the first version. The emulator-side sender that
+        pushes a collection to the portal is not built yet — the contract for it is written
+        down and waiting.
+      </p>
+    </section>
+
+    <section id="writing" class="prose">
+      <h2>Writing</h2>
+      <p class="note">
+        A write-up of the "one Game Boy is enough" trade design is in progress. It will
+        appear here and in the <a href="../#writing">Writing</a> index.
+      </p>
+    </section>
+
+    <a class="backlink" href="../#projects">← All projects</a>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>
