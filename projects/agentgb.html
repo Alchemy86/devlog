@@ -49,19 +49,25 @@
           <div class="label">Parameters, whole network</div>
         </div>
         <div class="metric">
-          <div class="num">300<span style="color:var(--ink-soft)">/300</span></div>
-          <div class="label">Cold boots · Squirtle line</div>
-        </div>
-        <div class="metric">
           <div class="num">177<span style="color:var(--ink-soft)">/300</span></div>
-          <div class="label">Cold boots · natural starter spread</div>
+          <div class="label">Nine-link chain · ball3b-s0, argmax</div>
         </div>
         <div class="metric">
           <div class="num"><span class="accent">123</span></div>
           <div class="label">Failures — every one on Route 1</div>
         </div>
+        <div class="metric">
+          <div class="num">499<span style="color:var(--ink-soft)">/500</span></div>
+          <div class="label">Takes a starter — shipped weights</div>
+        </div>
       </div>
-      <p class="note" style="margin-top:14px;">The nine-link opening chain, cold boot to the far side of Route 1, sampling at temperature 1.0.</p>
+      <p class="note" style="margin-top:14px;">
+        The nine-link chain is one cold boot to Viridian City, nine milestones, seed 0, screen only, no state
+        loads. That 177/300 was measured on <code>ball3b-s0</code> under <strong>argmax</strong>, not sampling —
+        and under argmax the entry decision reads <code>right</code> at probability 1.0000, so all 300 boots take
+        the same starter. The 499/500 is the current committed
+        <code>models/pixel-student.npz</code> on the <code>take-a-starter</code> link, 500 runs sampled at T=1.0.
+      </p>
     </section>
 
     <section class="prose">
@@ -90,11 +96,14 @@
       <div class="callout">
         <p class="eyebrow">Re-runnable only</p>
         <p>
-          An earlier training run completed the opening chain 300/300 — but those exact
-          weights were never committed and no longer exist, so that figure cannot be
-          re-run. The student that actually ships completes the chain <strong>177 of 300
-          cold boots (59%)</strong> across a natural starter spread. We quote the number
-          you can reproduce, not the best one we ever saw.
+          The 300/300 nine-link headline this project used to lead with was measured on
+          <code>fix9s0</code> — a student that always took Charmander, was never committed, and no longer
+          exists on any disk. It cannot be re-run, so it is not a number we quote. The best committed
+          figure is <strong>177 of 300 cold boots (59%)</strong>, and it belongs to <code>ball3b-s0</code>.
+          Being straight about the rest: the student shipping today is several training generations
+          past <code>ball3b-s0</code>, and <strong>no later arm has been given its own N=300 chain
+          run</strong> — so 177/300 is the last honest chain measurement, not a current one. We would
+          rather publish a stale number and say it is stale than a flattering one we cannot reproduce.
         </p>
       </div>
     </section>
@@ -102,12 +111,13 @@
     <section class="prose">
       <h2>One missing skill: the Route 1 whiteout</h2>
       <p>
-        The 59% is not scattered failure — it is a single failure, repeated. Left to pick
-        its own starter at temperature 1.0, the student chooses naturally: Bulbasaur 467,
-        Charmander 298, Squirtle 231 out of 1,000 runs. Force the starter to Squirtle and
-        the chain completes <strong>300 of 300</strong>. Let it take Bulbasaur and it falls
-        to 177 of 300 — and <strong>every one of the 123 failures ends in a battle on Route
-        1.</strong>
+        The 59% is not scattered failure — it is a single failure, repeated. The starter decides it.
+        Three arms were trained, one seed each, and run over 300 cold boots apiece: the Squirtle arm
+        completed the chain <strong>300 of 300</strong>, the Charmander control <strong>300 of
+        300</strong>, and the Bulbasaur arm <strong>177 of 300</strong> — and <strong>every one of
+        those 123 failures ended in a battle on Route 1.</strong> These are separate trained networks,
+        not one network with its starter forced; only the varied arm was ever committed, on a
+        deliberate call to ship one model rather than a per-starter zoo.
       </p>
       <p>
         The cause is mechanical and honest: the rival takes the counter-starter, the
@@ -167,9 +177,9 @@
           <div class="tl-date">21 Aug 2026</div>
           <p class="tl-title">Natural starter variety</p>
           <p>
-            A seeded choice in the teacher gave a realistic starter spread at temperature 1
-            — Bulbasaur 467, Charmander 298, Squirtle 231 of 1,000 — with 996 of 1,000 still
-            reaching the goal.
+            A seeded choice in the teacher broke the always-one-starter collapse. Measured on
+            <code>ball3b-s0</code>, sampled at temperature 1 — Bulbasaur 467, Charmander 298,
+            Squirtle 231 of 1,000 — with 996 of 1,000 still reaching the goal.
           </p>
         </div>
 

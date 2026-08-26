@@ -45,10 +45,33 @@ corrected against the repos:
 - TerminalGB double-speed: brief said `7,672 → 56`; source has no such figures. The
   post uses the real `2,304 → PASS` (AGE `m3-bg-lcdc-ds@cgbBCE`).
 - AgentGB: brief said `29/30` cold boots with "one Squirtle run fails on Route 1". The
-  repo inverts this — the shipped student is `177/300 (59%)` on a natural starter
-  spread, the **Bulbasaur** line is what fails on Route 1 (123/123 failures), and the
-  **Squirtle** line is `300/300`. A `300/300` chain existed but on uncommitted weights
-  that no longer exist, so the re-runnable `177/300` is what the page quotes.
+  repo inverts this — the failing line is **Bulbasaur** (`177/300`, and all `123`
+  failures end in a battle on Route 1), while Squirtle and Charmander are `300/300`.
+  A `300/300` whole-chain headline existed but on `fix9s0`, uncommitted weights that no
+  longer exist, so the page quotes the committed `177/300` instead.
+
+  **Three corrections found on 2026-08-26, after the page had already published them —
+  re-check these before touching `projects/agentgb.html`:**
+  1. `177/300` is **not** "a natural starter spread". It was measured under **argmax**,
+     where the entry tile reads `right` at probability `1.0000` / `0.0000` bits of
+     entropy, so every one of the 300 boots takes the *same* starter. `AGENTS.md` in the
+     agentgb repo is explicit: "the published 177/300 = 59.0% is an argmax figure and is
+     not the number a sampled run should be judged against."
+  2. The per-starter `300/300` figures are **separately trained arms** (`squirtb-s0`,
+     `ctl-s0`), one seed each — *not* the shipped network with its starter forced. Both
+     were staged and removed on the captain's "one model only, the varied one" ruling.
+  3. `177/300` belongs to `ball3b-s0` and is **stale relative to what ships**. The
+     committed student is several generations later (goal-conditioned `parcelroute`
+     lineage, plus adapters) and **no later arm has an N=300 chain run at all**. The
+     agentgb README carries this as a standing block quote; do not publish `177/300` as
+     "what the student that ships does".
+
+  The current re-runnable figure for the committed weights is `starter-choice.md` §9:
+  `models/pixel-student.npz` on `take-a-starter`, N=500 sampled at T=1.0 — Bulbasaur 254
+  / Charmander 118 / Squirtle 127, reaching the goal `499/500 = 99.8%`.
+
+  General lesson: this repo names its models, and a rate without a model name attached is
+  not a verified rate. Always carry the `.npz` identity alongside the number.
 
 When building a project page or post, verify each briefed number against the source
 repo (`~/Github/firstmate/projects/<project>/`) before publishing it.
