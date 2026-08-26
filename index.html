@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>devlog — engineering notes</title>
+  <meta name="description" content="Detailed technical breakdowns of the core work: TerminalGB, AgentGB and AtlasGB. Real numbers, real trade-offs, and the failures that make them worth reading.">
+  <meta name="color-scheme" content="light dark">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="devlog — engineering notes">
+  <meta property="og:description" content="Detailed technical breakdowns of the core work: TerminalGB, AgentGB and AtlasGB.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="./">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="#writing">Writing</a>
+        <a href="#projects">Projects</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section style="margin-top:64px;">
+      <p class="eyebrow">Engineering log</p>
+      <h1>Notes from the workbench.</h1>
+      <p class="lead">
+        Detailed breakdowns of the core work — TerminalGB, AgentGB, AtlasGB and the
+        rest. The source repositories are private; this is where the interesting parts
+        become visible. Real numbers, real trade-offs, and the failures that make them
+        worth reading.
+      </p>
+    </section>
+
+    <section id="writing">
+      <h2>Writing</h2>
+      <ul class="post-list">
+
+        <li>
+          <a class="post-card" href="posts/terminalgb-double-speed-accuracy.html">
+            <div class="post-meta">
+              <span class="tag">TerminalGB</span>
+              <span>Emulator accuracy</span>
+              <span>26 Aug 2026</span>
+            </div>
+            <p class="post-title">The double-speed bug that cost 2,304 pixels</p>
+            <p class="post-dek">
+              A register-commit trick worth exactly one dot of time vanished when the
+              CPU clock doubled — and a Color game drew a wrong stripe across the
+              screen. Finding it took an AGE reference ROM from 2,304 wrong pixels to
+              a clean pass, and explains why TerminalGB ships two picture engines.
+            </p>
+          </a>
+        </li>
+
+      </ul>
+      <p class="note" style="margin-top:24px;">More breakdowns of AgentGB and AtlasGB are in progress.</p>
+    </section>
+
+    <section id="projects">
+      <h2>The projects</h2>
+      <div class="prose">
+        <p>
+          A family of Game Boy systems built to a single standard: nothing is claimed
+          that cannot be re-run and measured. The write-ups here pull the evidence out
+          of private repositories and lay it out in the open.
+        </p>
+      </div>
+
+      <div class="metrics" style="margin-top:28px;">
+        <div class="metric">
+          <div class="num">TerminalGB</div>
+          <div class="label">Cycle-accurate GB emulator</div>
+        </div>
+        <div class="metric">
+          <div class="num">AgentGB</div>
+          <div class="label">Neural student, plays from pixels</div>
+        </div>
+        <div class="metric">
+          <div class="num">AtlasGB</div>
+          <div class="label">Evidence-only cartridge atlas</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>
