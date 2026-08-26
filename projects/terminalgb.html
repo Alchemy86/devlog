@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TerminalGB — devlog</title>
+  <meta name="description" content="TerminalGB: a cycle-accurate Game Boy / Color emulator measured against hardware-captured reference frames. Updates, milestones and achievements.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TerminalGB — devlog">
+  <meta property="og:description" content="A cycle-accurate Game Boy / Color emulator, measured against hardware-captured reference frames.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/terminalgb.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <header class="post-header">
+      <p class="eyebrow">Project · Emulator</p>
+      <h1>TerminalGB</h1>
+      <p class="lead">
+        A cycle-accurate Game Boy and Game Boy Color emulator. Correctness is not a
+        claim here — it is a number: every frame is compared against hardware-captured
+        reference images and public test ROMs, on every build. This is the running log
+        of what has been fixed and what it cost.
+      </p>
+    </header>
+
+    <section>
+      <div class="metrics">
+        <div class="metric">
+          <div class="num">103<span style="color:var(--ink-soft)">/103</span></div>
+          <div class="label">Mooneye GB</div>
+        </div>
+        <div class="metric">
+          <div class="num">73<span style="color:var(--ink-soft)">/76</span></div>
+          <div class="label">SameSuite</div>
+        </div>
+        <div class="metric">
+          <div class="num">4<span style="color:var(--ink-soft)">/4</span></div>
+          <div class="label">CasualPokePlayer</div>
+        </div>
+        <div class="metric">
+          <div class="num">29<span style="color:var(--ink-soft)">/79</span></div>
+          <div class="label">Mealybug pixel-exact</div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px;">Current standing on the default <code>identical</code> picture engine.</p>
+    </section>
+
+    <section class="prose">
+      <h2>What it is</h2>
+      <p>
+        TerminalGB emulates the original DMG and the Color hardware down to the machine
+        cycle. It ships <strong>two picture engines</strong>: <code>standard</code>, which
+        draws a scanline at a time and is fast enough for modest hardware, and
+        <code>identical</code>, which walks the real pixel pipeline dot by dot and is
+        exact enough to catch single-dot timing bugs. On ordinary games the two produce
+        byte-identical frames; the only axis between them is exactness against speed.
+      </p>
+      <p>
+        Nothing on this page is asserted without a test behind it. The reference suites
+        cited — Mooneye GB, SameSuite, Mealybug Tearoom, AGE, Gambatte — are public, and
+        every comparison is re-run against hardware-photographed frames each build.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>Milestones</h2>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-date">24 Aug 2026</div>
+          <p class="tl-title">The double-speed pixel fix <span class="status">Write-up</span></p>
+          <p>
+            A one-dot <code>LCDC</code> write-commit stagger, calibrated on single-speed
+            ROMs, had no room to land once the CPU clock doubled — so it silently vanished
+            and a Color game drew a wrong stripe. The AGE ROM
+            <code>m3-bg-lcdc-ds@cgbBCE</code> went from 2,304 wrong pixels to a pixel-exact
+            pass, with five more double-speed rows falling sharply.
+            <a href="../posts/terminalgb-double-speed-accuracy.html">Read the full write-up →</a>
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">21 Aug 2026</div>
+          <p class="tl-title">OAM DMA drives the right bus</p>
+          <p>
+            OAM DMA now drives the address bus the picture processor reads sprite memory
+            on, matching how real hardware behaves for sprites during a transfer — the
+            source and the PPU are no longer allowed to disagree about what OAM holds.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">20 Aug 2026</div>
+          <p class="tl-title">The accurate engine becomes the default</p>
+          <p>
+            <code>identical</code> stopped losing accuracy rows that the fast engine was
+            still passing, so it was promoted to the shipping default. The GB Emulator
+            Shootout score moved 223 → 238 rows on the switch.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">18 Aug 2026</div>
+          <p class="tl-title"><code>$FEA0–$FEFF</code> is not a hole</p>
+          <p>
+            The "forbidden" region between OAM and I/O is modelled as unmasked RAM rather
+            than dead space, which is what the two accuracy suites that actually reach it
+            expect — closing a class of Color failures (cgb-acid-hell).
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="writing" class="prose">
+      <h2>Writing</h2>
+      <ul class="post-list">
+        <li>
+          <a class="post-card" href="../posts/terminalgb-double-speed-accuracy.html">
+            <div class="post-meta">
+              <span class="tag">TerminalGB</span>
+              <span>Emulator accuracy</span>
+              <span>26 Aug 2026</span>
+            </div>
+            <p class="post-title">The double-speed bug that cost 2,304 pixels</p>
+            <p class="post-dek">
+              The full breakdown of the 24 Aug fix — the mechanism, the diagram, the honest
+              residual rows, and why the two picture engines exist.
+            </p>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <a class="backlink" href="../#projects">← All projects</a>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

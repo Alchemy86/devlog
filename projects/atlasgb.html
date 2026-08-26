@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AtlasGB — devlog</title>
+  <meta name="description" content="AtlasGB: memory maps for Game Boy cartridges where every claim carries its evidence. Updates, milestones and achievements.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="AtlasGB — devlog">
+  <meta property="og:description" content="An evidence-only cartridge atlas: every description backed by a re-runnable check.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/atlasgb.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <header class="post-header">
+      <p class="eyebrow">Project · Cartridge atlas</p>
+      <h1>AtlasGB</h1>
+      <p class="lead">
+        Memory maps for Game Boy cartridges where every claim carries the evidence for
+        it. Most memory maps are transcriptions — somebody read an address once and
+        everybody since has copied it, with no way to tell a right address from a
+        plausible one. AtlasGB records how each entry was checked, and the entries with
+        no evidence say so, rather than borrowing confidence from the rows beside them.
+      </p>
+    </header>
+
+    <section>
+      <div class="metrics">
+        <div class="metric">
+          <div class="num">2,898</div>
+          <div class="label">Verified claims</div>
+        </div>
+        <div class="metric">
+          <div class="num"><span class="accent">0</span></div>
+          <div class="label">Disagreements with the cartridge</div>
+        </div>
+        <div class="metric">
+          <div class="num">628<span style="color:var(--ink-soft)">/1,012</span></div>
+          <div class="label">Addresses described</div>
+        </div>
+        <div class="metric">
+          <div class="num">7</div>
+          <div class="label">Unevidenced — and marked as such</div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px;">First atlas: every address in Pokémon Red and Blue.</p>
+    </section>
+
+    <section class="prose">
+      <h2>What it is</h2>
+      <p>
+        One atlas per cartridge. Each entry names an address, what lives there, and — for
+        almost all of them — the evidence that the cartridge was watched using it. The
+        evidence itself is produced by a cycle-accurate emulator (TerminalGB) that runs
+        the real cartridge and records what it does. A description is written only where
+        that watching produced something specific and unambiguous; where it did not, the
+        entry stays blank and is counted, because a plausible sentence guessed from a
+        symbol name is exactly the thing this project exists as a reaction to.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>How a claim earns its place</h2>
+      <p>
+        Every entry records its own evidence tier. The tier is not editable by hand — it
+        is written only by landing a verification report produced by running the
+        cartridge, and CI recomputes a SHA-256 digest of the column so that editing a
+        token by hand, or adding an address without re-running the check, turns the build
+        red. A tier in the published atlas therefore always names a real run against a
+        real cartridge.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:8%">Tier</th>
+              <th style="width:22%">Meaning</th>
+              <th>How it is proved</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">R</td><td>ROM</td><td>The address appears in the ROM image as the operand of a load instruction — a byte scan recording a count.</td></tr>
+            <tr><td class="mono">L</td><td>Live</td><td>The byte changed while the cartridge ran a fixed button script on a cycle-accurate emulator, from cold boot.</td></tr>
+            <tr><td class="mono">I</td><td>Invariant</td><td>A named, hand-written check proved the entry <em>means what it says</em> — not merely that it exists.</td></tr>
+            <tr><td class="mono">·</td><td>None</td><td>No evidence yet. Stated openly, not hidden — seven storage entries currently sit here.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="prose">
+      <h2>Milestones</h2>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-date">25 Aug 2026</div>
+          <p class="tl-title">Re-verified against a second cartridge boot</p>
+          <p>
+            The atlas was re-produced from scratch against a second, independent boot of a
+            retail Pokémon Blue cartridge and save, run twice for determinism. Both runs
+            were byte-identical and agreed with the earlier run: zero entries moved tier,
+            and the atlas's 2,898 claims disagree with the cartridge in zero places.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">25 Aug 2026</div>
+          <p class="tl-title">Descriptions written by watching, not guessing</p>
+          <p>
+            136 descriptions were generated by stepping a real playthrough frame by frame —
+            recording which bytes change, and the code behind every write — rather than by
+            searching for a plausible label. A forced gym battle against Misty was set up,
+            checked, and only then trusted.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">17 Aug 2026</div>
+          <p class="tl-title">Findings from the cartridge campaign land</p>
+          <p>
+            The entries the cartridge campaign established were described and linked back to
+            the findings behind them, so the front page points at the evidence rather than
+            at assertions.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">15 Aug 2026</div>
+          <p class="tl-title">First atlas, standing on its own evidence</p>
+          <p>
+            Pokémon Red and Blue published as the first atlas — one directory per cartridge,
+            work RAM and high RAM fully accounted for with no holes, evidence tiers assigned
+            by a real run against the cartridge from the start.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="writing" class="prose">
+      <h2>Writing</h2>
+      <p class="note">
+        A full write-up of the evidence model and the re-runnable verification loop is in
+        progress. It will appear here and in the <a href="../#writing">Writing</a> index.
+      </p>
+    </section>
+
+    <a class="backlink" href="../#projects">← All projects</a>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

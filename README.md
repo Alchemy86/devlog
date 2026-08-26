@@ -13,12 +13,17 @@ dependencies. The only external resource is Google Fonts (IBM Plex Sans + JetBra
 Mono). It is designed to still work untouched in two years.
 
 ```
-index.html                     # landing page + post list
+index.html                     # landing page: projects first, then post list
+projects/                      # one HTML file per project (updates, milestones, achievements)
 posts/                         # one HTML file per post
 assets/css/main.css            # the whole design system
 assets/img/                    # post images (SVG diagrams are inlined)
 .nojekyll                      # serve files as-is, skip Jekyll processing
 ```
+
+Each project page (`projects/<name>.html`) carries a metric band, a "what it is"
+section, a milestones timeline, and links to the writing about that project. The index
+lists the projects as clickable cards above the writing list.
 
 ## Publishing
 

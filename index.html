@@ -24,8 +24,8 @@
     <div class="container">
       <a class="brand" href="./">devlog<span class="dot">.</span></a>
       <nav>
-        <a href="#writing">Writing</a>
         <a href="#projects">Projects</a>
+        <a href="#writing">Writing</a>
       </nav>
     </div>
   </header>
@@ -41,6 +41,36 @@
         become visible. Real numbers, real trade-offs, and the failures that make them
         worth reading.
       </p>
+    </section>
+
+    <section id="projects">
+      <h2>The projects</h2>
+      <div class="prose">
+        <p>
+          A family of Game Boy systems built to a single standard: nothing is claimed
+          that cannot be re-run and measured. Each project keeps its own log of updates,
+          milestones and achievements — pulled out of private repositories and laid out
+          in the open.
+        </p>
+      </div>
+
+      <div class="project-grid" style="margin-top:28px;">
+        <a class="project-card" href="projects/terminalgb.html">
+          <span class="pc-name">TerminalGB</span>
+          <span class="pc-desc">A cycle-accurate Game Boy / Color emulator, measured against hardware-captured reference frames.</span>
+          <span class="pc-go">Project log →</span>
+        </a>
+        <a class="project-card" href="projects/agentgb.html">
+          <span class="pc-name">AgentGB</span>
+          <span class="pc-desc">A neural student that plays Pokémon from pixels — trained by imitation, not reinforcement.</span>
+          <span class="pc-go">Project log →</span>
+        </a>
+        <a class="project-card" href="projects/atlasgb.html">
+          <span class="pc-name">AtlasGB</span>
+          <span class="pc-desc">An evidence-only cartridge atlas: every description backed by a re-runnable check.</span>
+          <span class="pc-go">Project log →</span>
+        </a>
+      </div>
     </section>
 
     <section id="writing">
@@ -66,32 +96,6 @@
 
       </ul>
       <p class="note" style="margin-top:24px;">More breakdowns of AgentGB and AtlasGB are in progress.</p>
-    </section>
-
-    <section id="projects">
-      <h2>The projects</h2>
-      <div class="prose">
-        <p>
-          A family of Game Boy systems built to a single standard: nothing is claimed
-          that cannot be re-run and measured. The write-ups here pull the evidence out
-          of private repositories and lay it out in the open.
-        </p>
-      </div>
-
-      <div class="metrics" style="margin-top:28px;">
-        <div class="metric">
-          <div class="num">TerminalGB</div>
-          <div class="label">Cycle-accurate GB emulator</div>
-        </div>
-        <div class="metric">
-          <div class="num">AgentGB</div>
-          <div class="label">Neural student, plays from pixels</div>
-        </div>
-        <div class="metric">
-          <div class="num">AtlasGB</div>
-          <div class="label">Evidence-only cartridge atlas</div>
-        </div>
-      </div>
     </section>
 
   </main>

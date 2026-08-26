@@ -39,8 +39,19 @@ tables for comparison. Full light + dark via CSS custom properties and
 Every number on the site must be verifiable against the source project. If a claim
 cannot be checked, it does not get published — this holds even against a remembered
 figure. When the source disagrees with a briefed number, the source wins and the
-discrepancy is surfaced. (The first post uses the source-verified `2,304 → PASS`
-double-speed pixel figures, not the unverifiable `7,672 → 56` from the initial brief.)
+discrepancy is surfaced. Several briefed figures did not survive verification and were
+corrected against the repos:
+
+- TerminalGB double-speed: brief said `7,672 → 56`; source has no such figures. The
+  post uses the real `2,304 → PASS` (AGE `m3-bg-lcdc-ds@cgbBCE`).
+- AgentGB: brief said `29/30` cold boots with "one Squirtle run fails on Route 1". The
+  repo inverts this — the shipped student is `177/300 (59%)` on a natural starter
+  spread, the **Bulbasaur** line is what fails on Route 1 (123/123 failures), and the
+  **Squirtle** line is `300/300`. A `300/300` chain existed but on uncommitted weights
+  that no longer exist, so the re-runnable `177/300` is what the page quotes.
+
+When building a project page or post, verify each briefed number against the source
+repo (`~/Github/firstmate/projects/<project>/`) before publishing it.
 
 ## Git / accounts
 

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgentGB — devlog</title>
+  <meta name="description" content="AgentGB: a 118,806-parameter network that plays Pokémon Blue from the screen alone, trained by imitation. Updates, milestones and honest failures.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="AgentGB — devlog">
+  <meta property="og:description" content="A neural student that plays Pokémon from pixels — trained by imitation, not reinforcement.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/agentgb.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <header class="post-header">
+      <p class="eyebrow">Project · Neural agent</p>
+      <h1>AgentGB</h1>
+      <p class="lead">
+        Teaching a small local network to play Pokémon Blue from the screen alone — a
+        picture in, a button out, at effectively zero inference cost. One network of
+        118,806 parameters, given nothing but the 160×144 image, powers on a retail
+        cartridge and works its way from the bedroom out onto Route 1. This is the log of
+        how far it gets, and the single missing skill that stops it going further.
+      </p>
+    </header>
+
+    <section>
+      <div class="metrics">
+        <div class="metric">
+          <div class="num">118,806</div>
+          <div class="label">Parameters, whole network</div>
+        </div>
+        <div class="metric">
+          <div class="num">300<span style="color:var(--ink-soft)">/300</span></div>
+          <div class="label">Cold boots · Squirtle line</div>
+        </div>
+        <div class="metric">
+          <div class="num">177<span style="color:var(--ink-soft)">/300</span></div>
+          <div class="label">Cold boots · natural starter spread</div>
+        </div>
+        <div class="metric">
+          <div class="num"><span class="accent">123</span></div>
+          <div class="label">Failures — every one on Route 1</div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px;">The nine-link opening chain, cold boot to the far side of Route 1, sampling at temperature 1.0.</p>
+    </section>
+
+    <section class="prose">
+      <h2>What it is</h2>
+      <p>
+        AgentGB is a small convolutional network — three strided convolutions and a dense
+        layer, 118,806 parameters in total — that plays from perception alone. It sees
+        four consecutive frames of the screen, reduced to a 40×36 grid of four ink levels,
+        and returns one of six buttons. <strong>No memory read of any kind reaches it;</strong>
+        it is looking at the same pixels a person would.
+      </p>
+      <p>
+        It is trained by imitation, not reinforcement — there is no reward and no
+        exploration. A privileged scripted <em>teacher</em>, which is allowed to read
+        memory and run shortest-path search, plays the game first; its play is recorded as
+        a corpus, and a separate training run turns that corpus into the <em>student</em>.
+        The student is what ships; the teacher is scaffolding and is not evidence about the
+        model. Splitting <em>where to go</em> (the teacher's search) from <em>what am I
+        looking at</em> (the network's perception) is why the player is 118,806 parameters
+        rather than millions.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The number we can stand behind</h2>
+      <div class="callout">
+        <p class="eyebrow">Re-runnable only</p>
+        <p>
+          An earlier training run completed the opening chain 300/300 — but those exact
+          weights were never committed and no longer exist, so that figure cannot be
+          re-run. The student that actually ships completes the chain <strong>177 of 300
+          cold boots (59%)</strong> across a natural starter spread. We quote the number
+          you can reproduce, not the best one we ever saw.
+        </p>
+      </div>
+    </section>
+
+    <section class="prose">
+      <h2>One missing skill: the Route 1 whiteout</h2>
+      <p>
+        The 59% is not scattered failure — it is a single failure, repeated. Left to pick
+        its own starter at temperature 1.0, the student chooses naturally: Bulbasaur 467,
+        Charmander 298, Squirtle 231 out of 1,000 runs. Force the starter to Squirtle and
+        the chain completes <strong>300 of 300</strong>. Let it take Bulbasaur and it falls
+        to 177 of 300 — and <strong>every one of the 123 failures ends in a battle on Route
+        1.</strong>
+      </p>
+      <p>
+        The cause is mechanical and honest: the rival takes the counter-starter, the
+        student has no healing behaviour yet, and Route 1's wild grass whites out a lead
+        that walked in already hurt. Squirtle survives the same gauntlet on stat advantage
+        alone. So the opening chain is not gated by perception or navigation — it is gated
+        by one skill the student has never been taught. That is the next link, and the
+        scoreboard names exactly how much it is worth.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>Skills that cannot damage each other</h2>
+      <p>
+        New behaviours are added without retraining the base, through a mechanism called an
+        <code>AdapterHead</code>: a small, completely separate module that outputs a nudge
+        added to the frozen base policy's own pre-softmax logits before a button is chosen.
+        Its final layer starts at exactly zero, so an untrained adapter contributes nothing,
+        and it is only consulted when its own region recogniser fires. The freezing is
+        proven, not asserted — the trainer takes a SHA-256 of every base layer before and
+        after and refuses to write if any of them changed. New skills therefore cannot
+        quietly damage old ones, because the old ones are literally unwritable while the new
+        one is learned.
+      </p>
+      <p class="note">
+        The adapter path is an incremental-skill add-on, distinct from the imitation run
+        that trains the main chain student. It is early — two skills so far — and it can
+        only nudge behaviour the base can already see.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>Milestones</h2>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-date">24 Aug 2026</div>
+          <p class="tl-title">House default set to sampling, plus a regression net</p>
+          <p>
+            The driver's default moved to temperature 1.0 with a 0.80 gate, and a
+            fast <code>basics</code> regression suite was added after three separate
+            regressions landed in a single afternoon.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">23 Aug 2026</div>
+          <p class="tl-title">Switch-trap fix becomes the committed student</p>
+          <p>
+            The shipped weights became <code>pixel-fix7-round1</code>. A masking-only
+            student shipped the same day and was rolled straight back after a filmed
+            regression — 5 of 9 milestones against the prior 8 of 9.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">21 Aug 2026</div>
+          <p class="tl-title">Natural starter variety</p>
+          <p>
+            A seeded choice in the teacher gave a realistic starter spread at temperature 1
+            — Bulbasaur 467, Charmander 298, Squirtle 231 of 1,000 — with 996 of 1,000 still
+            reaching the goal.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">19 Aug 2026</div>
+          <p class="tl-title">Out of Pallet Town, into Viridian City</p>
+          <p>
+            The chain reached nine links end to end, from a cold cartridge to Viridian City —
+            up from 7 of 300 before one missing teacher rule was restored.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">17 Aug 2026</div>
+          <p class="tl-title">The first fight</p>
+          <p>
+            Six links, validated on three foreign emulators the student had never trained
+            against: 300 of 300 reached the rival battle, 245 of 300 won it.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">16 Aug 2026</div>
+          <p class="tl-title">The screen student appears</p>
+          <p>
+            Five links, on the screen alone — no memory reads — completing 300 of 300 cold
+            boots. The first version that played the way a person sees the game.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="writing" class="prose">
+      <h2>Writing</h2>
+      <p class="note">
+        A full write-up of the teacher–student split and the Route 1 whiteout is in
+        progress. It will appear here and in the <a href="../#writing">Writing</a> index.
+      </p>
+    </section>
+
+    <a class="backlink" href="../#projects">← All projects</a>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>
