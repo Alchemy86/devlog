@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The double-speed bug that cost 2,304 pixels — devlog</title>
+  <meta name="description" content="A one-dot register-commit stagger, calibrated on single-speed test ROMs, silently vanished in double speed — drawing a wrong stripe across the screen. Fixing it took an AGE reference ROM from 2,304 wrong pixels to a clean pass, and explains why TerminalGB ships two picture engines.">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="The double-speed bug that cost 2,304 pixels">
+  <meta property="og:description" content="A one-dot register-commit stagger, calibrated on single-speed ROMs, silently vanished in double speed. Why TerminalGB ships two picture engines.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/posts/terminalgb-double-speed-accuracy.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#writing">Writing</a>
+        <a href="../#projects">Projects</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <article>
+
+      <header class="post-header">
+        <p class="eyebrow">TerminalGB · Emulator accuracy</p>
+        <h1>The double-speed bug that cost 2,304 pixels</h1>
+        <p class="lead">
+          A register-commit trick worth exactly one dot of time was calibrated against
+          single-speed test ROMs. In double speed there was no longer a spare dot to
+          hold it — so it silently disappeared, and a Color game drew a wrong stripe
+          across the screen. This is how it was found, why the fix is one branch on a
+          clock enum, and why it only showed up on one of TerminalGB's two picture
+          engines.
+        </p>
+        <div class="post-meta">
+          <span class="tag">TerminalGB</span>
+          <span>CGB · PPU · double speed</span>
+          <span>26 Aug 2026</span>
+        </div>
+      </header>
+
+      <section>
+        <div class="metrics">
+          <div class="metric">
+            <div class="num"><span class="accent">2,304</span></div>
+            <div class="label">Wrong pixels, before</div>
+          </div>
+          <div class="metric">
+            <div class="num">0</div>
+            <div class="label">Wrong pixels, after · PASS</div>
+          </div>
+          <div class="metric">
+            <div class="num">23,040</div>
+            <div class="label">Pixels in a GB frame</div>
+          </div>
+          <div class="metric">
+            <div class="num">1 → 0</div>
+            <div class="label">Dots of commit stagger</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="prose">
+        <h2>The symptom</h2>
+        <p>
+          The failure was narrow and specific. A Game Boy Color game that flips
+          <code>LCDC</code> bits partway through a scanline — the register that controls
+          which tile sources the picture processor is reading from — came out with a
+          visibly wrong stripe pattern, but <em>only</em> when the console was running
+          in double-speed mode. The same game in normal speed was pixel-exact.
+        </p>
+        <p>
+          That "only in double speed" is the whole tell. When one variant of a scene is
+          perfect and its faster-clocked twin is wrong, the bug is not in the drawing
+          logic — the drawing logic is provably correct at single speed. The bug is in
+          how time is being counted.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>Two clocks, one of which doubles</h2>
+        <p>
+          The Game Boy Color can switch its CPU into a double-speed mode. The important,
+          easily-forgotten detail is that this does <em>not</em> speed up the screen. The
+          picture processor's dot clock is fixed; only the CPU's own clock doubles. So the
+          unit that a lot of internal timing is measured in — the CPU machine cycle, or
+          "M-cycle" — changes width depending on the mode:
+        </p>
+      </section>
+
+      <figure aria-labelledby="fig1-cap">
+        <svg viewBox="0 0 720 300" role="img" xmlns="http://www.w3.org/2000/svg"
+             font-family="'JetBrains Mono', monospace">
+          <style>
+            .cell   { fill: var(--code-bg); stroke: var(--hairline); stroke-width: 1.5; }
+            .stag   { fill: var(--accent);  opacity: .18; }
+            .stag-b { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+            .lbl    { fill: var(--ink-soft); font-size: 12px; letter-spacing: .04em; }
+            .ttl    { fill: var(--ink); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+            .ok     { fill: var(--ink); font-size: 12px; }
+            .bad    { fill: var(--accent); font-size: 12px; font-weight: 700; }
+            .dot    { fill: var(--ink-soft); font-size: 11px; }
+          </style>
+
+          <!-- SINGLE SPEED -->
+          <text x="0" y="30" class="ttl">SINGLE SPEED — 4 DOTS PER M-CYCLE</text>
+          <!-- 4 cells, 120px each -->
+          <rect x="0"   y="46" width="120" height="56" class="cell"/>
+          <rect x="120" y="46" width="120" height="56" class="cell"/>
+          <rect x="240" y="46" width="120" height="56" class="cell"/>
+          <rect x="360" y="46" width="120" height="56" class="cell"/>
+          <text x="60"  y="80" text-anchor="middle" class="dot">dot 1</text>
+          <text x="180" y="80" text-anchor="middle" class="dot">dot 2</text>
+          <text x="300" y="80" text-anchor="middle" class="dot">dot 3</text>
+          <text x="420" y="80" text-anchor="middle" class="dot">dot 4</text>
+          <!-- 1-dot stagger occupies dot 1 -->
+          <rect x="0" y="46" width="120" height="56" class="stag"/>
+          <rect x="0" y="46" width="120" height="56" class="stag-b"/>
+          <text x="60" y="122" text-anchor="middle" class="lbl">stagger</text>
+          <text x="300" y="122" text-anchor="middle" class="ok">value applied ✓ (3 dots spare)</text>
+
+          <!-- DOUBLE SPEED -->
+          <text x="0" y="196" class="ttl">DOUBLE SPEED — 2 DOTS PER M-CYCLE</text>
+          <rect x="0"   y="212" width="120" height="56" class="cell"/>
+          <rect x="120" y="212" width="120" height="56" class="cell"/>
+          <text x="60"  y="246" text-anchor="middle" class="dot">dot 1</text>
+          <text x="180" y="246" text-anchor="middle" class="dot">dot 2</text>
+          <!-- 1-dot stagger consumes the whole window (both dots) -->
+          <rect x="0" y="212" width="240" height="56" class="stag"/>
+          <rect x="0" y="212" width="240" height="56" class="stag-b"/>
+          <text x="120" y="288" text-anchor="middle" class="lbl">stagger consumes the entire M-cycle</text>
+          <!-- commit falls off the edge -->
+          <text x="360" y="246" class="bad">✗ value never applied</text>
+          <line x1="240" y1="240" x2="345" y2="240" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 4"/>
+        </svg>
+        <figcaption id="fig1-cap">
+          A one-dot register-commit stagger fits comfortably inside a four-dot M-cycle.
+          Halve the M-cycle and the same one dot consumes the whole thing — leaving no
+          room for the deferred value to land.
+        </figcaption>
+      </figure>
+
+      <section class="prose">
+        <h2>The one-dot stagger</h2>
+        <p>
+          Real Color hardware doesn't make an <code>LCDC</code> write visible at the exact
+          instant the CPU performs it — a couple of the bits become visible to the picture
+          processor one dot later than the rest. TerminalGB modelled that faithfully with a
+          one-dot "early" stagger on the memory unit's <code>LCDC</code> write-commit: hold
+          the change back by a dot, then apply it.
+        </p>
+        <p>
+          The trouble is where that one dot came from. The stagger was calibrated
+          exclusively against a suite of single-speed reference ROMs, where an M-cycle is
+          four dots wide. A one-dot delay inside a four-dot budget is comfortable. But in
+          double speed the M-cycle is only two dots wide, and the deferred value's slot
+          fell off the end of the cycle. The commit was <em>silently never applied</em> —
+          no error, no assertion, just a value that quietly evaporated and a stripe drawn
+          from the wrong tile source for one dot too long.
+        </p>
+        <div class="callout">
+          <p class="eyebrow">The general trap</p>
+          <p>
+            A timing offset measured in absolute dots is only correct for the clock it was
+            measured on. The moment the surrounding cycle changes width, an offset that
+            "fit comfortably" can consume the entire window — and because nothing overflows,
+            nothing complains.
+          </p>
+        </div>
+      </section>
+
+      <section class="prose">
+        <h2>Finding it</h2>
+        <p>
+          It surfaced as a hard reference failure, not a bug report. The accuracy harness
+          runs the AGE test-ROM <code>m3-bg-lcdc-ds@cgbBCE</code> — a Color, double-speed
+          ROM built specifically to stress mid-scanline <code>LCDC</code> writes — and
+          compares the rendered frame against a hardware-captured reference image. It read
+          <strong>2,304 of 23,040 pixels wrong</strong>. Its single-speed sibling,
+          <code>m3-bg-lcdc@cgbBCE</code>, was already pixel-exact. One passing, one failing,
+          identical but for the speed switch: that pair is what pointed straight at the
+          clock, not the renderer.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>The fix</h2>
+        <p>
+          The commit routine now knows what speed it is running at. Where it used to apply a
+          fixed one-dot stagger, it takes the running <code>GbSpeed</code> and drops the
+          stagger to zero when there is no room for it:
+        </p>
+        <pre><code>// ppu_write_commit — CGB LCDC arm
+let early = match speed {
+    GbSpeed::Single =&gt; 1,   // 4-dot M-cycle: a spare dot exists, model the hardware delay
+    GbSpeed::Double =&gt; 0,   // 2-dot M-cycle: no spare dot — apply immediately instead
+};</code></pre>
+        <p>
+          Removing the stagger outright in double speed is more honest than leaving it in to
+          be silently truncated. The single-speed path is untouched, so nothing that already
+          passed regresses.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>What actually happened to the numbers</h2>
+        <p>
+          The headline is clean: <code>m3-bg-lcdc-ds@cgbBCE</code> went from a 2,304-pixel
+          failure to a pixel-exact pass, moving the AGE suite from 10 to 11 of 59, and the
+          Gambatte double-speed rows improved on the accurate engine. But the honest part is
+          the rows that got much better without going all the way to zero — and were recorded
+          as they measured, not re-blessed to hide the remainder:
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Reference row (double speed)</th>
+                <th class="num">Before</th>
+                <th class="num">After</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="mono">m3-bg-lcdc-ds@cgbBCE</td><td class="num">2,304</td><td class="num">PASS</td></tr>
+              <tr><td class="mono">bgtiledata_spx08_ds_3</td><td class="num">1,032</td><td class="num">8</td></tr>
+              <tr><td class="mono">bgtiledata_spx08_ds_4</td><td class="num">2,064</td><td class="num">16</td></tr>
+              <tr><td class="mono">bgtiledata_spx09_ds_1</td><td class="num">1,144</td><td class="num">8</td></tr>
+              <tr><td class="mono">bgtiledata_spx09_ds_3</td><td class="num">1,144</td><td class="num">8</td></tr>
+              <tr><td class="mono">bgtiledata_spx09_ds_4</td><td class="num">2,048</td><td class="num">16</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Those single-digit and low-double-digit remainders are a different, smaller timing
+          discrepancy that the big stagger bug was masking. Leaving them on the record — 8
+          wrong pixels reported as 8, not rounded to "fixed" — is the point. The next person
+          to open that scoreboard sees exactly how much is left to chase.
+        </p>
+        <p>
+          The regression is locked in with a test that has teeth: reverting the stagger to a
+          fixed <code>1</code> unconditionally reproduces the original 2,304-pixel failure, so
+          the mistake cannot quietly come back.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>A note on counting pixels</h2>
+        <p>
+          One caveat worth stating plainly, because it is easy to abuse. Not every "wrong
+          pixels" number on the scoreboard is a raw count of differing pixels. The Mealybug
+          Tearoom comparisons use a shade-rank distance, which is deliberately unforgiving:
+          a frame that introduces one extra distinct shade can report on the order of 23,040
+          "wrong" no matter how much of the rest is perfect, and a four-pixel error can move
+          the total by tens of thousands. Four genuinely wrong pixels there scores 22,070.
+        </p>
+        <p>
+          So these figures are never converted to a percentage or a "99% accurate" claim — that
+          would be dishonest about what the metric measures. The 2,304 and the residual counts
+          in the table above <em>are</em> direct pixel counts from the AGE and Gambatte
+          comparisons; where a number is a shade-rank distance instead, it is treated as an
+          ordering signal, not a pixel tally.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>Why this needed the accurate engine at all</h2>
+        <p>
+          A one-dot, mid-scanline error is invisible to a fast emulator by construction —
+          which is exactly why TerminalGB carries two picture engines rather than one.
+        </p>
+        <p>
+          The <strong><code>standard</code></strong> engine draws a whole scanline in a single
+          step at the end of mode 3, from whatever the registers hold at that instant. It is
+          fast and it is correct for the overwhelming majority of software, but it physically
+          cannot represent "the wrong tile source for one dot in the middle of a line" — it
+          never looks at the registers mid-line. The
+          <strong><code>identical</code></strong> engine walks the real hardware pixel
+          pipeline dot by dot: the background fetcher, the eight-pixel FIFO, sprite fetches,
+          the window restart, the <code>SCX &amp; 7</code> discard. A mid-scanline write lands
+          exactly where a Game Boy puts it — which means a one-dot timing bug lands exactly
+          there too, and gets caught.
+        </p>
+        <p>
+          The two are not a quality or an appearance setting. On ordinary games they produce
+          byte-identical framebuffers — verified across 600 frames of dmg-acid2 plus Blargg's
+          <code>cpu_instrs</code>. The only axis between them is exactness against speed:
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Test suite</th>
+                <th class="num"><code>standard</code></th>
+                <th class="num"><code>identical</code></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Mooneye GB acceptance</td><td class="num">67 / 75</td><td class="num">75 / 75</td></tr>
+              <tr><td>Mealybug Tearoom (pixel-exact rows)</td><td class="num">3 / 79</td><td class="num">29 / 79</td></tr>
+              <tr><td>Gambatte (5,225 scored rows)</td><td class="num">3,176</td><td class="num">3,622</td></tr>
+              <tr><td>GBMicrotest</td><td class="num">252 / 513</td><td class="num">339 / 513</td></tr>
+              <tr><td>GB Emulator Shootout (264 rows)</td><td class="num">223</td><td class="num">243</td></tr>
+              <tr><td>Frame cost, Pokémon Blue (one P-core)</td><td class="num">0.094 ms</td><td class="num">0.373 ms</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          The accurate engine costs roughly four times as much per frame — 0.373 ms against
+          0.094 ms, still only a couple of percent of a frame's budget on a desktop core. That
+          is cheap enough to be the default, and it is: <code>identical</code> has been the
+          shipping default since it stopped losing accuracy rows the fast engine kept. But four
+          times the cost is not free everywhere. On the PSP frontend, where the CPU budget is
+          tight, the emulator deliberately pins <code>standard</code> — an unplayable-but-exact
+          picture helps no one.
+        </p>
+        <p>
+          That is the whole reason the split exists. The fast engine is what makes the emulator
+          usable on modest hardware; the accurate engine is what makes a bug like this one
+          <em>findable</em>. Ship only the fast one and the double-speed stripe would still be
+          on screen, unmeasured and unfixed, because nothing in the pipeline would ever have
+          looked closely enough to see it.
+        </p>
+      </section>
+
+      <hr>
+
+      <p class="note">
+        Every figure here is drawn from TerminalGB's own conformance notes and accuracy
+        scoreboard. The reference ROMs cited (AGE, Gambatte, Mooneye GB, Mealybug Tearoom)
+        are public test suites; the comparisons are run against hardware-captured images and
+        re-run on every build.
+      </p>
+
+      <a class="backlink" href="../">← Back to devlog</a>
+
+    </article>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>
