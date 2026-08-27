@@ -141,6 +141,13 @@ Project pages live in `projects/` and draw their facts from private repos under
   two separate projects.
 - `projects/gbselftest.html` → `gbselftest/`.
 - `projects/terminalgb-portal.html` → `terminalgb-portal/`.
+- `posts/the-number-that-could-have-sunk-it.html` → `showreel/` (repo `Alchemy86/ShowReel`,
+  private). ShowReel has no project page of its own yet, only this post; its own
+  `docs/performance.md` and `examples/kanto_reel.rs` are the source for every figure on the
+  page. Stills at `assets/img/showreel/` are real frames pulled with ffmpeg from a render of
+  that example, not from `showreel`'s own committed `docs/stills/`. No page on this site links
+  to `Alchemy86/ShowReel` or to any other private repo by URL — none of the existing project
+  pages do either, so that is the standing convention, not an oversight.
 
 ## Standing pages (added 2026-08-27)
 
