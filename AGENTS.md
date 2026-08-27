@@ -4,7 +4,12 @@ The captain's public engineering blog, served at https://alchemy86.github.io/dev
 
 ## What this is
 
-Static site documenting the private GB projects (TerminalGB, AgentGB, AtlasGB).
+Static site: the captain's ongoing record of his own work. Its current contents are the
+private GB projects (TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal), but the
+site is **not defined as a Game Boy family** — the opener and the site-level meta description
+must stay true as other work is added. Page-scoped copy naming Game Boy is fine; site-scoped
+copy that does is not.
+
 Plain HTML + CSS, no build step, no framework, no JS dependencies. The only external
 resource is Google Fonts. It must still work untouched in two years — keep it that way.
 

@@ -1,8 +1,9 @@
 # devlog
 
-The captain's public engineering log — detailed technical breakdowns of the core
-Game Boy work (TerminalGB, AgentGB, AtlasGB). The source repositories are private;
-this site is where the work becomes visible, with real numbers and honest trade-offs.
+The captain's public engineering log — a running record of what he builds, with real
+numbers and honest trade-offs. Game Boy work at the moment: TerminalGB, AgentGB, AtlasGB,
+PixelGB, GBSelfTest and the Portal. The source repositories are private; this site is where
+the work becomes visible.
 
 **Live:** https://alchemy86.github.io/devlog/
 
