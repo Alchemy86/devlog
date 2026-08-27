@@ -5,8 +5,9 @@ The captain's public engineering blog, served at https://alchemy86.github.io/dev
 ## What this is
 
 Static site: the captain's ongoing record of his own work. Its current contents are the
-private GB projects (TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal), but the
-site is **not defined as a Game Boy family** — the opener and the site-level meta description
+private GB projects (TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal) plus
+Glyphsmith, the logo/house-text generator that is not GB work — the site is **not defined as
+a Game Boy family** — the opener and the site-level meta description
 must stay true as other work is added. Page-scoped copy naming Game Boy is fine; site-scoped
 copy that does is not.
 
@@ -141,6 +142,11 @@ Project pages live in `projects/` and draw their facts from private repos under
   two separate projects.
 - `projects/gbselftest.html` → `gbselftest/`.
 - `projects/terminalgb-portal.html` → `terminalgb-portal/`.
+- `projects/glyphsmith.html` → `glyphsmith/` (repo `Alchemy86/Glyphsmith`, public — the only
+  non-GB project page and the only source repo that isn't private). The logo/house-text
+  generator every other project's mark is drawn with; `python3 gallery/verify.py` and
+  `python3 -m pytest tests/` are the two commands that back its numbers. SVGs on the page are
+  copied byte-for-byte from `brand/`, `specimen/` and `gallery/originals/` — never re-rendered.
 - `posts/the-number-that-could-have-sunk-it.html` → `showreel/` (repo `Alchemy86/ShowReel`,
   private). ShowReel has no project page of its own yet, only this post; its own
   `docs/performance.md` and `examples/kanto_reel.rs` are the source for every figure on the

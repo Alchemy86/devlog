@@ -1,0 +1,10 @@
+<!-- PixelGB icon — the stitched sheet
+     Hand-authored for PixelGB (CC BY-SA 4.0). No font embedded, subset or traced;
+     letterforms are original stroked paths. Regenerate with docs/brand/generate.py -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img">
+<rect x="1" y="1" width="126" height="126" rx="28" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
+<rect x="24" y="24" width="24" height="24" rx="3" fill="#9bbc0f"/>
+<rect x="56" y="24" width="48" height="24" rx="3" fill="#9bbc0f"/>
+<rect x="24" y="56" width="40" height="48" rx="3" fill="#9bbc0f"/>
+<rect x="72" y="56" width="32" height="48" rx="3" fill="#9bbc0f"/>
+</svg>

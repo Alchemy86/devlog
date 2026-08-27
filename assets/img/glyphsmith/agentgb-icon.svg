@@ -1,0 +1,10 @@
+<!-- AgentGB icon — the D-pad and the button
+     Hand-authored for AgentGB (MIT). No font embedded, subset or traced;
+     letterforms are stroked skeleton paths shared with the sibling marks. Regenerate
+     with docs/brand/generate.py -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img">
+<rect x="1" y="1" width="126" height="126" rx="28" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
+<rect x="40.0" y="16.0" width="24.0" height="80.0" rx="12.0" fill="#9bbc0f"/>
+<rect x="12.0" y="44.0" width="80.0" height="24.0" rx="12.0" fill="#9bbc0f"/>
+<circle cx="100" cy="100" r="14" fill="#9bbc0f"/>
+</svg>

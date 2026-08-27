@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glyphsmith — devlog</title>
+  <meta name="description" content="Glyphsmith drew its own logo — a hand-drawn alphabet of stroked centrelines and the generator that sets every mark on this blog in it. No font, anywhere.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Glyphsmith — devlog">
+  <meta property="og:description" content="Glyphsmith drew its own logo — a hand-drawn alphabet of stroked centrelines and the generator that sets every mark on this blog in it. No font, anywhere.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/glyphsmith.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <header class="post-header">
+      <p class="eyebrow">Project · Wordmark generator</p>
+      <h1>Glyphsmith</h1>
+      <p class="lead">
+        Glyphsmith draws logos. Give it a word, a tagline, an accent colour and a shape
+        for the project's own motif, and it hands back an SVG wordmark and a square icon —
+        set in an alphabet that is not a font. Every letter is a hand-drawn stroked path on
+        a 100-unit grid, so nothing it generates carries a third-party licence. It drew its
+        own logo too, through the same public API any other project would use.
+      </p>
+    </header>
+
+    <section>
+      <div class="metrics">
+        <div class="metric">
+          <div class="num">63</div>
+          <div class="label">Glyphs — A–Z, 0–9, punctuation</div>
+        </div>
+        <div class="metric">
+          <div class="num">24<span style="color:var(--ink-soft)">/63</span></div>
+          <div class="label">Inherited unchanged, from marks already shipping</div>
+        </div>
+        <div class="metric">
+          <div class="num">14<span style="color:var(--ink-soft)">/14</span></div>
+          <div class="label">Marks reproduce byte for byte</div>
+        </div>
+        <div class="metric">
+          <div class="num">0</div>
+          <div class="label">Third-party fonts, anywhere in it</div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px;">
+        Counted straight from the repository as committed: <code>glyphsmith coverage</code>
+        for the alphabet split, <code>python3 gallery/verify.py</code> for the reproduction
+        check.
+      </p>
+    </section>
+
+    <figure>
+      <img src="../assets/img/glyphsmith/glyphsmith-logo.svg" width="1200" height="380"
+           alt="The Glyphsmith wordmark: nine finished letters and, where the I would be, the letter shown as its own construction — ghosted ink, a hairline centreline, and a ring at each terminal — over a metrics comb the width of the word, closed by an ember full stop.">
+      <figcaption>
+        Where the I of GLYPHSMITH would sit, the letter is shown as its own construction
+        instead: the ink it will be stroked into, ghosted back; the centreline, which is the
+        only thing this repository actually stores; and a ring at each terminal, where the
+        round cap lands. Nine finished letters and one drawing, in the same word.
+      </figcaption>
+    </figure>
+
+    <section>
+      <div class="sec-head">
+        <h2>What it does</h2>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The grid</p>
+            <h3>A centreline, not an outline</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              What a glyph file stores is not the letter's outline — it is the centreline,
+              the path a pen travels, stroked at 26 units with round caps and round joins on
+              a 100-unit cap grid. A stroke that wide sticks out 13 either side of its
+              centreline, so every endpoint is inset by 13 from the edge it should touch.
+            </p>
+            <figure class="code">
+              <pre><code>'I': (26, ["M13 13 V87"]),
+'H': (66, ["M13 13 V87", "M53 13 V87", "M13 50 H53"]),
+'O': (64, ["M32 13 A19 37 0 1 0 32 87 A19 37 0 1 0 32 13"]),</code></pre>
+              <figcaption>glyphsmith/alphabet.py — three of the sixty-three</figcaption>
+            </figure>
+            <p>
+              Only five path commands appear anywhere: <code>M</code>, <code>L</code>,
+              <code>H</code>, <code>V</code>, <code>A</code>. No cubics. A letter that needs
+              a curve you cannot draw with a straight edge and an ellipse is not in this
+              alphabet's vocabulary.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The generator</p>
+            <h3>Word, tagline, accent, motif</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              Every mark in the family is the same composition: a panel, the wordmark set in
+              the house alphabet, an accent-coloured full stop closing it, and a tagline
+              underneath. The one part that was ever project-specific is the motif — a shape
+              that can stand in a letter's own place inside the word (TerminalGB's block
+              cursor works this way, because a block cursor hides the glyph beneath it and
+              that is what a terminal actually shows), run in a band under the word, or stand
+              before it.
+            </p>
+            <p>
+              The layout is done in glyph units and converted once, which is what keeps a
+              mark's proportions identical whether it is drawn 1200 units wide or 1400.
+            </p>
+            <figure class="code">
+              <pre><code>Mark(
+    word="ATLASGB",
+    tagline="A MEMORY MAP WITH EVIDENCE",
+    accent="dmg",
+    motif=RegionBar(),
+    scale=1.42, cap_y=84, tagline_y=306, band_y=262,
+)</code></pre>
+              <figcaption>gallery/specs.py — AtlasGB's whole specification, the shape aside</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The proof</p>
+            <h3>It drew its own logo</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              <code>brand/make.py</code> imports <code>glyphsmith</code> from outside the
+              package and calls <code>Mark</code> exactly the way any other project would —
+              there is no hand-drawn artwork anywhere in this repository, including its own
+              front page.
+            </p>
+            <ul>
+              <li>Its motif replaces the I in GLYPHSMITH with the letter's own construction:
+                ghosted ink, a hairline centreline, and a ring on each terminal</li>
+              <li>Under it runs the word's own metrics comb — a rule the width of the mark
+                with a tick where each letter's advance ends. Every other band in the family
+                stands for something outside the mark: RAM regions, scenes, a skyline. This
+                one stands for the mark itself</li>
+              <li>The icon is the letter G and the accent full stop, set by the same call
+                that sets the wordmark</li>
+              <li>A test asserts the wordmark's letters are the shared alphabet's letters, so
+                the logo cannot quietly acquire private letterforms</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The licence</p>
+            <h3>No font, anywhere</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              No font is embedded, subset or traced in this repository, and none was
+              consulted to draw the letters. Seven projects were each already carrying a
+              private copy of this alphabet, unchanged, character for character — a licensed
+              font at this point would have meant clearing the same licence eight times over,
+              or admitting a font had quietly been informing marks that were supposed to be
+              original artwork.
+            </p>
+            <p>
+              The code and the letterforms are Apache-2.0: fork them, extend them, ship
+              commercial marks drawn with them. The name Glyphsmith, and the seven project
+              names and wordmarks in the gallery below, are not licensed for reuse —
+              <code>NOTICE</code> draws that line.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>What this alphabet has drawn</h2>
+        <p class="sub">
+          Seven marks existed before Glyphsmith did, each set by its own private copy of the
+          same generator. All seven come out byte for byte identical to what their own
+          repositories ship.
+        </p>
+      </div>
+
+      <div class="cards">
+        <figure>
+          <img src="../assets/img/glyphsmith/terminalgb-logo.svg" width="1200" height="380"
+               alt="TerminalGB wordmark: a solid block cursor stands where the I would be, closed by a green full stop.">
+          <figcaption>
+            <a href="terminalgb.html">TerminalGB</a> — a Game Boy and Game Boy Color
+            emulator. The motif is a block cursor, standing where the I would be.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/glyphsmith/agentgb-logo.svg" width="1200" height="380"
+               alt="AgentGB wordmark: the wordmark over a D-pad and a button.">
+          <figcaption>
+            <a href="agentgb.html">AgentGB</a> — a network that plays the game from the
+            screen alone. The motif is a D-pad and a button, under the word.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/glyphsmith/atlasgb-logo.svg" width="1200" height="380"
+               alt="AtlasGB wordmark: the wordmark over a four-segment region bar.">
+          <figcaption>
+            <a href="atlasgb.html">AtlasGB</a> — memory maps with the evidence attached. The
+            motif is four RAM regions, drawn as a bar.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/glyphsmith/pixelgb-logo.svg" width="1200" height="380"
+               alt="PixelGB wordmark: a sheet stitched from four pieces stands before the wordmark.">
+          <figcaption>
+            <a href="pixelgb.html">PixelGB</a> — every map photographed from a running
+            cartridge. The motif is a sheet stitched from four pieces, before the word.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/glyphsmith/gbselftest-logo.svg" width="1200" height="380"
+               alt="GBSelfTest wordmark: a tick stands before the wordmark.">
+          <figcaption>
+            <a href="gbselftest.html">GBSelfTest</a> — a cartridge that tests the machine
+            it's running on. The motif is a tick, before the word.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/glyphsmith/asciiworldengine-logo.svg" width="1400" height="420"
+               alt="AsciiWorldEngine wordmark: a setback tower stands where the second I would be, over a cyan skyline.">
+          <figcaption>
+            AsciiWorldEngine — a walkable city in a terminal. The motif is a setback tower
+            over the second I, with a skyline running beneath the word.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/glyphsmith/showreel-logo.svg" width="1400" height="420"
+               alt="ShowReel wordmark: a lens iris stands where the O would be, over an amber timeline of overlapping scenes.">
+          <figcaption>
+            <a href="../posts/the-number-that-could-have-sunk-it.html">ShowReel</a> —
+            describe a film and render it. The motif is a lens iris over the O, with a
+            timeline of overlapping scenes beneath.
+          </figcaption>
+        </figure>
+      </div>
+
+      <figure style="margin-top:16px;">
+        <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;">
+          <img src="../assets/img/glyphsmith/glyphsmith-icon.svg" width="72" height="72" style="width:72px;height:72px;"
+               alt="Glyphsmith icon: the letter G and an ember full stop.">
+          <img src="../assets/img/glyphsmith/terminalgb-icon.svg" width="72" height="72" style="width:72px;height:72px;"
+               alt="TerminalGB icon: a block cursor.">
+          <img src="../assets/img/glyphsmith/asciiworldengine-icon.svg" width="72" height="72" style="width:72px;height:72px;"
+               alt="AsciiWorldEngine icon: a setback tower.">
+          <img src="../assets/img/glyphsmith/showreel-icon.svg" width="72" height="72" style="width:72px;height:72px;"
+               alt="ShowReel icon: a lens iris.">
+          <img src="../assets/img/glyphsmith/atlasgb-icon.svg" width="72" height="72" style="width:72px;height:72px;"
+               alt="AtlasGB icon: a stacked region bar.">
+          <img src="../assets/img/glyphsmith/agentgb-icon.svg" width="72" height="72" style="width:72px;height:72px;"
+               alt="AgentGB icon: a D-pad.">
+          <img src="../assets/img/glyphsmith/gbselftest-icon.svg" width="72" height="72" style="width:72px;height:72px;"
+               alt="GBSelfTest icon: a tick.">
+          <img src="../assets/img/glyphsmith/pixelgb-icon.svg" width="72" height="72" style="width:72px;height:72px;"
+               alt="PixelGB icon: a stitched sheet of four pieces.">
+        </div>
+        <figcaption>
+          At icon size the motif is the whole mark. Left to right: Glyphsmith, TerminalGB,
+          AsciiWorldEngine, ShowReel, AtlasGB, AgentGB, GBSelfTest, PixelGB.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>Where each motif sits</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Mark</th><th>Motif</th><th>Where it sits</th></tr></thead>
+          <tbody>
+            <tr><td>TerminalGB</td><td>a solid block cursor</td><td>in the word, over the I</td></tr>
+            <tr><td>AsciiWorldEngine</td><td>a setback tower, and a skyline</td><td>in the word, over the second I, and beneath</td></tr>
+            <tr><td>ShowReel</td><td>a lens iris, and a timeline</td><td>in the word, over the O, and beneath</td></tr>
+            <tr><td>AtlasGB</td><td>four RAM regions as a bar</td><td>beneath the word</td></tr>
+            <tr><td>AgentGB</td><td>a D-pad and a button</td><td>beneath the word</td></tr>
+            <tr><td>GBSelfTest</td><td>a tick, at the letters' cap height</td><td>before the word</td></tr>
+            <tr><td>PixelGB</td><td>a sheet stitched from four pieces</td><td>before the word</td></tr>
+            <tr><td>Glyphsmith</td><td>a letter shown as its skeleton, and the word's own metrics</td><td>in the word, over the I, and beneath</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:14px;">
+        Three of these replace a letter rather than decorate the word. The idea is the same
+        each time: the motif stands where a glyph would, on the glyph's own grid, because it
+        is saying something the letter cannot.
+      </p>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>Where the alphabet says no</h2>
+        <p class="sub">A 26-unit stroke on a 100-unit cap is a quarter of the cap height. Three glyphs ran into that directly.</p>
+      </div>
+      <ul class="gaps">
+        <li>
+          <b><code>@</code> is not in the alphabet at all.</b> A round counter needs a radius
+          over 13 to exist on this stroke; the ring around it needs to clear that by another
+          34, which puts the outer edge past 130 units of cap height — and there are 100.
+          Drawn with a solid dot for the inner bowl instead, it reads as a target, not an
+          at-sign. There is no cut of it that works at this stroke weight, so there is no
+          <code>@</code> rather than a bad one.
+        </li>
+        <li>
+          <b><code>%</code> gave up its rings.</b> Two stacked rings with visible counters
+          need 132 units of cap height between them; the counters are drawn as dots instead.
+          A dotted per-cent reads as a per-cent. A pair of collapsed rings reads as two blobs.
+        </li>
+        <li>
+          <b><code>#</code> and <code>*</code> fit, but only wide.</b> The hash needs its
+          verticals 40 units apart and its bars 34 apart, which makes it 104 units wide —
+          wider than W. The asterisk needs its arms long enough that the tips actually
+          separate, which makes it 76.
+        </li>
+      </ul>
+      <p style="max-width:var(--measure);margin-top:18px;">
+        <code>glyphsmith.MissingGlyph</code> names the character and its code point when the
+        alphabet is asked for one it does not have.
+      </p>
+    </section>
+
+    <hr>
+
+    <div class="provenance">
+      <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
+      <p>
+        Everything here was run against the repository as committed 27 Aug 2026:
+        <code>glyphsmith coverage</code> for the 63/24/39 alphabet split,
+        <code>python3 gallery/verify.py</code> for the fourteen-file byte-for-byte
+        reproduction, and <code>python3 -m pytest tests/</code> — 209 tests, including a
+        small SVG path sampler that measures where each glyph's ink actually sits rather than
+        trusting the stored string.
+      </p>
+      <p>
+        The generator and the alphabet are Apache-2.0 — free to fork, extend, and draw
+        commercial marks with. The name Glyphsmith, and the seven project names and
+        wordmarks shown above, are not licensed for reuse; <code>NOTICE</code> draws that
+        line in full.
+      </p>
+    </div>
+
+    <a class="backlink" href="../#projects">← All projects</a>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>
