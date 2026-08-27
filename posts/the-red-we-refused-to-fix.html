@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The red we refused to fix — devlog</title>
+  <meta name="description" content="One sweep would have turned a failing test green. Taking it would have moved every Color cartridge's divider on the evidence of a single row.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="The red we refused to fix — devlog">
+  <meta property="og:description" content="One sweep would have turned a failing test green. Taking it would have moved every Color cartridge's divider on the evidence of a single row.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/posts/the-red-we-refused-to-fix.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <article>
+
+      <header class="post-header">
+        <p class="eyebrow">TerminalGB · Method</p>
+        <h1>The red we refused to fix</h1>
+        <p class="lead">
+          <code>csp/bully</code> shows a black screen. It comes down to one failing
+        check — the Color-mode boot system counter — and there is an obvious way to fix it:
+        sweep the counter until bully goes green. It was not taken, and not out of
+        timidity.
+        </p>
+        <div class="post-meta">
+          <span class="tag">TerminalGB</span>
+          <span>Calibration</span>
+          <span>27 Aug 2026</span>
+        </div>
+      </header>
+
+
+      <section class="prose">
+        <h2>Why sweeping would have been wrong</h2>
+        <p>
+          Bully waits for <code>LY &gt;= $90</code> before reading the divider. So what it
+          pins is not the counter. It is the <em>phase between the system counter and the
+          picture processor</em> at boot hand-off — two unknowns multiplied together.
+        </p>
+        <p>
+          And no published ROM measures where a Color boot ROM leaves the PPU for a Color
+          cartridge. Fitting one unknown to absorb another would have moved every Color
+          cartridge's divider, and with it its audio phase and its random number generator,
+          on the evidence of one row.
+        </p>
+        <div class="pullquote">
+          <p>
+            A test going green is not evidence when the change that made it green touched
+            two things and the test only measures their product.
+          </p>
+        </div>
+      </section>
+
+      <section class="prose">
+        <h2>The counter did change, later, for a different reason</h2>
+        <p>
+          A second independent source arrived. Gambatte's
+          <code>div/start_inc_{1,2}_cgb04c</code> take the genuine Color path and pin both
+          the divider's value <em>and</em> the exact machine cycle its low byte wraps on, at
+          a fixed distance with no <code>LY</code> wait.
+        </p>
+        <p>
+          So they measure the counter alone — precisely the confound the original objection
+          named. The constant moved on their evidence.
+        </p>
+        <p>
+          Bully's row is still red, byte-identical in both picture modes, because the PPU
+          half is untouched. Two crews' work settled half a question; the other half is still
+          open, and the red row is what says so.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>The other red that stays</h2>
+        <p>
+          Blargg's <code>oam_bug</code> fails on a Color console here. All eight sub-tests
+          pass on DMG, where the object-memory corruption defect is modelled faithfully.
+          Color silicon has no such defect, so real hardware fails that ROM too. Passing it
+          would be the bug.
+        </p>
+        <p>
+          Both rows are kept on the board rather than excluded, because a suppressed red is
+          indistinguishable from a fixed one six months later.
+        </p>
+      </section>
+
+      <hr>
+
+      <p class="note">
+        Every suite score here is from TerminalGB's own checked-in conformance
+        baselines, re-run in CI on every push and red on a change in either direction.
+      </p>
+
+      <a class="backlink" href="../">← Back to devlog</a>
+
+    </article>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

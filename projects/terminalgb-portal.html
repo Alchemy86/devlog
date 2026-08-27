@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TerminalGB Portal — devlog</title>
-  <meta name="description" content="A Game Boy link trade does not need two Game Boys. It needs one Game Boy and something that answers the cable correctly — so the portal is a Pokémon source served over HTTPS, and ~250 bytes of description cross the wire instead of game data.">
+  <meta name="description" content="TerminalGB Portal: trade one Gen 1 Pokémon over the web with no second Game Boy and no game bytes on the wire.">
   <meta name="color-scheme" content="light dark">
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="article">
   <meta property="og:title" content="TerminalGB Portal — devlog">
-  <meta property="og:description" content="Trade one Gen 1 Pokémon over the web — no second Game Boy, no game bytes on the wire.">
+  <meta property="og:description" content="TerminalGB Portal: trade one Gen 1 Pokémon over the web with no second Game Boy and no game bytes on the wire.">
   <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/terminalgb-portal.html">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,6 +23,7 @@
       <a class="brand" href="../">devlog<span class="dot">.</span></a>
       <nav>
         <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
         <a href="../#writing">Writing</a>
       </nav>
     </div>
@@ -34,18 +35,17 @@
       <p class="eyebrow">Project · Web service</p>
       <h1>TerminalGB Portal</h1>
       <p class="lead">
-        Sign in, add a friend by code, trade one Generation 1 Pokémon. That is v1, whole. The
-        trick that makes it simple is a fact about the hardware: <strong>a Game Boy link trade
-        does not need two Game Boys.</strong> It needs one Game Boy and something that answers
-        the cable correctly — and the emulator already ships that. So the portal is not a
-        matchmaking service. It is a Pokémon source, served over HTTPS.
+        Trade a Gen 1 Pokémon with a friend over the web, with one Game Boy each and no
+        appointment. Both players trade against their own local link partner in their own
+        time; the portal carries a description of the Pokémon between them and never a byte
+        of game data.
       </p>
     </header>
 
     <section>
       <div class="metrics">
         <div class="metric">
-          <div class="num">~250 B</div>
+          <div class="num">~250<span style="color:var(--ink-soft)"> B</span></div>
           <div class="label">On the wire, per Pokémon</div>
         </div>
         <div class="metric">
@@ -53,43 +53,20 @@
           <div class="label">Game bytes, saves or ROMs</div>
         </div>
         <div class="metric">
-          <div class="num">65</div>
+          <div class="num"><span class="accent">65</span></div>
           <div class="label">End-to-end checks, green</div>
         </div>
         <div class="metric">
-          <div class="num"><span class="accent">$0</span></div>
+          <div class="num">$0</div>
           <div class="label">Per month, at hobby scale</div>
         </div>
       </div>
       <p class="note" style="margin-top:14px;">
-        Next.js 15 on the App Router, Clerk for authentication, Postgres with plain
-        <code>pg</code> and no ORM, deployed to Vercel. The 65 checks were observed green on
-        14 Aug 2026 against a local Postgres 16 and a real Chrome.
+        Checks run 14 Aug 2026 against a local Postgres 16 and a real Chrome.
       </p>
     </section>
 
-    <section class="prose">
-      <h2>Nobody waits, because nothing is synchronised</h2>
-      <p>
-        The obvious design for "trade a Pokémon over the internet" is a live session: both
-        players online at once, both cables bridged through a relay, real-time. That is a
-        matchmaking and presence problem wearing a trading problem's clothes, and it is why
-        this kind of thing usually does not get built.
-      </p>
-      <p>
-        The observation that dissolves it: the cartridge does not know or care what is on the
-        other end of the cable. It knows the link protocol. The emulator already ships a virtual
-        link partner that speaks it, fed by a source of Pokémon. So make the portal that source.
-      </p>
-      <p>
-        A trade becomes a handful of ordinary HTTP requests. <strong>Both players trade against
-        their own local partner, in their own time.</strong> One deposits a description; the
-        other collects it whenever they next sit down. There is no session, no lobby, no
-        presence, and nobody waits for anybody.
-      </p>
-    </section>
-
-    <figure aria-labelledby="fig-flow-cap">
+    <figure class="scrollfig">
       <svg viewBox="0 0 720 352" role="img"
            aria-label="A diagram of an asynchronous trade. On the left, player A's Game Boy cartridge is joined by a link cable to a virtual link partner inside the emulator, which posts a roughly 250-byte Pokémon description over HTTPS to the portal. On the right, the portal serves that same description to player B's emulator, whose virtual link partner presents it to player B's cartridge over its own link cable. Between the two halves, a label reads: no session, no lobby, no synchronisation. Underneath, a list of what never crosses the wire: no save file, no ROM, no game bytes."
            xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
@@ -155,302 +132,207 @@
         <text x="0" y="324" class="ts">Never crosses the wire: a save file, a ROM, or a single byte of game data.</text>
         <text x="0" y="342" class="ts">The whole per-trade dataset is two ~250-byte specs and their timestamps.</text>
       </svg>
-      <figcaption id="fig-flow-cap">
-        The v1 trade, drawn from the shipping architecture. Each player's cable is answered by
-        their <em>own local</em> virtual partner; the portal never joins two cables together and
-        never sees a link byte. What crosses is a description of a Pokémon — species, level,
-        original trainer, moves, determinant values — about 250 bytes of it.
+      <figcaption>
+        The v1 trade. Each player's cable is answered by their own local virtual partner;
+        the portal never joins two cables together and never sees a link byte. What crosses
+        is a description — species, level, original trainer, moves, determinant values.
       </figcaption>
     </figure>
 
-    <section class="prose">
-      <h2>What is deliberately not in v1, and the UI says so</h2>
-      <p>
-        Live link sessions and battles. The browser as a primary client. Strangers, a public
-        lobby, matchmaking. Multi-Pokémon trades. Presence beyond a friends-only "terminal
-        connected" badge. Generation 2 and 3. Mobile.
-      </p>
-      <p>
-        The list is written into the product rather than into a roadmap document, which is the
-        difference between a scoped v1 and a v1 that is quietly missing things.
-      </p>
-    </section>
-
-    <section class="prose">
-      <h2>Session-held sprites are a licence boundary, not a cache policy</h2>
-      <p>
-        The collection browser shows a friend's party and boxes — what their own terminal
-        reported — including the sprites. Those sprites came out of the owner's own emulator
-        running the owner's own cartridge, and they are held <strong>for the session only</strong>.
-        When the terminal disconnects they are purged. The portal keeps no sprite store of its
-        own, has no server-side fallback, and never reuses one user's picture for another user's
-        Pokémon of the same species.
-      </p>
-      <p>
-        A disconnected user shows no sprite at all, and that is the correct behaviour rather than
-        a degraded one. The same reasoning shapes the offer card's picture: it is artwork its
-        owner's emulator sent <em>with this offer</em>, held for that offer's life, shown only to
-        the friends it is addressed to. Three separate paths null it out — cancelling the offer,
-        the auto-withdraw, and an update that changes the species. That last one is the
-        interesting case: the Pokémon evolved, so the stored picture is now of the wrong creature,
-        and <strong>a wrong picture is worse than none</strong>.
-      </p>
-      <p>
-        The purge has a subtlety in it that is worth knowing about generally, and the rate limiter
-        has the same one — see below. The lapsed-sprite purge runs as a <em>separate</em>
-        <code>UPDATE</code> before the <code>SELECT</code> that reads the collection, and must not
-        be merged into one statement, because a data-modifying common table expression is
-        invisible to the same statement's <code>SELECT</code> under Postgres's snapshot rules.
-      </p>
-    </section>
-
-    <section class="prose">
-      <h2>Four bugs whose cause is one line</h2>
-      <p>
-        The repository keeps a "sharp edges" list where every entry cost real time or was caught
-        in review. These four are the ones that generalise past this codebase.
-      </p>
-
-      <h3>"The Pokémon images don't work"</h3>
-      <p>
-        The emulator was sending an offer card — sprite, types, determinant total, a shiny
-        prediction — right alongside the Pokémon spec. The offer endpoint read only the spec and
-        the save identity beside it. The <code>card</code> object was arriving on every request
-        and being <strong>dropped on the floor</strong>, so every offer showed the no-picture
-        placeholder.
-      </p>
-      <p>
-        The fix came with two rules that are more interesting than the bug. First: the card's
-        sprite is a base64 PNG, not the collection's raw pixel array, so it is decoded on the way
-        in — indexed or RGB8, non-interlaced — into the portal's one sprite shape, and
-        <strong>the PNG's own header is the authority on geometry</strong>. A declared width that
-        disagrees is a refusal, and decompression runs with an exact output limit so a compression
-        bomb cannot spend memory. Second: <strong>a malformed card is dropped field by field,
-        never a 400.</strong> An optional decoration from the other side of a shared contract must
-        not turn a valid offer into an error — but the reasons ride back on the reply, precisely
-        because the silent version of that is the bug above.
-      </p>
-
-      <h3>Every poll looked too fast</h3>
-      <p>
-        The device-code login flow enforces a minimum polling interval, and the endpoint has to
-        both read the last poll time and stamp a new one. Written the obvious way — one
-        <code>UPDATE … RETURNING</code> — it silently never works, because
-        <code>RETURNING</code> sees <em>post-update</em> values. The endpoint reads its own new
-        timestamp, computes an interval of zero, and interval enforcement quietly does nothing.
-      </p>
-      <p>
-        The shape that works reads the previous value under a row lock first and updates in a
-        second CTE. It was caught before commit by reading the Postgres documentation rather than
-        by a test — and there is now a test, so a "tidy-up" back to a single statement turns red.
-      </p>
-
-      <h3>A row id that was a string</h3>
-      <p>
-        <code>pg</code> returns 64-bit integers as JavaScript strings, by default, because they do
-        not fit safely in a double. Every id in this schema is a bigint, so
-        <code>Number.isInteger(id)</code> guards silently stopped guarding and ids in JSON quietly
-        became strings. Measured: a friendship id came back as <code>"1"</code>. One type-parser
-        registration at the database module fixes it globally.
-      </p>
-
-      <h3>A grid that could not shrink</h3>
-      <p>
-        The Pokémon cards live in a CSS grid. Written as
-        <code>repeat(auto-fill, minmax(16rem, 1fr))</code>, that grid physically <em>cannot</em>
-        get narrower than 16rem — so below about 350 pixels it made the whole document wider than
-        the viewport and every panel on the page got clipped mid-word at the right edge. The
-        <code>min(100%, 16rem)</code> spelling is load-bearing, not stylistic.
-      </p>
-      <p>
-        The same class of fault lived in two other places: the site header, where the brand plus
-        the navigation come to about 350 pixels with no wrapping allowed; and a form label inside
-        a card, where a flex item's automatic minimum size is its content width, so a 16rem
-        minimum on one label spilled the card at <em>every</em> width. All three are the same
-        mistake — a rule that sets a floor on the page width — and the measurement that catches
-        all of them at once is worth stealing:
-      </p>
-
-      <figure class="code">
-        <pre><code>for (const el of document.querySelectorAll("body *")) {
-  const r = el.getBoundingClientRect(),
-        p = el.parentElement.getBoundingClientRect();
-  if (r.right &gt; p.right + 1) { /* this element overflows its parent */ }
-}
-document.documentElement.scrollWidth &gt; document.documentElement.clientWidth</code></pre>
-        <figcaption>
-          Run at 1440, 1024, 800, 600, 420, 360, 320 and 280 pixels, with the in-card accept form
-          both closed and open. It finds the element that overflows, not just the fact that
-          something does.
-        </figcaption>
-      </figure>
-    </section>
-
-    <section class="prose">
-      <h2>Gen 1 has no shiny Pokémon, and every surface says so</h2>
-      <p>
-        Generation 1 has no shiny Pokémon and no Hidden Power. What it has is determinant values,
-        from which Generation 2 <em>derives</em> both. So every surface in this product reads
-        "would be shiny if traded to Gen 2" and "Hidden Power if traded to Gen 2" — never "is
-        shiny".
-      </p>
-      <p>
-        That phrasing is not negotiable, and it has a layout consequence that was accepted rather
-        than shortened away: the Hidden Power line is the one line in a card allowed to wrap to
-        two, because the full phrase does not fit one card-width line. Wrapping varies a card's
-        height, never its width, so the narrow-width guarantee above is untouched.
-      </p>
-      <p>
-        The portal recomputes the prediction from the determinant values itself, against the
-        published Generation 2 shininess rule, and verified it against the emulator's own test
-        vectors. It <strong>never trusts the flag on the wire</strong>, which is the right default
-        for any field one side can compute and the other side sends.
-      </p>
-      <div class="callout">
-        <p class="eyebrow">And an honest limit on what a portal can verify</p>
-        <p>
-          Every incoming Pokémon spec is validated against Generation 1 tables — species, moves,
-          level, determinant values, name character sets — at deposit, and re-resolved by the
-          receiving client against its <em>own cartridge's</em> tables, which is the real boundary.
-          But Generation 1 has no anti-cheat, and the portal does not pretend to verify
-          legitimacy. The trade log says "done" because each side attested it, and it says so in
-          those terms.
-        </p>
+    <section>
+      <div class="sec-head">
+        <h2>What it does</h2>
       </div>
-      <p>
-        "Same Pokémon" is likewise a stated heuristic rather than an identity: original trainer id,
-        original trainer name, determinant values and nickname, where both-default nicknames across
-        an evolution-line species change still match, because the game renames a never-nicknamed
-        Pokémon when it evolves. Species is deliberately <em>not</em> in the key, because evolution
-        changes it. Every ambiguity withdraws the offer rather than guessing — and a rename simply
-        breaks the match, which fails safe.
-      </p>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Trading</p>
+            <h3>Nobody waits for anybody</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>One player deposits a Pokémon; the other collects it whenever they next
+                sit down. No session, no lobby, no presence</li>
+              <li>Offers are addressed to named friends, are irreversible on accept with a
+                confirmation, and auto-withdraw</li>
+              <li>A trade log both sides can read</li>
+              <li>Every incoming spec is validated against Gen 1 tables — species, moves,
+                level, determinant values, name character sets — at deposit, and re-resolved
+                by the receiving client against its own cartridge's tables</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Collections</p>
+            <h3>Sprites for the session only</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>A friend's party and boxes as their own terminal reported them, sprites
+                included, from their own emulator running their own cartridge</li>
+              <li>Held for the session. When the terminal disconnects they are purged. No
+                sprite store, no server-side fallback, no reusing one user's picture for
+                another user's Pokémon of the same species</li>
+              <li>A disconnected user shows no sprite at all. That is the correct behaviour,
+                not a degraded one</li>
+              <li>An offer whose Pokémon evolved has its stored picture nulled: a wrong
+                picture is worse than none</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Accounts</p>
+            <h3>Sign in on a device with no browser</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>Sessions belong to the authentication provider; nothing hand-rolled</li>
+              <li>The CLI gets opaque bearer tokens — 256 bits of randomness, stored only as
+                a SHA-256 hash, 30-day access and 90-day refresh, with rotation and
+                reuse-detection revocation</li>
+              <li>Device codes expire in ten minutes, are single-use, and enforce their
+                polling interval with per-IP and per-user rate limits. Approval requires a
+                signed-in browser session, never a bearer token</li>
+              <li>Friend codes are cryptographically random from a 30-symbol alphabet, and
+                the lookup endpoint returns one generic error for every failure mode, so
+                codes cannot be enumerated</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Language</p>
+            <h3>Gen 1 has no shiny Pokémon</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>What Gen 1 has is determinant values, from which Gen 2 derives both
+                shininess and Hidden Power. So every surface reads "would be shiny if traded
+                to Gen 2", never "is shiny"</li>
+              <li>The portal recomputes the prediction from the determinant values itself,
+                against the published Gen 2 rule, and never trusts the flag on the wire</li>
+              <li>The Hidden Power line is the one line in a card allowed to wrap to two,
+                because the full phrase does not fit. Wrapping varies a card's height, never
+                its width</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="prose">
-      <h2>The relay that exists, works, and is not deployed</h2>
-      <p>
-        There is a live-link relay in the repository: a Cloudflare Durable Object, 118 lines. It
-        is for the future features — real-time link battles, possibly side-by-side game streams.
-        <strong>It is not deployed anywhere and nothing in the shipping app uses it.</strong> The
-        README says, in as many words, that if you are reading this to debug production you should
-        stop.
-      </p>
-      <p>
-        Why a Durable Object rather than the platform everything else runs on? Because Vercel's own
-        WebSocket documentation says <em>"new WebSocket connections are not guaranteed to reach the
-        same Vercel Function instance"</em> — and a live link session is two specific people, which
-        is to say two connections that must meet in one place. A Durable Object is
-        <strong>addressed by name</strong>, so both players who name the same session id land in
-        the same object <em>by construction</em>. That is the entire reason for the choice.
-      </p>
-      <p>
-        The relay is deliberately dumb: it pairs at most two seats per session, relays opaque
-        frames of at most 64 bytes without ever parsing a link byte, reports a byte sent with no
-        far end rather than silently dropping it, and announces a departing peer to the survivor.
-        Six checks assert exactly those properties, including that a 644-byte Generation 1 party
-        block relays in order. Last verified green, twice, on 14 Aug 2026.
-      </p>
-      <p>
-        And what it still needs before production is written down rather than assumed away: token
-        validation on the upgrade request, an idle timeout for abandoned sessions, and peer-fault
-        propagation so one side's fault poisons the other's write instead of leaving a half-trade.
-      </p>
-    </section>
-
-    <section class="prose">
-      <h2>What is tested, and what is written but not exercised</h2>
-      <p>
-        The repository keeps this as two lists rather than one status badge, which is the single
-        most useful thing on this page.
-      </p>
+    <section>
+      <div class="sec-head">
+        <h2>What is tested, and what is not</h2>
+        <p class="sub">Two lists rather than one status badge.</p>
+      </div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr><th>Tested, observed working</th><th>Written but not exercised</th></tr>
-          </thead>
+          <thead><tr><th>Tested, observed working</th><th>Written but not exercised</th></tr></thead>
           <tbody>
             <tr>
-              <td>
-                All 65 end-to-end checks green: the full friend flow; offer, accept, done and log
-                through both cookie and bearer authentication; the complete device-code flow
-                including <code>authorization_pending</code> → <code>slow_down</code> → approval →
-                single-use consumption; token refresh rotation with reuse revocation;
-                non-enumeration behaviour; atomic double-accept rejection; rate limiting.
-              </td>
-              <td>
-                <strong>The authentication provider with real keys</strong> — no account was
-                available in the build environment. Everything follows the current major version's
-                documentation and builds keyless, but the first deploy must smoke-test sign-in
-                before anything else.
-              </td>
+              <td>All 65 end-to-end checks green: the full friend flow; offer, accept, done
+                and log through both cookie and bearer authentication; the complete
+                device-code flow including <code>authorization_pending</code> →
+                <code>slow_down</code> → approval → single-use consumption; token refresh
+                rotation with reuse revocation; non-enumeration; atomic double-accept
+                rejection; rate limiting.</td>
+              <td>The authentication provider with real keys. No account was available in
+                the build environment; everything follows the current major version's
+                documentation and builds keyless, but the first deploy must smoke-test
+                sign-in before anything else.</td>
             </tr>
             <tr>
-              <td>
-                A browser walk in real Chrome: dev sign-in, friend request and accept, the offer
-                form, the accept flow with its irreversibility confirmation, mark-done, the code
-                approval page, the trade log. The production build passes with and without the dev
-                auth stub.
-              </td>
-              <td>
-                <strong>The hosting and database deployment.</strong> Standard patterns, never run
-                from here.
-              </td>
+              <td>A browser walk in real Chrome: dev sign-in, friend request and accept, the
+                offer form, the accept flow with its irreversibility confirmation,
+                mark-done, the code approval page, the trade log. The production build
+                passes with and without the dev auth stub.</td>
+              <td>The hosting and database deployment. Standard patterns, never run from
+                here.</td>
             </tr>
             <tr>
-              <td>
-                The collection browser walked in both states: live, with canvas sprites from a
-                synthetic test payload and the filters exercised; and offline, with sprites purged,
-                the listing intact and a last-seen shown.
-              </td>
-              <td>
-                <strong>Time-based expiries</strong> — device code at ten minutes, tokens at 30 and
-                90 days. Enforced in SQL, but no test waits them out.
-              </td>
+              <td>The collection browser walked in both states: live, with canvas sprites
+                from a synthetic test payload and the filters exercised; and offline, with
+                sprites purged, the listing intact and a last-seen shown.</td>
+              <td>Time-based expiries — device code at ten minutes, tokens at 30 and 90
+                days. Enforced in SQL, but no test waits them out.</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="note">
-        One more that belongs in neither column and is recorded anyway, because it is the funniest
-        way to lose an afternoon: <code>pgrep -f</code> and <code>pkill -f</code> match the process
-        doing the matching. An automated run on this repository killed <em>itself</em> with a
-        pattern sweep for a dev server, because its own command line contained the pattern. Kill by
-        the process id you captured when you started the process.
-      </p>
     </section>
 
-    <section class="prose">
-      <h2>Security posture, stated as what it is</h2>
-      <ul>
+    <section>
+      <div class="sec-head">
+        <h2>Not in v1, and the interface says so</h2>
+        <p class="sub">
+          Written into the product rather than into a roadmap document, which is the
+          difference between a scoped v1 and a v1 that is quietly missing things.
+        </p>
+      </div>
+      <div class="chips">
+        <span class="chip">Live link sessions</span>
+        <span class="chip">Battles</span>
+        <span class="chip">The browser as a primary client</span>
+        <span class="chip">Strangers · public lobby · matchmaking</span>
+        <span class="chip">Multi-Pokémon trades</span>
+        <span class="chip">Presence beyond a friends-only badge</span>
+        <span class="chip">Gen 2 and 3</span>
+        <span class="chip">Mobile</span>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>Limits worth knowing</h2>
+      </div>
+      <ul class="gaps">
         <li>
-          Sessions belong to the authentication provider; nothing is hand-rolled. The only tokens
-          this repository mints are the CLI's opaque bearer tokens — 256 bits of randomness, stored
-          only as a SHA-256 hash, 30-day access and 90-day refresh, with rotation and
-          reuse-detection revocation.
+          <b>Gen 1 has no anti-cheat, and the portal does not pretend to verify
+          legitimacy.</b> The trade log says "done" because each side attested it, and it
+          says so in those terms.
         </li>
         <li>
-          Device codes expire in ten minutes, are single-use, and enforce their polling interval
-          with per-IP and per-user rate limits. <strong>Approval requires a signed-in browser
-          session, never a bearer token.</strong>
+          <b>"Same Pokémon" is a stated heuristic, not an identity.</b> Original trainer id
+          and name, determinant values and nickname — with both-default nicknames matching
+          across an evolution-line species change, because the game renames a
+          never-nicknamed Pokémon when it evolves. Species is deliberately not in the key.
+          Every ambiguity withdraws the offer rather than guessing.
         </li>
         <li>
-          Friend codes are cryptographically random from a 30-symbol alphabet, and the lookup
-          endpoint is rate-limited and returns <em>one generic error for every failure mode</em>,
-          so codes cannot be enumerated.
+          <b>The live-link relay is real code, passing its own tests, and is not
+          deployed.</b> 118 lines of Cloudflare Durable Object, for future features. Nothing
+          in the shipping app uses it. Before production it still needs token validation on
+          the upgrade request, an idle timeout for abandoned sessions, and peer-fault
+          propagation so one side's fault poisons the other's write instead of leaving a
+          half-trade.
         </li>
         <li>
-          <strong>No saves, no ROMs, ever.</strong> There is no upload path. The entire per-trade
-          dataset is the two ~250-byte specs and their timestamps.
+          <b>The rate limiter allows exactly <em>max</em> and denies the max-plus-first.</b>
+          A data-modifying common table expression is invisible to the same statement's
+          <code>SELECT</code> under Postgres's snapshot rules, so the limiter counts only
+          prior attempts. An end-to-end check pins the eleventh attempt returning 429 so the
+          meaning cannot drift.
         </li>
       </ul>
-      <p>
-        The rate limiter carries the same Postgres subtlety as the sprite purge, and the behaviour
-        it produces is documented rather than surprising: a data-modifying CTE is invisible to the
-        same statement's <code>SELECT</code>, so the limiter counts only <em>prior</em> attempts.
-        "Max" therefore means "allow exactly max, deny the max-plus-first" — and an end-to-end
-        check pins that eleventh attempt returning 429 so the meaning cannot drift.
-      </p>
+    </section>
+
+    <section id="writing" class="prose">
+      <h2>Writing</h2>
+      <ul class="post-list">
+        <li>
+          <a class="post-card" href="../posts/four-bugs-one-line-each.html">
+            <div class="post-meta"><span class="tag">Portal</span><span>Web</span><span>27 Aug 2026</span></div>
+            <p class="post-title">Four bugs, one line each</p>
+            <p class="post-dek">A dropped field, a RETURNING clause that returns the wrong thing, a bigint that arrived as a string, and a grid that could not get narrower than 16rem.</p>
+          </a>
+        </li>
+      </ul>
     </section>
 
     <hr>
@@ -458,22 +340,14 @@ document.documentElement.scrollWidth &gt; document.documentElement.clientWidth</
     <div class="provenance">
       <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
       <p>
-        The test counts and their date (65 end-to-end checks, 14 Aug 2026, against a local
-        Postgres 16 and a real Chrome; six relay checks verified green twice on the same day) are
-        the repository's own recorded observations, kept in a "measured vs. inferred vs.
-        unverified" section that separates what was run from what is standard practice.
-        The bug accounts are from its sharp-edges list, where every entry names the file it lives
-        in and the symptom it produced.
+        The test counts and their date are the repository's own recorded observations, kept
+        in a section that separates what was run from what is standard practice. The six
+        relay checks were verified green twice on 14 Aug 2026. The diagram is drawn from the
+        shipping v1 architecture and the shared HTTP contract.
       </p>
       <p>
-        The trade diagram above is drawn from the shipping v1 architecture and the shared HTTP
-        contract — the deployed asynchronous flow, not the relay. The relay is real code with real
-        passing tests and is <em>not</em> deployed, and this page says so where it appears rather
-        than only at the bottom.
-      </p>
-      <p>
-        Pokémon, Game Boy and Nintendo are trade marks of their respective owners. This portal
-        transfers a description of a Pokémon and never a byte of game data.
+        Pokémon, Game Boy and Nintendo are trade marks of their respective owners. This
+        portal transfers a description of a Pokémon and never a byte of game data.
       </p>
     </div>
 

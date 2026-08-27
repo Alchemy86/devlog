@@ -23,8 +23,9 @@
     <div class="container">
       <a class="brand" href="../">devlog<span class="dot">.</span></a>
       <nav>
-        <a href="../#writing">Writing</a>
         <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
       </nav>
     </div>
   </header>
@@ -38,11 +39,9 @@
         <h1>The double-speed bug that cost 2,304 pixels</h1>
         <p class="lead">
           A register-commit trick worth exactly one dot of time was calibrated against
-          single-speed test ROMs. In double speed there was no longer a spare dot to
-          hold it — so it silently disappeared, and a Color game drew a wrong stripe
-          across the screen. This is how it was found, why the fix is one branch on a
-          clock enum, and why it only showed up on one of TerminalGB's two picture
-          engines.
+          single-speed test ROMs. In double speed there was no longer a spare dot to hold
+          it, so it silently disappeared and a Color game drew a wrong stripe across the
+          screen.
         </p>
         <div class="post-meta">
           <span class="tag">TerminalGB</span>
@@ -75,7 +74,7 @@
       <section class="prose">
         <h2>The symptom</h2>
         <p>
-          The failure was narrow and specific. A Game Boy Color game that flips
+          A Game Boy Color game that flips
           <code>LCDC</code> bits partway through a scanline — the register that controls
           which tile sources the picture processor is reading from — came out with a
           visibly wrong stripe pattern, but <em>only</em> when the console was running
@@ -208,20 +207,19 @@ let early = match speed {
     GbSpeed::Double =&gt; 0,   // 2-dot M-cycle: no spare dot — apply immediately instead
 };</code></pre>
         <p>
-          Removing the stagger outright in double speed is more honest than leaving it in to
-          be silently truncated. The single-speed path is untouched, so nothing that already
-          passed regresses.
+          Removing the stagger outright in double speed beats leaving it in to be silently
+          truncated. The single-speed path is untouched, so nothing that already passed
+          regresses.
         </p>
       </section>
 
       <section class="prose">
         <h2>What actually happened to the numbers</h2>
         <p>
-          The headline is clean: <code>m3-bg-lcdc-ds@cgbBCE</code> went from a 2,304-pixel
-          failure to a pixel-exact pass, moving the AGE suite from 10 to 11 of 59, and the
-          Gambatte double-speed rows improved on the accurate engine. But the honest part is
-          the rows that got much better without going all the way to zero — and were recorded
-          as they measured, not re-blessed to hide the remainder:
+          <code>m3-bg-lcdc-ds@cgbBCE</code> went from a 2,304-pixel failure to a
+          pixel-exact pass, moving the AGE suite from 10 to 11 of 59, and the Gambatte
+          double-speed rows improved on the accurate engine. Five more rows fell sharply
+          without reaching zero:
         </p>
         <div class="table-wrap">
           <table>
@@ -243,10 +241,9 @@ let early = match speed {
           </table>
         </div>
         <p>
-          Those single-digit and low-double-digit remainders are a different, smaller timing
-          discrepancy that the big stagger bug was masking. Leaving them on the record — 8
-          wrong pixels reported as 8, not rounded to "fixed" — is the point. The next person
-          to open that scoreboard sees exactly how much is left to chase.
+          Those remainders are a different, smaller timing discrepancy that the stagger bug
+          was masking. Eight wrong pixels are reported as eight, so the next person to open
+          that scoreboard sees exactly how much is left to chase.
         </p>
         <p>
           The regression is locked in with a test that has teeth: reverting the stagger to a
@@ -258,19 +255,17 @@ let early = match speed {
       <section class="prose">
         <h2>A note on counting pixels</h2>
         <p>
-          One caveat worth stating plainly, because it is easy to abuse. Not every "wrong
-          pixels" number on the scoreboard is a raw count of differing pixels. The Mealybug
+          Not every "wrong pixels" number on the scoreboard is a raw count of differing
+          pixels. The Mealybug
           Tearoom comparisons use a shade-rank distance, which is deliberately unforgiving:
           a frame that introduces one extra distinct shade can report on the order of 23,040
           "wrong" no matter how much of the rest is perfect, and a four-pixel error can move
           the total by tens of thousands. Four genuinely wrong pixels there scores 22,070.
         </p>
         <p>
-          So these figures are never converted to a percentage or a "99% accurate" claim — that
-          would be dishonest about what the metric measures. The 2,304 and the residual counts
-          in the table above <em>are</em> direct pixel counts from the AGE and Gambatte
-          comparisons; where a number is a shade-rank distance instead, it is treated as an
-          ordering signal, not a pixel tally.
+          So these figures are never converted to a percentage. The 2,304 and the residual
+          counts above <em>are</em> direct pixel counts from the AGE and Gambatte comparisons;
+          a shade-rank distance is treated as an ordering signal, not a pixel tally.
         </p>
       </section>
 

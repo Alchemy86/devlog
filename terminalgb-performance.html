@@ -24,8 +24,8 @@
       <a class="brand" href="./">devlog<span class="dot">.</span></a>
       <nav>
         <a href="./#projects">Projects</a>
+        <a href="./#pages">Pages</a>
         <a href="./#writing">Writing</a>
-        <a href="finds.html">Finds</a>
       </nav>
     </div>
   </header>
@@ -36,10 +36,9 @@
       <p class="eyebrow">Standing page · TerminalGB</p>
       <h1>Performance, and what it buys.</h1>
       <p class="lead">
-        A cycle-accurate Game Boy and Game Boy Color emulator, and the honest cost of being
-        one. Every figure here carries the conditions it was taken under — which core, which
-        picture engine, which load average — because on this box the identical binary reads
-        56% apart between a quiet machine and a busy one.
+        How fast TerminalGB runs, and what accuracy costs. Every figure carries the core,
+        the picture engine and the load average it was taken on, because on this box the same
+        binary reads 56% apart between a quiet machine and a busy one.
       </p>
       <div class="hero-facts">
         <span>Fastest configuration <b>0.0405 ms/frame</b></span>
@@ -58,9 +57,8 @@
           <li><a href="#field">Against the field, same session</a></li>
           <li><a href="#scaling">What twenty cores do</a></li>
           <li><a href="#engines">Two picture engines, and what exactness costs</a></li>
-          <li><a href="#method">The method, and three things learned by getting it wrong</a></li>
-          <li><a href="#features">What it can actually do</a></li>
-          <li><a href="#gaps">Stated plainly: the gaps</a></li>
+          <li><a href="#method">The method, and three ways of getting it wrong</a></li>
+          <li><a href="#gaps">The gaps</a></li>
         </ol>
       </div>
     </section>
@@ -161,10 +159,10 @@
             </table>
           </div>
           <p>
-            Read these as ratios against the accurate row measured <em>in the same session</em>,
-            not against the table above it — that is a different save state, and cross-session
-            comparison is exactly what this page's method section says not to trust. One P-core,
-            load 0.84, three interleaved rounds.
+            Read these as ratios against the accurate row measured <em>in the same
+            session</em>, not against the table above it — that is a different save state, and
+            comparing across sessions on this box is worth nothing. One P-core, load 0.84,
+            three interleaved rounds.
           </p>
         </div>
         <div class="card-ft">
@@ -371,6 +369,17 @@
             tile source for one dot in the middle of a line", which is why only the second
             can <em>catch</em> that.
           </p>
+
+          <figure class="narrow pixel" style="margin-inline:auto;">
+            <img src="assets/img/terminalgb/tui-status-picture-mode.png" width="400" height="639"
+                 alt="A close-up of the terminal Status panel. The PPU row reads &quot;identical ~2.1x&quot;.">
+            <figcaption>
+              The Status panel names the live engine and, for <code>identical</code>, what it
+              is costing right now. <code>P</code> switches between the two without a pause or
+              a reload — both engines share every register and the framebuffer, and
+              <code>identical</code> rebuilds its pipeline at the head of the next scanline.
+            </figcaption>
+          </figure>
           <div class="table-wrap">
             <table>
               <thead>
@@ -388,23 +397,17 @@
                 <tr><td>AGE</td><td class="num">3 / 59</td><td class="num">11 / 59</td></tr>
                 <tr><td>Mooneye (wilbertpol)</td><td class="num">62 / 122</td><td class="num">82 / 122</td></tr>
                 <tr><td>Scribbltests</td><td class="num">7 / 13</td><td class="num">9 / 13</td></tr>
-                <tr><td>Frame cost, Pokémon Blue, one P-core</td><td class="num">0.0454 ms</td><td class="num">0.4962 ms</td></tr>
+                <tr><td>Frame cost, Pokémon Blue, picture on, one P-core</td><td class="num">0.094 ms</td><td class="num">0.373 ms</td></tr>
               </tbody>
             </table>
           </div>
           <p>
-            The accurate engine costs roughly an order of magnitude more per frame and is
-            <em>still</em> only a few per cent of a frame's 16.7 ms budget on a desktop core.
-            That is cheap enough to be the default, and it is. But it is not free everywhere:
-            on the PSP frontend, where the CPU budget is tight, the emulator deliberately pins
-            <code>standard</code> — an unplayable-but-exact picture helps nobody.
+            The accurate engine costs four times as much per frame and is <em>still</em>
+            only 2.2% of a frame's 16.7 ms budget on a desktop core. That is cheap enough to
+            be the default, and it is. It is not free everywhere: on the PSP frontend the
+            emulator pins <code>standard</code>, because an exact picture nobody can play is
+            worth nothing.
           </p>
-        </div>
-        <div class="card-ft">
-          Every row above was re-derived for this page directly from the project's own
-          checked-in baseline files, by counting <code>PASS</code> lines — not read off a
-          summary. The baselines <em>are</em> the expectations, so the count and the claim
-          cannot drift apart.
         </div>
       </div>
     </section>
@@ -412,7 +415,7 @@
     <!-- ============ METHOD ============ -->
     <section id="method">
       <div class="sec-head">
-        <h2>The method, and three things learned by getting it wrong</h2>
+        <h2>The method, and three ways of getting it wrong</h2>
         <p class="sub">
           Four things about the benchmark command are load-bearing, and three of them were
           learned by producing a wrong answer first.
@@ -465,105 +468,22 @@
       </div>
     </section>
 
-    <!-- ============ FEATURES ============ -->
-    <section id="features">
-      <div class="sec-head">
-        <h2>What it can actually do</h2>
-        <p class="sub">
-          The surface, grouped. Everything here is built and shipping; the things that are
-          designed but not built are not on this list.
-        </p>
-      </div>
-
-      <div class="cards">
-        <div class="card">
-          <div class="card-hd"><p class="kicker">The machine</p><h3>Three consoles, four mappers</h3></div>
-          <div class="card-bd">
-            <ul>
-              <li>DMG, Game Boy Color and Super Game Boy models</li>
-              <li>Cartridge mappers 1, 2, 3 and 5, with a real-time clock</li>
-              <li>Battery saves in the ecosystem's own format</li>
-              <li>Versioned save states, portable to the browser build</li>
-              <li>Optional user-supplied boot ROM</li>
-              <li>Two picture engines: <code>standard</code>, or hardware-exact <code>identical</code></li>
-            </ul>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-hd"><p class="kicker">In your terminal</p><h3>Degrades, never refuses</h3></div>
-          <div class="card-bd">
-            <ul>
-              <li>Kitty, Sixel, iTerm2 and half-block rendering</li>
-              <li>Shared-memory frame transport — 87 bytes a frame</li>
-              <li>Four upscalers, palettes, HiDPI correction</li>
-              <li>Runs in any terminal, whatever it supports</li>
-            </ul>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-hd"><p class="kicker">Sound</p><h3>Full audio hardware</h3></div>
-          <div class="card-bd">
-            <ul>
-              <li>Complete APU emulation, 36 ms latency</li>
-              <li>Volume control that never touches emulation</li>
-              <li>Chiptune renderer — instructions in, real audio out</li>
-              <li>Music mode: ROMs as a shelf, with export</li>
-            </ul>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-hd"><p class="kicker">Linking</p><h3>Two consoles on one cable</h3></div>
-          <div class="card-bd">
-            <ul>
-              <li>Two instances linked locally, trade proven</li>
-              <li>BGB network protocol over TCP</li>
-              <li>Virtual trade partner — no second cartridge needed</li>
-              <li>Cable Club battles against that partner</li>
-            </ul>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-hd"><p class="kicker">Plugins</p><h3>Reading the running cartridge</h3></div>
-          <div class="card-bd">
-            <ul>
-              <li>Live trainer view: party, stats, sprites, catch rate</li>
-              <li>Shiny hunting from Gen 1 hidden values</li>
-              <li>Battle control — start any battle from outside</li>
-              <li>An agent substrate for autonomous play</li>
-            </ul>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-hd"><p class="kicker">Beyond the terminal</p><h3>Desktop, browser, and a wire</h3></div>
-          <div class="card-bd">
-            <ul>
-              <li>Virtual camera — appears to the system as a webcam</li>
-              <li>Screenshots, recording, a telemetry stream</li>
-              <li>An MCP server, so any Claude client can drive it</li>
-              <li>Embeddable core — one third-party dependency</li>
-              <li>A browser build via WebAssembly, and a reusable conformance action</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- ============ GAPS ============ -->
     <section id="gaps">
       <div class="sec-head">
-        <h2>Stated plainly: the gaps</h2>
+        <h2>The gaps</h2>
         <p class="sub">
-          A total on its own is not evidence. Each remaining red row has a named reason, and
-          one of them must stay red forever.
+          Each remaining red row has a named reason, and one of them must stay red forever.
         </p>
       </div>
 
       <ul class="gaps">
         <li>
-          <b>Mid-scanline picture timing is still the real ceiling.</b> Most of the Mealybug
-          Tearoom suite is red even on the exact engine — though <b>45 of its 79 rows cannot
-          be won by picture work at all</b>, and that denominator is published rather than
-          quietly dropped.
+          <b>Mid-scanline picture timing is the ceiling.</b> Most of the Mealybug Tearoom
+          suite is red even on the exact engine. 45 of its 79 rows cannot be won by picture
+          work at all: 27 need Nintendo's boot ROM in video RAM, 8 compare a greyscale render
+          against a colour reference, and 7 are a ROM-versus-reference mismatch inside the
+          suite. The honest denominator is 34.
         </li>
         <li>
           <b>Nine Mooneye rows are other consoles</b> — machine variants deliberately not
@@ -586,11 +506,10 @@
           550×, and would not be an emulator.
         </li>
         <li>
-          <b>The field comparison predates the engine default changing.</b> Those rows were
-          taken with the fast engine, which is the fair comparator against two emulators
-          running with their rendering off — but a bare run of the same command today uses the
-          exact engine and reads about four times slower. Different measurement, not a
-          regression.
+          <b>The three-emulator comparison was run on the fast engine.</b> That is the fair
+          comparator against two emulators with their rendering off. A bare run of the same
+          command today uses the exact engine and reads about four times slower — a different
+          measurement, not a regression.
         </li>
       </ul>
     </section>
@@ -605,14 +524,10 @@
           in its own release configuration and its rendering and sound off.
         </p>
         <p>
-          <strong>Re-derived, not quoted.</strong> The accuracy table on this page was counted
-          directly from the repository's checked-in baseline files while the page was written,
-          rather than copied from a summary — and it matched.
-        </p>
-        <p>
-          <strong>What is not claimed.</strong> No percentage accuracy figure, no "99% correct"
-          statement, and no comparison against a published marketing number. Where a suite's
-          metric is not a pixel count, the page says so.
+          The accuracy table is read from the repository's checked-in conformance baselines,
+          which are the expectations themselves, so a count and a claim cannot drift apart.
+          There is no overall percentage accuracy figure here and no comparison against
+          anybody's published marketing number.
         </p>
       </div>
 

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Let go of the D-pad — devlog</title>
+  <meta name="description" content="One line took a cartridge map capture from 113 maps to 216. A door is a warp on both sides, and a player still holding the direction walks straight back out.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Let go of the D-pad — devlog">
+  <meta property="og:description" content="One line took a cartridge map capture from 113 maps to 216. A door is a warp on both sides, and a player still holding the direction walks straight back out.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/posts/let-go-of-the-d-pad.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <article>
+
+      <header class="post-header">
+        <p class="eyebrow">PixelGB · Capture</p>
+        <h1>Let go of the D-pad</h1>
+        <p class="lead">
+          PixelGB photographs every map in a Pokémon Blue cartridge by walking the game
+        into it. Holding the direction for a fixed number of frames reaches every open map in
+        the game and almost no building.
+        </p>
+        <div class="post-meta">
+          <span class="tag">PixelGB</span>
+          <span>Emulator driving</span>
+          <span>27 Aug 2026</span>
+        </div>
+      </header>
+
+      <section>
+        <div class="metrics">
+          <div class="metric">
+            <div class="num">113</div>
+            <div class="label">Maps, holding the D-pad</div>
+          </div>
+          <div class="metric">
+            <div class="num"><span class="accent">216</span></div>
+            <div class="label">Releasing on arrival</div>
+          </div>
+          <div class="metric">
+            <div class="num">226</div>
+            <div class="label">Maps in the cartridge</div>
+          </div>
+          <div class="metric">
+            <div class="num">31</div>
+            <div class="label">Maps a text box nearly cost</div>
+          </div>
+        </div>
+      </section>
+
+
+      <section class="prose">
+        <h2>Getting in at all</h2>
+        <p>
+          Writing a map number into <code>wCurMap</code> crashes the game. The whole map
+          header sits underneath it, so the engine ends up reading the new map's blocks
+          through the old map's pointers.
+        </p>
+        <p>
+          The safe route is <code>wWarpEntries</code>: redirect one of the current room's own
+          warps at the target map and walk the player into it. The engine loads the
+          destination header itself — <code>LoadMapHeader</code>, the tileset copy into video
+          RAM, the palette, the objects, the screen. Everything after the walk is the game's
+          own.
+        </p>
+        <p>
+          So PixelGB plays the opening, saves the machine's state the moment it stands on a
+          real map, and for each of the 226 maps rewinds to that moment, points one warp at
+          the target and walks in.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>And then one line was worth a hundred maps</h2>
+        <div class="pullquote">
+          <p>
+            Let go of the D-pad the instant the map changes.
+          </p>
+          <cite>The single most important line in <code>warp_to</code></cite>
+        </div>
+        <p>
+          A door is a warp on both sides. You arrive on the doormat, and a player still
+          holding the direction takes one more step and walks straight back out.
+        </p>
+        <p>
+          Holding: 113 maps photographed. Releasing on arrival: 216.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>The one that was stranger: shop clerks talk</h2>
+        <p>
+          Several maps put a text box up the moment you arrive, and Generation 1 does that by
+          parking the window layer at <code>WY = 0</code>. Which means the window covers the
+          entire screen and the map is drawn through it.
+        </p>
+        <p>
+          An earlier version of the comparison excluded "wherever the window is", the way it
+          excludes sprites — and so masked the whole picture. 31 maps went from exact to
+          inconclusive and two to no-alignment, with nothing in the report to say why.
+        </p>
+        <p>
+          The right answer was not to subtract the text box but to dismiss it, the way a
+          player does: press B until the window is off-screen again, requiring several
+          consecutive clear checks, because the window parks off-screen for a few frames
+          between two boxes of one conversation.
+        </p>
+        <p>
+          It looked like a tolerance problem and it was a modelling one.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>What it did not rescue</h2>
+        <p>
+          The Hall of Fame. Walk in and Oak starts talking, and his script is not one you can
+          press B through — it inducts the party. PixelGB presses B up to eighty times and
+          requires four consecutive clear checks before photographing; this one still has a
+          text box up when the budget runs out, so it is counted on its own.
+        </p>
+        <p>
+          Ten more maps have nowhere to arrive: a warp names a destination warp on the far
+          side and these have none, so the camera comes to rest outside the map. Those and
+          the Hall of Fame are the eleven named on the
+          <a href="../projects/pixelgb.html">project page</a>.
+        </p>
+      </section>
+
+      <hr>
+
+      <p class="note">
+        All figures come from one run of <code>pixelgb verify</code> against a Pokémon
+        Blue cartridge, written up in the project's own verification record.
+      </p>
+
+      <a class="backlink" href="../">← Back to devlog</a>
+
+    </article>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -4,14 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>devlog — engineering notes</title>
-  <meta name="description" content="Detailed technical breakdowns of the core work: TerminalGB, AgentGB and AtlasGB. Real numbers, real trade-offs, and the failures that make them worth reading.">
+  <meta name="description" content="TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest and the Portal — what each does, what it scores, and the stories from building them.">
   <meta name="color-scheme" content="light dark">
-
-  <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="devlog — engineering notes">
-  <meta property="og:description" content="Detailed technical breakdowns of the core work: TerminalGB, AgentGB and AtlasGB.">
-  <meta property="og:url" content="https://alchemy86.github.io/devlog/">
+  <meta property="og:description" content="TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest and the Portal — what each does, what it scores, and the stories from building them.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/index.html">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,9 +22,9 @@
     <div class="container">
       <a class="brand" href="./">devlog<span class="dot">.</span></a>
       <nav>
-        <a href="#projects">Projects</a>
-        <a href="#pages">Pages</a>
-        <a href="#writing">Writing</a>
+        <a href="./#projects">Projects</a>
+        <a href="./#pages">Pages</a>
+        <a href="./#writing">Writing</a>
       </nav>
     </div>
   </header>
@@ -37,54 +35,51 @@
       <p class="eyebrow">Engineering log</p>
       <h1>Notes from the workbench.</h1>
       <p class="lead">
-        Detailed breakdowns of the core work — TerminalGB, AgentGB, AtlasGB and the
-        rest. The source repositories are private; this is where the interesting parts
-        become visible. Real numbers, real trade-offs, and the failures that make them
-        worth reading — every figure traceable to something that can be re-run.
+        A family of Game Boy projects — an emulator, a neural player, an evidenced cartridge
+        atlas and three more — with what each one does, what it currently scores, and the
+        stories worth telling from building them. The source repositories are private; this
+        is where the interesting parts are visible.
       </p>
     </section>
 
     <section id="projects">
-      <h2>The projects</h2>
-      <div class="prose">
-        <p>
-          A family of Game Boy systems built to a single standard: nothing is claimed
-          that cannot be re-run and measured. Each project keeps its own log of updates,
-          milestones and achievements — pulled out of private repositories and laid out
-          in the open.
+      <div class="sec-head">
+        <h2>The projects</h2>
+        <p class="sub">
+          What each one is, what it does, and where it stands today.
         </p>
       </div>
 
       <div class="project-grid" style="margin-top:28px;">
         <a class="project-card" href="projects/terminalgb.html">
           <span class="pc-name">TerminalGB</span>
-          <span class="pc-desc">A cycle-accurate Game Boy / Color emulator with two picture engines — one fast, one exact enough to catch a single-dot timing bug.</span>
-          <span class="pc-go">Project log →</span>
+          <span class="pc-desc">A Game Boy and Game Boy Color emulator with two picture engines — one fast, one exact enough to catch a single-dot timing bug. 103/103 on Mooneye, 5th of 19 on the Shootout.</span>
+          <span class="pc-go">Project page →</span>
         </a>
         <a class="project-card" href="projects/agentgb.html">
           <span class="pc-name">AgentGB</span>
-          <span class="pc-desc">A 118,806-parameter student that plays Pokémon from pixels alone — trained by imitation, not reinforcement.</span>
-          <span class="pc-go">Project log →</span>
+          <span class="pc-desc">A 122,330-weight network that plays Pokémon Blue from the screen alone. It runs the game's opening — sixteen links, cold boot to the Pokédex — 145 times in 150.</span>
+          <span class="pc-go">Project page →</span>
         </a>
         <a class="project-card" href="projects/atlasgb.html">
           <span class="pc-name">AtlasGB</span>
-          <span class="pc-desc">An evidence-only cartridge atlas: 2,898 claims, four evidence tiers, and seven entries that say they have none.</span>
-          <span class="pc-go">Project log →</span>
+          <span class="pc-desc">Memory maps where every claim carries the evidence for itself. 2,898 claims, three evidence tiers, and seven entries that say they have none.</span>
+          <span class="pc-go">Project page →</span>
         </a>
         <a class="project-card" href="projects/pixelgb.html">
           <span class="pc-name">PixelGB</span>
-          <span class="pc-desc">Every map in Pokémon Blue photographed from a running cartridge and checked against it, pixel for pixel.</span>
-          <span class="pc-go">Project log →</span>
+          <span class="pc-desc">Every map in Pokémon Blue photographed from a running cartridge and checked against it, pixel for pixel. 215 of 226 agree; the eleven that do not are named.</span>
+          <span class="pc-go">Project page →</span>
         </a>
         <a class="project-card" href="projects/gbselftest.html">
           <span class="pc-name">GBSelfTest</span>
-          <span class="pc-desc">One cartridge, 102 checks, no host — and not one expected value measured from an emulator.</span>
-          <span class="pc-go">Project log →</span>
+          <span class="pc-desc">One cartridge, 102 checks, no host and no reference images — and not one expected value measured from an emulator.</span>
+          <span class="pc-go">Project page →</span>
         </a>
         <a class="project-card" href="projects/terminalgb-portal.html">
           <span class="pc-name">TerminalGB Portal</span>
-          <span class="pc-desc">Trade one Gen 1 Pokémon over the web — no second Game Boy, no game bytes on the wire.</span>
-          <span class="pc-go">Project log →</span>
+          <span class="pc-desc">Trade one Gen 1 Pokémon over the web — no second Game Boy, no appointment, and no game bytes on the wire.</span>
+          <span class="pc-go">Project page →</span>
         </a>
       </div>
     </section>
@@ -93,9 +88,7 @@
       <div class="sec-head">
         <h2>Standing pages</h2>
         <p class="sub">
-          Three pages that grow rather than get published once. Each collects a running
-          record — what has been found, how far something has come, what it costs — and
-          each is added to as the work produces something worth adding.
+          Three pages that grow rather than get published once.
         </p>
       </div>
 
@@ -107,13 +100,13 @@
           </div>
           <div class="card-bd">
             <p>
-              Things the cartridge actually does — the player and rival are already called
-              NINTEN and SONY before either naming screen runs, the learnset table is not
-              indexed the way anyone expects, and a trainer sees straight through walls.
-              Each entry with its addresses, its mechanism and how it was checked.
+              Things the cartridge actually does. The player and rival are already called
+              NINTEN and SONY before either naming screen runs; the learnset table is not
+              indexed the way anyone expects; a trainer sees straight through walls. Each
+              entry with its addresses and its mechanism.
             </p>
           </div>
-          <div class="card-ft">5 entries · verified against a named cartridge →</div>
+          <div class="card-ft">5 entries · one named cartridge →</div>
         </a>
 
         <a class="card" href="agentgb-progress.html">
@@ -123,36 +116,39 @@
           </div>
           <div class="card-bd">
             <p>
-              From a random-walk floor where nobody leaves the first town, to a
-              122,330-weight screen-only student completing a sixteen-link chain 145 times
-              in 150 cold boots. The arc in order, with the number that was true at each
-              point — and the ledger of what is still not true.
+              From a random walk where nobody leaves the first town, to a screen-only student
+              completing a sixteen-link chain 145 times in 150 cold boots. The arc in order,
+              with the number that was true at each point, and the ledger of what is still
+              not true.
             </p>
           </div>
-          <div class="card-ft">Stage 0 → 18 links attempted · honest gaps →</div>
+          <div class="card-ft">Stage 0 → 18 links attempted →</div>
         </a>
 
         <a class="card" href="terminalgb-performance.html">
           <div class="card-hd">
             <p class="kicker">TerminalGB</p>
-            <h3>Performance &amp; features</h3>
+            <h3>Performance</h3>
           </div>
           <div class="card-bd">
             <p>
-              Real ms/frame figures with the core, the engine and the load average they
-              were taken on — 414× real time on one core, 3,735× on twenty — a same-session
-              comparison against two other emulators, and what exactness actually costs.
+              414× real time on one core, 3,735× on twenty, and a same-session comparison
+              against two other emulators. Every figure carries the core, the engine and the
+              load average, because on this box the same binary reads 56% apart between a
+              quiet machine and a busy one.
             </p>
           </div>
-          <div class="card-ft">Measured, not quoted · every condition stated →</div>
+          <div class="card-ft">One machine, one session, one clock →</div>
         </a>
       </div>
     </section>
 
     <section id="writing">
-      <h2>Writing</h2>
+      <div class="sec-head">
+        <h2>Writing</h2>
+        <p class="sub">One story each.</p>
+      </div>
       <ul class="post-list">
-
         <li>
           <a class="post-card" href="posts/every-failure-was-the-same-starter.html">
             <div class="post-meta">
@@ -161,12 +157,7 @@
               <span>27 Aug 2026</span>
             </div>
             <p class="post-title">Every failure was the same starter</p>
-            <p class="post-dek">
-              A twenty-six agent swarm scored 88.5% and looked healthy. Watching the film
-              instead of reading the table showed all three failures were the same starter
-              Pokémon — one chance in 2,600. What a summary structurally cannot show, and
-              the reporting rule that came out of it.
-            </p>
+            <p class="post-dek">A twenty-six agent swarm scored 88.5% and looked healthy. Watching the film instead of reading the table showed all three failures were the same starter Pok&eacute;mon — one chance in 2,600.</p>
           </a>
         </li>
 
@@ -178,12 +169,91 @@
               <span>27 Aug 2026</span>
             </div>
             <p class="post-title">The wall you hit walking home</p>
-            <p class="post-dek">
-              An agent learned the walk to the shop perfectly and could not learn the walk
-              back. Two measured rates that sum to a hundred are the signature of an
-              impossible task, not a hard one — and the fix was to stop opening the bag and
-              read what the cartridge already says out loud.
-            </p>
+            <p class="post-dek">An agent learned the walk to the shop perfectly and could not learn the walk back. Two measured rates that sum to a hundred are the signature of an impossible task, not a hard one.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/the-day-that-added-nothing.html">
+            <div class="post-meta">
+              <span class="tag">AgentGB</span>
+              <span>Method</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">The day that added nothing</p>
+            <p class="post-dek">Five identical training runs scored 100, 92, 92, 85 and 77 per cent. Every ablation published before that lacked the control.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/the-label-bug-in-oaks-lab.html">
+            <div class="post-meta">
+              <span class="tag">AgentGB</span>
+              <span>Training data</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">293 runs stopped on the same text box</p>
+            <p class="post-dek">A nine-link chain collapsed from 300 of 300 to 7. The student was doing exactly what its supervisor had told it to do.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/the-one-failure-in-twelve-thousand.html">
+            <div class="post-meta">
+              <span class="tag">AgentGB</span>
+              <span>Failure analysis</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">The one failure in twelve thousand</p>
+            <p class="post-dek">Four certification cells of 3,000 attempts produced exactly one failure. Somebody was standing on the corner tile, and stayed there for 4.7 minutes of game time.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/reading-the-screen-without-the-letters.html">
+            <div class="post-meta">
+              <span class="tag">AgentGB</span>
+              <span>Perception</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">Reading the screen without reading the letters</p>
+            <p class="post-dek">At 40&times;36 no letterform survives. Six in-game messages are still 97.2% separable — and the first two experiments that said otherwise were both too small to say anything.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/271-colours-in-a-four-shade-picture.html">
+            <div class="post-meta">
+              <span class="tag">TerminalGB</span>
+              <span>Rendering</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">271 colours in a four-shade picture</p>
+            <p class="post-dek">Half-block terminal output was blurry on GNOME terminals and crisp on WezTerm. The cause was a hard-coded smoothing filter four lines down in a dependency — and doing the sampling ourselves is cheaper.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/the-transfer-controller-owns-the-bus.html">
+            <div class="post-meta">
+              <span class="tag">TerminalGB</span>
+              <span>Hardware modelling</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">The transfer controller owns the bus</p>
+            <p class="post-dek">Object DMA is usually modelled as a copy. It is also an address-bus conflict, and the sprite scan is on the other end of those lines.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/the-red-we-refused-to-fix.html">
+            <div class="post-meta">
+              <span class="tag">TerminalGB</span>
+              <span>Method</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">The red we refused to fix</p>
+            <p class="post-dek">One sweep would have turned a failing test green. Taking it would have moved every Color cartridge's divider on the evidence of a single row.</p>
           </a>
         </li>
 
@@ -195,22 +265,95 @@
               <span>26 Aug 2026</span>
             </div>
             <p class="post-title">The double-speed bug that cost 2,304 pixels</p>
-            <p class="post-dek">
-              A register-commit trick worth exactly one dot of time vanished when the
-              CPU clock doubled — and a Color game drew a wrong stripe across the
-              screen. Finding it took an AGE reference ROM from 2,304 wrong pixels to
-              a clean pass, and explains why TerminalGB ships two picture engines.
-            </p>
+            <p class="post-dek">A register-commit trick worth exactly one dot of time vanished when the CPU clock doubled — and a Color game drew a wrong stripe across the screen.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/tackle-is-95-per-cent.html">
+            <div class="post-meta">
+              <span class="tag">AtlasGB</span>
+              <span>Corrections</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">TACKLE is 95 per cent and we said 94</p>
+            <p class="post-dek">Nothing failed. A number had been computed from a belief rather than read from the cartridge, and it sat in four files for as long as they existed.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/the-ledge-in-viridian-city.html">
+            <div class="post-meta">
+              <span class="tag">AtlasGB</span>
+              <span>Map data</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">The ledge in Viridian City</p>
+            <p class="post-dek">Seventeen runs of six hundred died on the same row of the same town. A flood fill said the tile was reachable, and the flood fill was right.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/let-go-of-the-d-pad.html">
+            <div class="post-meta">
+              <span class="tag">PixelGB</span>
+              <span>Capture</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">Let go of the D-pad</p>
+            <p class="post-dek">One line took a cartridge map capture from 113 maps to 216. A door is a warp on both sides, and a player still holding the direction walks straight back out.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/the-door-rule.html">
+            <div class="post-meta">
+              <span class="tag">PixelGB</span>
+              <span>Layout</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">The door rule</p>
+            <p class="post-dek">The cartridge says where outdoor maps go and says nothing at all about interiors. Placing 190 rooms is a decision, and it was settled by measurement.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/a-hundred-checks-in-one-session.html">
+            <div class="post-meta">
+              <span class="tag">GBSelfTest</span>
+              <span>Test design</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">A hundred checks in one session</p>
+            <p class="post-dek">A new check found a real bug on the day it was written — one that thousands of rows across five public suites could not see, because of the shape they have.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/three-ways-this-cartridge-was-wrong.html">
+            <div class="post-meta">
+              <span class="tag">GBSelfTest</span>
+              <span>Corrections</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">Three ways this cartridge was wrong about itself</p>
+            <p class="post-dek">A verdict decided by which checks failed above it, a subroutine that ate a measurement, and two checks that skipped on every console, forever.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/four-bugs-one-line-each.html">
+            <div class="post-meta">
+              <span class="tag">Portal</span>
+              <span>Web</span>
+              <span>27 Aug 2026</span>
+            </div>
+            <p class="post-title">Four bugs, one line each</p>
+            <p class="post-dek">A dropped field, a RETURNING clause that returns the wrong thing, a bigint that arrived as a string, and a grid that could not get narrower than 16rem.</p>
           </a>
         </li>
 
       </ul>
-      <p class="note" style="margin-top:24px;">
-        Long-form writing has two other homes: the <a href="#pages">standing pages</a> above,
-        which accumulate, and each <a href="#projects">project page</a>, which carries its own
-        account — the mechanism, the measurements, the hypotheses that were refuted, and the
-        failures that turned out to be specific rather than random.
-      </p>
     </section>
 
   </main>

@@ -25,9 +25,37 @@ resource is Google Fonts. It must still work untouched in two years — keep it 
   pages (see **Standing pages**). Root-level, same self-contained shape as a post.
 - `posts/*.html` — one self-contained file per post (each wires its own fonts, CSS,
   masthead, footer). Add a new post's `<li>` to the list in `index.html`.
-- `projects/*.html` — one long-form page per project, same self-contained shape as a post.
+- `projects/*.html` — one page per project, same self-contained shape as a post.
+  **A project page is a spec sheet, not an essay** — see **Voice and page shape**.
 - `assets/css/main.css` — the entire design system, documented inline.
 - `assets/img/<project>/` — real captures copied out of the source repos. See **Images**.
+
+## Voice and page shape (non-negotiable, set 2026-08-27)
+
+Load the **`human-writeups`** skill before writing or revising any prose here. It owns
+the standard. The captain's verdict on the first version of this site was that it was
+"not written like a person", and the rewrite that followed is what the current pages are.
+The four failures it names, in the order they showed up here:
+
+1. **Showing your working.** State the finding, not how you counted it. "1,419 entries are
+   verified against both the ROM and a live run" — never the `csv.DictReader` sentence.
+2. **Meta-commentary about the writing.** Never say what you chose to delete, mark, keep or
+   surface. In particular: **never annotate a figure as stale.** Go to the source repo, read
+   the current number, and publish it as if it were always the current number.
+3. **Defending yourself in prose.** A condition on a number is a few words ("N=150", "load
+   1.3"), not a paragraph on why it was measured that way.
+4. **Throat-clearing.** Start with the thing.
+
+The structure that follows from it:
+
+- **Project pages lead with what it is, what it does, and its current test scores.** Hero,
+  metric band, a `.cards` grid of the feature surface, a scores table, the gaps as
+  `ul.gaps`, a short milestone timeline, then links to that project's posts. Nothing else
+  earns that space.
+- **Every narrative is a post.** A story on a project page is a post trying to escape —
+  move it to `posts/` and link it from both the project page and `index.html`.
+- **`.provenance` stays** (every project and standing page ends with one) but it is two
+  short paragraphs naming the source and the licensing position, not a method write-up.
 
 ## Design system (do not drift)
 
@@ -48,12 +76,19 @@ project page ends with). Extend that list rather than inventing a parallel syste
 
 Every number on the site must be verifiable against the source project. If a claim
 cannot be checked, it does not get published — this holds even against a remembered
-figure. When the source disagrees with a briefed number, the source wins and the
-discrepancy is surfaced. Several briefed figures did not survive verification and were
-corrected against the repos:
+figure. When the source disagrees with a briefed number, the source wins. **Correct it,
+do not caveat it**: read the current value out of the repo and publish that. A stale
+figure never gets an annotation saying it is stale (see **Voice and page shape**).
+Several briefed figures did not survive verification and were corrected against the
+repos:
 
 - TerminalGB double-speed: brief said `7,672 → 56`; source has no such figures. The
   post uses the real `2,304 → PASS` (AGE `m3-bg-lcdc-ds@cgbBCE`).
+- TerminalGB conformance: `Mooneye acceptance 13/66` and `SameSuite APU 2/61` are
+  historical attribution figures the gameboy repo keeps deliberately ungated — never
+  publish them as current. Current, from the baselines (27 Aug 2026): Mooneye acceptance
+  **67/75 `standard`, 75/75 `identical`** (all eight fast-engine failures are
+  `acceptance/ppu`), SameSuite audio **66/69** in both engines.
 - AgentGB: brief said `29/30` cold boots with "one Squirtle run fails on Route 1". The
   repo inverts this — the failing line is **Bulbasaur** (`177/300`, and all `123`
   failures end in a battle on Route 1), while Squirtle and Charmander are `300/300`.
@@ -116,10 +151,11 @@ with a `.hero-facts` strip, a `.toc` card, sections built from `.tiles` / `.card
 - `agentgb-progress.html` — the arc as a `.timeline`, the current standing, and the honest
   gaps. Source is agentgb's `docs/progress.md` (stages 0-8, dated) plus `docs/return-leg-adapter.md`
   and `AGENTS.md` for everything after 24 Aug 2026; `docs/results.md` is **stale** (3 links).
-- `terminalgb-performance.html` — throughput and the feature surface. Source is the gameboy
-  repo's `docs/measured/throughput-baseline.md`, `docs/measured/against-the-field.md` and
-  `docs/status.md` § Abilities. **Every throughput figure must carry its load average** —
-  the same binary reads 0.0581 vs 0.0909 ms/frame between load 0.3 and load 16.
+- `terminalgb-performance.html` — throughput and what exactness costs. Source is the gameboy
+  repo's `docs/measured/throughput-baseline.md` and `docs/measured/against-the-field.md`.
+  **Every throughput figure must carry its load average** — the same binary reads 0.0581 vs
+  0.0909 ms/frame between load 0.3 and load 16. The feature surface moved off this page to
+  `projects/terminalgb.html` on 2026-08-27; do not duplicate it back.
 
 The design-system additions these needed are at the bottom of `main.css` under
 *Extensions for the standing pages*: `.page-hero`/`.hero-facts`, `.toc`, `.sec-head`,
@@ -142,11 +178,19 @@ Verified against `Pokemon - Blue Version (USA, Europe) (SGB Enhanced).gb` (sha1
   `$4000-$7FFF` *and* whose records parse as valid evolution/learnset bytes. `PokedexOrder`
   is at file `0x41024`. Parsing gives 580/56 for the naive first-151 read and 728/72 for
   both the `PokedexOrder`-filtered and the all-190 read — all four figures reproduced.
-- **Suite scores are countable, not quotable.** Every row of the picture-engine table on
-  `terminalgb-performance.html` was counted from the gameboy repo's `testharness/*baseline*.txt`
-  by tallying lines whose value starts `PASS`. `*_accurate_baseline.txt` is the `identical`
-  engine; the bare name is `standard`. `mooneye_baseline.txt` is acceptance + emulator-only
-  pooled (95/103 standard, 103/103 accurate).
+- **Suite scores are countable, not quotable.** Every row of the picture-engine tables on
+  `terminalgb-performance.html` and `projects/terminalgb.html` is counted from the gameboy
+  repo's `testharness/*baseline*.txt` — split each line on `=` and count values starting
+  `PASS`. `*_accurate_baseline.txt` is the `identical` engine; the bare name is `standard`.
+  `mooneye_baseline.txt` is acceptance + emulator-only pooled (95/103 standard, 103/103
+  accurate). The Shootout figure (243/264, 5th of 19) is **not** baseline-derivable — it
+  comes from `docs/shootout.md`.
+- **Two different frame-cost pairs exist and they are not interchangeable.** The
+  engine-against-engine comparison is `0.373 ms identical / 0.094 ms standard`, picture on,
+  one P-core (gameboy `docs/picture-modes.md`). The throughput page's `0.0454` and `0.4962`
+  come from `docs/measured/throughput-baseline.md` and are *different configurations*
+  (pixels off at load 1.3 versus picture on at load 16) — pairing them as an engine
+  comparison overstates the cost by 2.5×.
 
 ## Images
 

@@ -13,17 +13,20 @@ dependencies. The only external resource is Google Fonts (IBM Plex Sans + JetBra
 Mono). It is designed to still work untouched in two years.
 
 ```
-index.html                     # landing page: projects first, then post list
-projects/                      # one HTML file per project (updates, milestones, achievements)
-posts/                         # one HTML file per post
+index.html                     # landing page: projects, standing pages, post list
+finds.html                     # standing page: Gen 1 cartridge discoveries
+agentgb-progress.html          # standing page: the neural player's arc
+terminalgb-performance.html    # standing page: throughput and what exactness costs
+projects/                      # one HTML file per project: what it is, what it does, its scores
+posts/                         # one HTML file per post — one story each
 assets/css/main.css            # the whole design system
-assets/img/                    # post images (SVG diagrams are inlined)
+assets/img/                    # real captures from the source repos (SVG diagrams are inlined)
 .nojekyll                      # serve files as-is, skip Jekyll processing
 ```
 
-Each project page (`projects/<name>.html`) carries a metric band, a "what it is"
-section, a milestones timeline, and links to the writing about that project. The index
-lists the projects as clickable cards above the writing list.
+A project page is a spec sheet: what it is, a metric band of current scores, the
+feature surface, a scores table, the gaps, a short milestone timeline, and links to that
+project's posts. Narrative belongs in `posts/`, one story per file.
 
 ## Publishing
 
@@ -53,4 +56,5 @@ typography of Claude artifact pages:
 ## Editorial rule
 
 Every number on this site is one we can stand behind. If a claim cannot be verified
-against the source project, it does not get published.
+against the source project, it does not get published — and where a figure has gone out
+of date, it is corrected against the source rather than annotated as stale.

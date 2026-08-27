@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PixelGB — devlog</title>
-  <meta name="description" content="PixelGB photographs every map in Pokémon Red and Blue from a running cartridge, renders the same map a second time from the map data, and compares the two pixel for pixel. 215 of 226 agree, and the other eleven are named.">
+  <meta name="description" content="PixelGB: every map in a Game Boy cartridge photographed from the running console and checked against it, pixel for pixel.">
   <meta name="color-scheme" content="light dark">
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="article">
   <meta property="og:title" content="PixelGB — devlog">
-  <meta property="og:description" content="Pictures photographed from a running cartridge and checked against it, pixel for pixel.">
+  <meta property="og:description" content="PixelGB: every map in a Game Boy cartridge photographed from the running console and checked against it, pixel for pixel.">
   <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/pixelgb.html">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,6 +23,7 @@
       <a class="brand" href="../">devlog<span class="dot">.</span></a>
       <nav>
         <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
         <a href="../#writing">Writing</a>
       </nav>
     </div>
@@ -34,13 +35,11 @@
       <p class="eyebrow">Project · Image extraction</p>
       <h1>PixelGB</h1>
       <p class="lead">
-        High-quality pictures extracted from a Game Boy cartridge and checked against the
-        console that drew them. Not reconstructed from a disassembly's data files —
-        <em>photographed</em>. PixelGB puts your cartridge in a cycle-accurate emulator,
-        walks the game to each of its 226 maps, and lets the game load its own tileset,
-        copy its own art into video RAM, apply its own palette and draw its own screen.
-        Then it renders the same map a second time from the map data and compares the two
-        pixel for pixel.
+        Pictures of every map in a Game Boy cartridge, taken from the console that drew
+        them. PixelGB puts your cartridge in a cycle-accurate emulator, walks the game to
+        each of its 226 maps and lets the game load its own tileset, copy its own art into
+        video RAM, apply its own palette and draw its own screen. Then it renders the same
+        map a second time from the map data and compares the two, pixel for pixel.
       </p>
     </header>
 
@@ -60,453 +59,245 @@
         </div>
         <div class="metric">
           <div class="num"><span class="accent">11</span></div>
-          <div class="label">Named, not rounded away</div>
+          <div class="label">Unresolved, and named</div>
         </div>
       </div>
       <p class="note" style="margin-top:14px;">
-        One run of <code>pixelgb verify</code> against a Pokémon Blue cartridge (header title
-        <code>POKEMON BLUE</code>, global checksum <code>$9D0A</code>). Every number on this
-        page came out of that run.
+        One run of <code>pixelgb verify</code> against a Pokémon Blue cartridge (header
+        title <code>POKEMON BLUE</code>, global checksum <code>$9D0A</code>). Every number
+        on this page came out of that run.
       </p>
     </section>
 
     <figure class="pixel">
       <img src="../assets/img/pixelgb/cerulean-city-2x.png" width="1280" height="1152"
-           alt="A complete top-down map of Cerulean City in four shades of grey: houses, water, trees, paths and the gym, drawn as one continuous image with no screen borders.">
+           alt="Cerulean City rendered whole at 2x scale: a Game Boy town map with houses, water, trees and paths in four shades of green-grey.">
       <figcaption>
         Cerulean City, whole. Not a screenshot and not a stitch of screenshots — the
-        cartridge's own block list, tileset and palette, rendered at 2× nearest-neighbour
-        (640×576 native) and copied here byte-for-byte from the published set — 226 maps at
-        1×, 2×, 4× and 8×, 904 PNGs in all. Across that set, <strong>212 of the 226
-        maps</strong> came out pixel-identical to the frame the picture processor actually
-        drew.
+        cartridge's own block list, tileset and palette, at 2× nearest-neighbour. The
+        published set is 226 maps at 1×, 2×, 4× and 8×.
       </figcaption>
     </figure>
 
-    <section class="prose">
-      <h2>Standing on vjeux's shoulders</h2>
-      <p>
-        The thing to beat is
-        <a href="https://blog.vjeux.com/2023/project/pokemon-red-blue-map.html">vjeux's Pokémon
-        Red/Blue world map</a> — a single 7200×7200 PNG of the whole of Kanto with the
-        interiors placed and the connections drawn. It is genuinely good, it is the reason this
-        project exists, and it does one thing PixelGB does not: it produced one enormous,
-        beautiful, finished image anybody can open in a browser.
-      </p>
-      <p>
-        It was built by <strong>reconstructing</strong> the world in a browser canvas from
-        <code>pret/pokered</code>'s data files. The problems it had to solve are exactly the
-        problems that reconstruction implies — and every one of them dissolves if you are
-        holding the console instead of standing outside it:
-      </p>
+    <section>
+      <div class="sec-head">
+        <h2>What it does</h2>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Capture</p>
+            <h3>Walk in and take the picture</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>Plays the opening, saves the machine's state the moment it stands on a
+                real map, then for each map rewinds to that moment, points one of the
+                current room's warps at the target and walks in</li>
+              <li>The engine loads the destination header itself — tileset copy, palette,
+                objects, screen. Nothing is faked</li>
+              <li>Dismisses text boxes the way a player does, requiring several consecutive
+                clear checks, because the window parks off-screen between two boxes of one
+                conversation</li>
+              <li>Every address it uses comes from <a href="atlasgb.html">AtlasGB</a>, and
+                each constant in the source names the symbol it came from</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Output</p>
+            <h3>No invented pixels</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>One scaler: nearest-neighbour at whole-number factors only. 1×, 2×, 4×,
+                8×, every output pixel a perfect square of one source pixel</li>
+              <li>A categorical guard on every image out: no colour may appear that was not
+                in the source. A fifth colour stops the run</li>
+              <li>Each PNG carries its own verdict, the cartridge's identity, the palette,
+                the scale and the licence — so a file that has travelled away from the
+                report still says which side of the line it is on</li>
+              <li>Nothing that varies between two runs may go in the metadata: no
+                timestamp, no hostname, no path. An integration test renders the same map
+                twice a second apart and compares bytes</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Topology</p>
+            <h3>All 226, including the unphotographable</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>By the time the camera is lost the header has already loaded, so width,
+                connection flags, connection headers and the warp table are all correct</li>
+              <li>226 of 226 observed on a machine that has loaded the map; 223 agree with
+                the static header on every field</li>
+              <li>The three that differ are the Celadon Mart, Rocket Hideout and Silph Co.
+                lifts, which point their exit warps back at the room you stepped in from.
+                The observation is true of the visit, the header is true of the cartridge,
+                and the file says so rather than picking a winner</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The atlas</p>
+            <h3>One sheet, 6848 × 7024</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>The 36 connected outdoor maps go where the cartridge's connection records
+                put them — exact arithmetic, no search, zero placement disagreements</li>
+              <li>Interiors have no connections at all, so they are drawn adjacent to the
+                map their door is in, on the side that door is on, in line with it</li>
+              <li>Every panel's stamp says which of the two it is</li>
+              <li>A panel never covers walkable world or another panel; an intersection
+                fails the render</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>The four checks</h2>
+        <p class="sub">In increasing order of what they prove.</p>
+      </div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr><th>The problem</th><th>How a reconstruction solves it</th><th>What PixelGB does</th></tr>
-          </thead>
+          <thead><tr><th>Check</th><th>What it holds up against what</th><th class="num">Result</th></tr></thead>
           <tbody>
-            <tr><td>Which tileset a map uses (Route 23 needs "plateau")</td><td>phased rendering</td><td>the game loads its own</td></tr>
-            <tr><td>Placing interiors near their doors</td><td>shortest-path search over candidate spots</td><td>walk through the door and photograph what is there</td></tr>
-            <tr><td>Sprites are stored facing left only</td><td>flip them in canvas</td><td>the picture processor drew them</td></tr>
-            <tr><td>White is used as transparency; there is no alpha</td><td>remap the colours</td><td>the picture processor composited them</td></tr>
-            <tr><td>Connection lines crossing objects</td><td>A* over cost-weighted tiles</td><td>the cartridge's connection records say where each map goes</td></tr>
+            <tr><td>header</td><td>the header the engine loaded, against the one PixelGB read from the same bytes</td><td class="num">226 / 226</td></tr>
+            <tr><td>size</td><td>the cartridge, against pret/pokered's independently declared sizes</td><td class="num">226 / 226</td></tr>
+            <tr><td>tileset art</td><td>the graphics in video RAM, against the cartridge's, for the tiles each map draws with</td><td class="num">agree but for animation</td></tr>
+            <tr><td>live blocks</td><td><code>wOverworldMap</code>, against the cartridge's block list</td><td class="num">204 identical, 22 script-changed</td></tr>
+            <tr><td>pixels</td><td>the frame the picture processor drew, against the composed map</td><td class="num">212 exact, 3 script-changed, 11 unresolved</td></tr>
           </tbody>
         </table>
       </div>
-      <p>
-        That is not a criticism of the original. It is a browser page that renders in a browser.
-        But every row in the middle column exists because the world is being rebuilt, from the
-        outside, by something that is not the game.
+      <p class="note" style="margin-top:14px;">
+        The alignment for the pixel comparison is found, not computed — PixelGB searches a
+        small neighbourhood around where it thinks the camera is and reports the offset at
+        which the two agree. Computing it would test our own arithmetic. Two kinds of pixel
+        are excluded: ones an object may have covered, and ones outside the map proper,
+        where the console is legitimately showing a neighbouring map.
       </p>
     </section>
 
-    <section class="prose">
-      <h2>What "high quality" honestly means here</h2>
-      <p>
-        The captain asked for images that are "absolute HIGH quality of retro world", and the
-        honest reading of that is worth writing down, because the dishonest reading is easy.
-      </p>
-      <p>
-        <strong>The source art is 8×8 tiles in four shades. PixelGB cannot invent detail and
-        does not try.</strong> There is no upscaler, no smoothing, no "AI enhancement", nothing
-        that guesses at what a pixel might have been. High quality means provably correct and
-        cleanly scaled — 1×, 2×, 4×, 8×, every output pixel a perfect square of one source pixel
-        — and it means every pixel is traceable to a byte in your cartridge.
-      </p>
-      <p>
-        That is enforced rather than promised. There is exactly one scaler in the program, it is
-        nearest-neighbour at whole-number factors only, and every image goes through a
-        categorical guard on the way out: <strong>no colour may appear in the output that was not
-        in the source.</strong> A Game Boy map has four shades in it and nothing else may appear.
-        A fifth colour is an error that stops the run.
-      </p>
-      <div class="callout">
-        <p class="eyebrow">Why that guard is not paranoia</p>
-        <p>
-          <a href="terminalgb.html">TerminalGB</a> was bitten by exactly this. A terminal
-          rendering library's half-block encoder had <code>FilterType::Triangle</code> hard-coded
-          into one code path, and quietly put <strong>271 distinct colours into a four-shade
-          picture</strong>. Nothing warned; it just looked slightly wrong. A family that has been
-          bitten once writes the assertion down.
-        </p>
+    <section>
+      <div class="sec-head">
+        <h2>Three findings, none of them defects</h2>
       </div>
-    </section>
-
-    <section class="prose">
-      <h2>Getting there: two facts and one released D-pad</h2>
-      <p>
-        Every address PixelGB uses comes from <a href="atlasgb.html">AtlasGB</a>'s Pokémon
-        Red/Blue atlas, and each constant in the source names the symbol it came from. Two of
-        those facts are what make the capture path possible at all.
-      </p>
-      <p>
-        <strong>Writing a map number into <code>wCurMap</code> crashes the game.</strong> The
-        whole map header sits underneath it, so the engine ends up reading the new map's blocks
-        through the old map's pointers. <strong>The safe route is <code>wWarpEntries</code></strong>:
-        redirect one of the current room's own warps at the target map and walk the player into
-        it, and the engine loads the destination header itself. So PixelGB plays the opening,
-        saves the machine's state the moment it stands on a real map, and for each of the 226
-        maps rewinds to that moment, points one warp at the target and walks in. Everything after
-        that is the game's own: <code>LoadMapHeader</code>, the tileset copy into video RAM, the
-        palette, the objects, the screen.
-      </p>
-      <p>
-        And then one line turned out to be worth a hundred maps.
-      </p>
-      <div class="pullquote">
-        <p>Let go of the D-pad the instant the map changes.</p>
-        <cite>The single most important line in <code>warp_to</code></cite>
-      </div>
-      <p>
-        A door is a warp on both sides. You arrive on the doormat, and a player still holding the
-        direction takes one more step and walks straight back out. Holding for a fixed number of
-        frames reaches every open map in the game and almost no building.
-        <strong>Holding: 113 maps photographed. Releasing on arrival: 216.</strong>
-      </p>
-      <p>
-        The second one is stranger. <strong>Shop clerks talk.</strong> Several maps put a text box
-        up the moment you arrive, and Generation 1 does that by parking the window layer at
-        <code>WY = 0</code> — which means the window covers the <em>entire</em> screen and the map
-        is drawn <em>through</em> it. An earlier version of the comparison excluded "wherever the
-        window is", the way it excludes sprites, and so masked the whole picture: 31 maps went
-        from <code>exact</code> to <code>inconclusive</code> and two to <code>no-alignment</code>,
-        with nothing visible in the report to say why. The right answer was not to subtract the
-        text box but to dismiss it, the way a player does — press B until the window is off-screen
-        again, requiring several consecutive clear checks because the window parks off-screen for a
-        few frames <em>between</em> two boxes of one conversation.
-      </p>
-      <p class="note">
-        That failure is recorded rather than fixed and forgotten, because it was silent and looked
-        like a tolerance problem when it was a modelling one.
-      </p>
-    </section>
-
-    <section class="prose">
-      <h2>The four checks, in increasing order of what they prove</h2>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr><th>Check</th><th>What it holds up against what</th><th class="num">Result</th></tr>
-          </thead>
+          <thead><tr><th>What</th><th>What it means</th></tr></thead>
           <tbody>
-            <tr><td><strong>header</strong></td><td>the header the engine loaded, against the one PixelGB read from the same bytes</td><td class="num">226 / 226 agree</td></tr>
-            <tr><td><strong>size</strong></td><td>the cartridge, against <code>pret/pokered</code>'s independently declared sizes</td><td class="num">226 / 226 agree</td></tr>
-            <tr><td><strong>tileset art</strong></td><td>the graphics in video RAM, against the cartridge's, for the tiles each map draws with</td><td class="num">agree but for animation</td></tr>
-            <tr><td><strong>live blocks</strong></td><td><code>wOverworldMap</code>, against the cartridge's block list</td><td class="num">204 identical, 22 script-changed</td></tr>
-            <tr><td><strong>pixels</strong></td><td>the frame the picture processor drew, against the composed map</td><td class="num">212 exact, 3 script-changed, 11 unresolved</td></tr>
+            <tr>
+              <td><b>46 maps animate</b></td>
+              <td>On those maps video RAM's tileset differs from the cartridge's, and the
+                differing tiles were also seen changing while the map sat still. It is the
+                flower and the water. PixelGB carries no list of animated tiles — it watches
+                for two seconds and reports what moved. Against the cartridge's static art
+                the same comparison gives 193 exact instead of 212, and that 19-map
+                difference is the animation, frozen.</td>
+            </tr>
+            <tr>
+              <td><b>22 maps rewrite their own blocks</b></td>
+              <td>Silph Co., the Pokémon Mansion, the Rocket Hideout, two gyms and two Elite
+                Four rooms have squares a map script replaced — doors and lifts not in the
+                state the cartridge stores them in. Three had a changed square on screen
+                when the shutter went. Every differing pixel has to fall inside a square the
+                engine had already changed; one pixel outside and the verdict goes back to a
+                plain disagreement.</td>
+            </tr>
+            <tr>
+              <td><b>22 of 248 map ids are not maps</b></td>
+              <td>The map table is a fixed length, so the spare ids' header pointers land on
+                whatever bytes follow. Read as a header, one of them is a plausible 147×132
+                map with 248 warps. Nothing in the cartridge marks them, so the witness is
+                pret/pokered, which declares them 0×0 — and PixelGB says where that claim
+                came from rather than pretending it read it off the ROM.</td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <p>
-        For the pixel comparison, <strong>the alignment is found, not assumed.</strong> PixelGB
-        searches a small neighbourhood around where it thinks the camera is and reports the offset
-        at which the two agree. Computing the alignment would test our own arithmetic; finding it
-        is evidence. Two kinds of pixel are excluded — ones an object may have covered, and ones
-        outside the map proper, where the console is legitimately showing a <em>neighbouring</em>
-        map — and the manifest records how many were actually compared.
-      </p>
-      <p>
-        The palette is learned too. PixelGB recomputes each background pixel from video RAM the
-        way the picture processor would, reads the pixel the processor actually produced, and
-        requires every pixel of a given two-bit colour number to have come out the same.
-        Disagreement stops the run rather than being averaged away.
-      </p>
-    </section>
-
-    <section class="prose">
-      <h2>Three findings, none of them defects</h2>
-
-      <h3>The engine animates two tiles, and PixelGB measured which</h3>
-      <p>
-        On 46 maps, video RAM's copy of the tileset differs from the cartridge's — and in every
-        one of those cases the differing tiles were also observed <em>changing in video RAM while
-        the map sat still</em>. Nothing but an animation does that: the map is not scrolling, no
-        warp is happening, and the art was copied in once when the map was entered. It is the
-        flower and the water.
-      </p>
-      <p>
-        PixelGB carries no list of "the animated tiles". It watches for two seconds and reports
-        what moved. The consequence shows up directly in the numbers: compared against the
-        <em>cartridge's</em> static art — what a standalone <code>pixelgb render</code> produces —
-        the same comparison gives <strong>193 exact instead of 212</strong>, and that 19-map
-        difference <em>is</em> the animation, frozen.
-      </p>
-
-      <h3>Twenty-two maps rewrite their own blocks</h3>
-      <p>
-        Silph Co., the Pokémon Mansion, the Rocket Hideout, two gyms and two of the Elite Four's
-        rooms have squares where the engine's live block map differs from the cartridge's, because
-        a map script replaced them — doors and lifts that are not in the state the cartridge stores
-        them in.
-      </p>
-      <p>
-        <strong>Here the composed render is right about the cartridge and the photograph is right
-        about the console, and neither is wrong.</strong> Three of those maps had a changed square
-        on screen when the shutter went. PixelGB checks that every differing pixel falls inside a
-        square the engine had already changed, and calls the result <code>script-changed</code>
-        with the squares and the before-and-after block ids in the manifest. It does not call
-        either picture a failure — and it does not quietly widen the tolerance either: one
-        differing pixel outside those squares and the verdict goes back to a plain disagreement.
-      </p>
     </section>
 
     <figure class="pixel">
       <img src="../assets/img/pixelgb/pokemon-mansion-1f-2x.png" width="960" height="896"
-           alt="A top-down map of the Pokémon Mansion's ground floor in four shades of grey: a large building interior with statues, tables, bookshelves and gaps in the walls.">
+           alt="Pokemon Mansion 1F rendered at 2x scale: an interior map of corridors, statues and doorways in four shades.">
       <figcaption>
-        Pokémon Mansion 1F — one of the twenty-two <code>script-changed</code> maps. Three of
-        its squares differ between the cartridge's stored block list and what the engine's live
-        block map held when the room was entered: <span class="mono">(8,3)</span>,
-        <span class="mono">(10,8)</span> and <span class="mono">(13,13)</span>, each
-        <span class="mono">$0E → $2D</span>. This render is right about the cartridge; the
-        photograph taken in the same run is right about the console. Neither is a failure.
+        Pokémon Mansion 1F, one of the twenty-two. Three squares — (8,3), (10,8) and
+        (13,13), each <code>$0E → $2D</code> — differ between the cartridge's stored block
+        list and the engine's live block map. This render is right about the cartridge; the
+        photograph from the same run is right about the console.
       </figcaption>
     </figure>
 
-    <section class="prose">
-      <h3>Twenty-two of the cartridge's 248 map ids are not maps</h3>
-      <p>
-        The map table has to be a fixed length, so the spare ids' header pointers land on whatever
-        bytes happen to follow. Read as a header, one of them is a plausible <strong>147×132 map
-        with 248 warps</strong> — exactly the sort of thing that renders without complaining and is
-        entirely wrong.
-      </p>
-      <p>
-        Nothing in the cartridge marks them. So the witness is <code>pret/pokered</code>, which
-        declares them 0×0, and PixelGB says where that claim came from rather than pretending it
-        read it off the ROM. That leaves 226 real maps — and every one of their sizes, read from
-        the cartridge, agrees with pokered's independent figure. Two sources, no disagreements.
-      </p>
-    </section>
-
-    <section class="prose">
-      <h2>The eleven that did not agree</h2>
-      <p>
-        Ten of them have nowhere to arrive. The capture path works by redirecting a warp, and a
-        warp names a <em>destination warp</em> on the far side; these maps have none, so the engine
-        reads an arrival coordinate out of an empty list and the camera comes to rest outside the
-        map. The screen is not a picture of the map at all. The header still loads correctly, so
-        the first three checks pass — only the photograph is unusable.
-      </p>
-
-      <figure class="code">
-        <pre><code> 14 ROUTE_3      20 ROUTE_9      24 ROUTE_13    25 ROUTE_14    28 ROUTE_17
- 30 ROUTE_19     32 ROUTE_21     35 ROUTE_24    239 TRADE_CENTER   240 COLOSSEUM
-
-118 HALL_OF_FAME   6500 of 13824 pixels differ</code></pre>
-        <figcaption>
-          The full unresolved list from <code>docs/verification.md</code>, named rather than
-          rounded away. Trade Center and Colosseum are link-cable arenas and are unreachable in
-          single-player at all.
-        </figcaption>
-      </figure>
-
-      <p>
-        The detail that makes this an honest result rather than a convenient one:
-        <strong>it is decided by what the comparison found, not refused in advance.</strong>
-        Route 1 also has no warps, lands somewhere sensible anyway, and verifies exact. Filtering
-        every warpless map out up front would have been tidier and would have thrown that picture
-        away.
-      </p>
-      <p>
-        The eleventh is the Hall of Fame, and its failure is a limit of the capture rather than a
-        disagreement between the two renderings. Walk in and Oak starts talking, and his script is
-        not one you can press B through — it inducts the party. PixelGB presses B up to eighty
-        times and requires four consecutive clear checks before photographing, which is what
-        rescued every shop and Pokémon Center where a clerk greets you on arrival. This one still
-        has a text box up, so it is counted on its own rather than folded into either category.
-      </p>
-      <p>
-        Where the two renderings do still disagree, the run writes <em>both</em> pictures and a map
-        of the comparison itself into <code>disagreements/</code> — white where they agreed, black
-        where they did not, mid-grey where nothing was compared — so the next person can look
-        rather than guess.
-      </p>
-    </section>
-
-    <section class="prose">
-      <h2>The topology reaches maps the camera cannot</h2>
-      <p>
-        The photography limit is about the <em>camera</em>, not the load. By the time the camera is
-        lost, <code>LoadMapHeader</code> has already run and the map's width, its connection flags,
-        its four connection headers and its warp table are all populated and correct. So
-        <code>pixelgb topology</code> observes <strong>all 226 maps</strong>, including every one
-        that cannot be photographed.
-      </p>
-      <p>
-        Every field is read off a machine that has loaded the map. Reading the static map header is
-        a claim about bytes; reading the loaded map is what the game did. The static parse still
-        runs — as an independent witness, never as the source. <strong>226 of 226 observed, 223
-        agreeing with the header on every field.</strong>
-      </p>
-      <p>
-        The three that differ are the Celadon Mart, Rocket Hideout and Silph Co. lifts, which point
-        their exit warps back at the room you stepped in from. The observation is true of the
-        visit; the header is true of the cartridge; the file says so rather than picking a winner.
-        And the rule that keeps that from becoming a licence to explain anything away: a warp that
-        has <em>moved</em> is never explained away, because nothing about arriving relocates a warp.
-      </p>
-    </section>
-
-    <section class="prose">
-      <h2>Where the cartridge stops and a decision starts</h2>
-      <p>
-        <code>pixelgb atlas</code> puts all 226 maps in one 6848×7024 image, and two different
-        kinds of placement live in it. Every PNG's stamp says which is which, because the honest
-        distinction is the whole value of the picture.
-      </p>
-      <p>
-        <strong>Outdoors is the cartridge's.</strong> The 36 connected maps go where the connection
-        records put them — exact arithmetic, no search. A connection record names one block twice,
-        once in the neighbour's block data and once at where the engine copies it, and one block in
-        two frames is an exact offset. Every chain of connections that arrives at a map puts it in
-        the same place: zero placement disagreements.
-      </p>
-      <p>
-        <strong>Indoors is a presentation choice, but the door is not.</strong> An interior has no
-        connections at all — the cartridge says which <em>door</em> leads to it and nothing about
-        where the room is. So the rule is one sentence: a building is drawn adjacent to the map its
-        door is in, on the side that door is on, in line with it.
-      </p>
-      <p>
-        What follows from that is a long argument settled by measurement rather than taste, and the
-        headline is the room-to-door distance over the rooms both layouts can measure:
-      </p>
+    <section>
+      <div class="sec-head">
+        <h2>The eleven that did not agree</h2>
+        <p class="sub">
+          Ten have nowhere to arrive. A warp names a destination warp on the far side, and
+          these maps have none, so the engine reads an arrival coordinate out of an empty
+          list and the camera comes to rest outside the map. The header still loads
+          correctly, so the first three checks pass — only the photograph is unusable.
+        </p>
+      </div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>Layout revision</th>
-              <th class="num">Door distance<br>mean / median</th>
-              <th class="num">Nearer another<br>region's door</th>
-              <th class="num">Out of<br>door order</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Id</th><th>Map</th><th>Id</th><th>Map</th></tr></thead>
           <tbody>
-            <tr><td>Before the whole-map review</td><td class="num">715 / 456 px</td><td class="num">92 of 169</td><td class="num">16 of 71</td></tr>
-            <tr><td>After it</td><td class="num">599 / 383 px</td><td class="num">85 of 184</td><td class="num">—</td></tr>
-            <tr><td>After three reported faults</td><td class="num">503 / 350 px</td><td class="num">79 of 184</td><td class="num">—</td></tr>
-            <tr><td>Doors' order as the primary key</td><td class="num"><strong>494 / 305 px</strong></td><td class="num"><strong>72 of 184</strong></td><td class="num"><strong>0 of 71</strong></td></tr>
+            <tr><td class="mono">14</td><td>ROUTE_3</td><td class="mono">30</td><td>ROUTE_19</td></tr>
+            <tr><td class="mono">20</td><td>ROUTE_9</td><td class="mono">32</td><td>ROUTE_21</td></tr>
+            <tr><td class="mono">24</td><td>ROUTE_13</td><td class="mono">35</td><td>ROUTE_24</td></tr>
+            <tr><td class="mono">25</td><td>ROUTE_14</td><td class="mono">239</td><td>TRADE_CENTER</td></tr>
+            <tr><td class="mono">28</td><td>ROUTE_17</td><td class="mono">240</td><td>COLOSSEUM</td></tr>
           </tbody>
         </table>
       </div>
-      <p>
-        The interesting part is the last column. Two buildings whose street doors are on the same
-        side of the same town must be drawn in the doors' own order along that side. Added as an
-        ordinary term in the distance cost, that loses every time: an inversion the eye reads at a
-        glance is worth only a few pixels of nearness, and a building will buy the pixels — which
-        is how Cinnabar's gym came to be drawn <em>below</em> the two shops whose doors are eight
-        tiles below its own. The weight that makes it win was measured, not picked: at 4 the
-        cartridge still has five pairs the wrong way round, at 8 it has none, and from 8 to 16 the
-        layout does not move at all.
+      <p style="max-width:66ch;margin-top:18px;">
+        Trade Center and Colosseum are link-cable arenas, unreachable in single player at
+        all. The verdict is decided by what the comparison found rather than refused in
+        advance: Route 1 also has no warps, lands somewhere sensible anyway, and verifies
+        exact. Filtering every warpless map out up front would have been tidier and would
+        have thrown that picture away.
       </p>
-      <p>
-        And "not the wrong way round" turned out to be a loophole the search will find. With
-        equality free, seven pairs came to rest exactly level — Saffron's gym and mart among them,
-        the very pair that was complained about. Making the ordering strict cost nothing: same
-        mean, same median, same sheet.
-      </p>
-
-      <h3>One warp in the cartridge is not a door</h3>
-      <p>
-        Celadon City's ninth warp, tile (39,19), drops you into map 136 — the department store's
-        fifth floor. That floor's own three warps lead to the roof, the fourth floor and the lift;
-        <strong>none of them leads back to the street.</strong> Read as a street door, it filed one
-        floor of the store 254 tiles from the other six, on the opposite side of the city.
-      </p>
-      <p>
-        So an outdoor warp is taken as the way in only when the room it reaches has a warp back to
-        "the map you came from". <strong>Map 136 is the only map in the cartridge that fails that
-        test</strong>, and with the rule in place the store lands as one column of seven.
-      </p>
-      <p>
-        Victory Road looks like the same bug and is not. Route 23 has two street doors of its own,
-        into 1F and into 2F, and both rooms walk back out. The route is 20 tiles wide, so those
-        doors are genuinely on opposite sides of it and the two halves file either side. The
-        community's hand-authored atlas bundles them; the cartridge does not, and the cartridge
-        wins.
-      </p>
-
-      <h3>A building that will not fit comes apart at one of its own doors</h3>
-      <p>
-        The S.S. Anne is entered through Vermilion's dock rather than off the street, so the dock,
-        the ship and its eleven rooms are one building — and a twelve-room block wants about a
-        million square pixels of <em>one rectangle</em>, which does not exist within two screens of
-        Vermilion. Every arrangement of it as one block put it beyond Route 12, further from its own
-        town than anything else in the cartridge.
-      </p>
-      <p>
-        It was not mis-assigned and the search was not failing. Measured against the finished sheet,
-        where it stood <em>was</em> the nearest place a single rectangle of that size would go. So a
-        building may be cut at one of its rooms, and the rooms behind that door become a wing, placed
-        by the same rule said about a different map — adjacent to the map its door is in, on the side
-        that door is on, in line with it — where "the map" is now a room of its own building.
-      </p>
-      <p>
-        What is <em>not</em> negotiable, through any of that, is that a panel never covers walkable
-        world or another panel. The finished rectangles are checked and an intersection
-        <strong>fails the render</strong>. That assertion is worth more than the rule it guards,
-        because it is what makes the next change to the layout safe.
+      <p style="max-width:66ch;">
+        The eleventh is the Hall of Fame, 6,500 of 13,824 pixels apart. Walk in and Oak
+        starts talking, and his script is not one you can press B through — it inducts the
+        party. Where the two renderings disagree, the run writes both pictures and a map of
+        the comparison itself: white where they agreed, black where they did not, mid-grey
+        where nothing was compared.
       </p>
     </section>
 
-    <figure class="pixel narrow" style="margin-inline:auto;">
-      <img src="../assets/img/pixelgb/pallet-town-2x.png" width="640" height="576"
-           alt="A top-down map of Pallet Town in four shades of grey: two houses, Professor Oak's laboratory, fences, trees, water and a beach.">
-      <figcaption>
-        Pallet Town at 2× (320×288 native) — the worked example for the door rule. Red's house at
-        tile (5,5) files left; Blue's at (13,5) and Oak's lab at (12,11) file right, with
-        <strong>Blue's house above the lab</strong> because its door is six tiles above the lab's.
-        The community's hand-authored atlas puts those same four panels on those same two sides in
-        that same order, which is independent confirmation of the rule and not its source.
-      </figcaption>
-    </figure>
-
-    <section class="prose">
-      <h2>Every PNG says what it is, and carries no clock</h2>
-      <p>
-        Each file's metadata records the repository, the tool version, what the picture is, the
-        cartridge's identity by title and checksum, the palette, the scale, the licence — and
-        <strong>the gate's verdict with a short reason</strong>. That last one is the point: an
-        image that has travelled away from the report still says which side of the 215-of-226 line
-        it is on.
-      </p>
-      <p>
-        Nothing that varies between two runs may go in. No timestamp, no hostname, no username, no
-        path. The provenance builder refuses keys that read like one and returns an error rather
-        than writing the file, and an integration test renders the same map twice, a second apart,
-        and compares bytes. It records the tool <em>version</em>, never a commit hash — an image is
-        published by the commit whose hash it would have to contain.
-      </p>
-      <p>
-        Two smaller rules in the same spirit. Metadata values are Latin-1, so every value written is
-        plain ASCII — "Pokemon", not "Pokémon" — because a silently mangled character is a file that
-        lies about itself. And the Game Boy Color rendering is simply not published: a Color console
-        running a cartridge with no Color support applies a compatibility palette chosen by its boot
-        ROM, that boot ROM is Nintendo's and is not here, and inventing the palette to fill the
-        directory would be precisely the reconstruction this project exists to avoid. The path is
-        where it will go; supply a boot ROM and the tool writes it.
-      </p>
+    <section id="writing" class="prose">
+      <h2>Writing</h2>
+      <ul class="post-list">
+        <li>
+          <a class="post-card" href="../posts/let-go-of-the-d-pad.html">
+            <div class="post-meta"><span class="tag">PixelGB</span><span>Capture</span><span>27 Aug 2026</span></div>
+            <p class="post-title">Let go of the D-pad</p>
+            <p class="post-dek">One line took the capture from 113 maps to 216. A door is a warp on both sides, and a player still holding the direction walks straight back out.</p>
+          </a>
+        </li>
+        <li>
+          <a class="post-card" href="../posts/the-door-rule.html">
+            <div class="post-meta"><span class="tag">PixelGB</span><span>Layout</span><span>27 Aug 2026</span></div>
+            <p class="post-title">The door rule</p>
+            <p class="post-dek">The cartridge says where outdoor maps go and says nothing about interiors. Placing 190 rooms is a decision, and it was settled by measurement.</p>
+          </a>
+        </li>
+      </ul>
     </section>
 
     <hr>
@@ -514,25 +305,20 @@
     <div class="provenance">
       <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
       <p>
-        Every figure on this page is from one run of <code>pixelgb verify</code> against a Pokémon
-        Blue cartridge (header title <code>POKEMON BLUE</code>, global checksum <code>$9D0A</code>),
-        written up in the project's own <code>docs/verification.md</code> and reproducible with
-        <code>pixelgb verify --rom /path/to/your.gb --out out --scales 1,2,4,8</code>. The layout
-        measurements come from <code>docs/atlas-review.md</code>, which records them over the whole
-        cartridge and per region.
+        One run of <code>pixelgb verify --rom /path/to/your.gb --out out --scales 1,2,4,8</code>
+        against a Pokémon Blue cartridge, written up in the project's own verification
+        record. The three images here are from the published set, copied byte-for-byte apart
+        from PNG re-compression and still four colours.
       </p>
       <p>
-        The three map images here are from the published set under <code>images/</code> in the
-        PixelGB repository — rendered by the tool from the maintainer's own cartridge, and copied
-        into this site byte-for-byte apart from PNG re-compression (verified pixel-identical, still
-        four colours). PixelGB ships no cartridge and no cartridge data; it reads a cartridge you
-        supply and writes pictures where you tell it to.
-      </p>
-      <p>
-        The addresses PixelGB reads come from <a href="atlasgb.html">AtlasGB</a>'s evidenced Pokémon
-        Red/Blue atlas, and the emulator underneath is <a href="terminalgb.html">TerminalGB</a>,
-        pinned to a revision. Pokémon, Game Boy and Nintendo are trade marks of their respective
-        owners; this is a study of extraction and verification, not a distribution of game content.
+        PixelGB ships no cartridge and no cartridge data; it reads a cartridge you supply.
+        The addresses come from <a href="atlasgb.html">AtlasGB</a>'s evidenced atlas and the
+        emulator underneath is <a href="terminalgb.html">TerminalGB</a>, pinned to a
+        revision. The Game Boy Color rendering is deliberately not published: a Color
+        console running a cartridge with no Color support applies a palette chosen by its
+        boot ROM, that boot ROM is Nintendo's, and inventing the palette would be exactly
+        the reconstruction this project exists to avoid. Pokémon, Game Boy and Nintendo are
+        trade marks of their respective owners.
       </p>
     </div>
 

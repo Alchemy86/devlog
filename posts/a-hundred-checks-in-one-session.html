@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A hundred checks in one session — devlog</title>
+  <meta name="description" content="A new check found a real bug in TerminalGB on the day it was written — one that thousands of rows across five public suites could not see, because of the shape they have.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="A hundred checks in one session — devlog">
+  <meta property="og:description" content="A new check found a real bug in TerminalGB on the day it was written — one that thousands of rows across five public suites could not see, because of the shape they have.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/posts/a-hundred-checks-in-one-session.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <article>
+
+      <header class="post-header">
+        <p class="eyebrow">GBSelfTest · Test design</p>
+        <h1>A hundred checks in one session</h1>
+        <p class="lead">
+          <code>GB-DMA-06</code> found a real bug in
+        <a href="../projects/terminalgb.html">TerminalGB</a> the day it was written. Every
+        public suite that emulator gates on was byte-identical either way — thousands of rows
+        across Gambatte, Mooneye, Mealybug, SameSuite and the c-sp aggregation.
+        </p>
+        <div class="post-meta">
+          <span class="tag">GBSelfTest</span>
+          <span>Object DMA</span>
+          <span>27 Aug 2026</span>
+        </div>
+      </header>
+
+      <section>
+        <div class="metrics">
+          <div class="metric">
+            <div class="num">192 / 550</div>
+            <div class="label">Frames of a real cartridge affected</div>
+          </div>
+          <div class="metric">
+            <div class="num"><span class="accent">0</span></div>
+            <div class="label">Public suite rows that moved</div>
+          </div>
+          <div class="metric">
+            <div class="num">1</div>
+            <div class="label">Latched flag</div>
+          </div>
+          <div class="metric">
+            <div class="num">102</div>
+            <div class="label">Checks in one session</div>
+          </div>
+        </div>
+      </section>
+
+
+      <section class="prose">
+        <h2>The fault</h2>
+        <p>
+          A flag the picture processor keeps about a running object transfer was cleared on
+          one of the two paths that can notice the transfer has ended, and not the other.
+          The idle arm's own comment claimed the default machine never reached it.
+        </p>
+        <p>
+          It does reach it. The transfer's last machine cycle leaves the position counter at
+          its limit inside the bus tick without the flag moving, so the instruction's
+          remainder is where the transfer gets noticed to be over.
+        </p>
+        <p>
+          Once the flag latched, the object scan <strong>never read object memory again for
+          the rest of the session</strong> — 192 of 550 frames of a real cartridge.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>Why a suite of short ROMs cannot see it</h2>
+        <p>
+          Each one boots, measures one thing and stops. A latch that needs a transfer to end
+          on an instruction boundary and a scan to follow it never gets the chance.
+        </p>
+        <p>
+          That is not a criticism of those suites. It is a property of their shape.
+        </p>
+        <div class="pullquote">
+          <p>
+            A cartridge that runs a hundred checks back to back in one session is a shape no
+            test ROM has.
+          </p>
+        </div>
+      </section>
+
+      <section class="prose">
+        <h2>The check itself, which is a nice piece of indirection</h2>
+        <p>
+          A cartridge cannot see which objects the scan found. What it <em>can</em> see is
+          how long mode 3 took, and ten objects on a line cost the fetcher at least sixty
+          dots.
+        </p>
+        <p>
+          So: leave object memory entirely empty, put the visible objects in the transfer's
+          source, and start the transfer so it covers the measured line's scan. A machine
+          whose scan reads object memory straight through the transfer finds the ten objects
+          the transfer has already written and is still drawing them. Hardware finds none and
+          is already in horizontal blank.
+        </p>
+        <p>
+          Two details are load-bearing rather than decorative. Object memory is left empty on
+          purpose, so whatever slot the scan last managed to read, it read a zero — the
+          frozen Y puts the phantom object above the screen, and the check does not depend on
+          where the freeze landed. And the transfer is sourced from video memory rather than
+          work memory, because on a monochrome console work memory sits on the cartridge's
+          own bus and a transfer out of it would feed the processor its own bytes instead of
+          instructions. That is why every real game's transfer routine lives in high RAM.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>The rule it left behind</h2>
+        <p>
+          When a check is written, run the whole cartridge and read the total, not just that
+          check's line. A new check that passes in isolation and moves an unrelated area's
+          verdict has found something.
+        </p>
+      </section>
+
+      <hr>
+
+      <p class="note">
+        The frame count comes from the TerminalGB run that reproduced the fault. The
+        check is <code>GB-DMA-06</code> in GBSelfTest's own registry.
+      </p>
+
+      <a class="backlink" href="../">← Back to devlog</a>
+
+    </article>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

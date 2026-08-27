@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The transfer controller owns the bus — devlog</title>
+  <meta name="description" content="Object DMA is usually modelled as a copy that blocks the CPU. It is also an address-bus conflict, and the sprite scan is on the other end of those lines.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="The transfer controller owns the bus — devlog">
+  <meta property="og:description" content="Object DMA is usually modelled as a copy that blocks the CPU. It is also an address-bus conflict, and the sprite scan is on the other end of those lines.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/posts/the-transfer-controller-owns-the-bus.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <article>
+
+      <header class="post-header">
+        <p class="eyebrow">TerminalGB · Hardware modelling</p>
+        <h1>The transfer controller owns the bus</h1>
+        <p class="lead">
+          Object DMA — the routine every Game Boy game uses to push sprite data into
+        object memory — is usually modelled as a copy that takes 640 cycles and locks the
+        CPU out of most of the memory map. That is the data half of one physical rule. The
+        address half is the interesting one.
+        </p>
+        <div class="post-meta">
+          <span class="tag">TerminalGB</span>
+          <span>OAM DMA · PPU</span>
+          <span>27 Aug 2026</span>
+        </div>
+      </header>
+
+      <section>
+        <div class="metrics">
+          <div class="metric">
+            <div class="num">238 → <span class="accent">239</span></div>
+            <div class="label">Shootout, of 264</div>
+          </div>
+          <div class="metric">
+            <div class="num">3,613 → 3,617</div>
+            <div class="label">Gambatte rows</div>
+          </div>
+          <div class="metric">
+            <div class="num">0</div>
+            <div class="label">Rows lost</div>
+          </div>
+          <div class="metric">
+            <div class="num">80</div>
+            <div class="label">Dots the scan reads nothing</div>
+          </div>
+        </div>
+      </section>
+
+
+      <section class="prose">
+        <p>
+          The transfer controller has no address bus of its own. While a transfer runs it
+          drives the object-memory address lines — and the picture processor's object scan is
+          on the other end of them.
+        </p>
+        <p>
+          So for the eighty dots of the scan the PPU cannot read a single entry. Its Y/X
+          latch keeps whatever it last held, and all forty object slots are judged against
+          that one stale pair.
+        </p>
+        <p>
+          Modelling that took the Shootout from 238 to 239 of 264 and Gambatte from 3,613 to
+          3,617 scored rows, with zero losses and everything else byte-identical on both
+          picture engines. One row — but it was
+          <code>ashiepaws/strikethrough.gb</code>, the first row that suite has ever scored
+          here.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>The constant was derived, not chosen</h2>
+        <p>
+          The controller takes the bus a fixed number of dots after the write to
+          <code>$FF46</code>, and that number is the one free parameter in the whole model.
+          It came out of eight ROMs.
+        </p>
+        <p>
+          Gambatte's <code>late_sp{00,01,02,39}x_{1,2}</code> each put the write one machine
+          cycle either side of one scan slot. <code>sp00x_2</code> finds object 0 while
+          <code>sp01x_1</code> misses object 1, which brackets the arm. The
+          <code>sp02x</code>/<code>sp39x</code> pair — same DMA phase, different slot —
+          rules out every uniform shift.
+        </p>
+        <p>
+          Then it was swept across the whole 811-row <code>oamdma/</code> group:
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Arm delay (dots)</th><th class="num">0</th><th class="num">1</th><th class="num">2</th><th class="num">3</th><th class="num">4</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Gambatte <span class="mono">oamdma/</span> rows passing, of 811</td><td class="num">742</td><td class="num"><strong>744</strong></td><td class="num"><strong>744</strong></td><td class="num">738</td><td class="num">738</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          The scan reads on even dots, so 1 and 2 are the same machine. A curve with a flat
+          top two dots wide, and a physical reason for the width — that is what a derived
+          constant looks like, as opposed to the one value that made a favourite test go
+          green.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>The data half came first, and was worth four hundred rows</h2>
+        <p>
+          Three days earlier the same physical rule was modelled from the other side: while
+          the transfer runs, the CPU and the controller share one bus, so the CPU's reads of
+          most of the map come back as whatever the transfer is putting on it.
+        </p>
+        <p>
+          Gambatte went from 2,682 to 3,083 of the rows scored at the time. Four hundred
+          rows, from modelling a bus conflict instead of a copy.
+        </p>
+        <div class="pullquote">
+          <p>
+            A peripheral that moves bytes is doing two things at once, and only one of them
+            is the copy.
+          </p>
+        </div>
+      </section>
+
+      <section class="prose">
+        <h2>And then a sibling project found the flag</h2>
+        <p>
+          <a href="../projects/gbselftest.html">GBSelfTest</a>'s object-DMA check found a
+          real bug in this model on the day it was written: the flag the PPU keeps about a
+          running transfer was cleared on one of the two paths that can notice the transfer
+          has ended, and not the other. Once it latched, the object scan never read object
+          memory again for the rest of the session.
+        </p>
+        <p>
+          Thousands of rows across five public suites were byte-identical either way.
+          <a href="a-hundred-checks-in-one-session.html">Why they could not see it →</a>
+        </p>
+      </section>
+
+      <hr>
+
+      <p class="note">
+        The sweep and the suite scores are from TerminalGB's own conformance
+        baselines, re-run in CI. The Shootout figure is measured through the Shootout's own
+        published manifest.
+      </p>
+
+      <a class="backlink" href="../">← Back to devlog</a>
+
+    </article>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

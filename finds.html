@@ -24,8 +24,8 @@
       <a class="brand" href="./">devlog<span class="dot">.</span></a>
       <nav>
         <a href="./#projects">Projects</a>
+        <a href="./#pages">Pages</a>
         <a href="./#writing">Writing</a>
-        <a href="finds.html">Finds</a>
       </nav>
     </div>
   </header>
@@ -36,10 +36,10 @@
       <p class="eyebrow">Standing page · Gen 1 cartridge</p>
       <h1>Cartridge finds.</h1>
       <p class="lead">
-        Things the cartridge actually does, collected as they are found. Each entry
-        carries the same four parts: what it is, the addresses it lives at, the
-        mechanism underneath it, and <em>how it was checked</em> — because a fact
-        about a ROM that nobody re-ran is a rumour with a hex number attached.
+        Things the cartridge actually does, collected as they are found — what it is,
+        where it lives, and the mechanism underneath it. A fact about a ROM that nobody
+        re-ran is a rumour with a hex number attached, so each entry ends with how it was
+        checked.
       </p>
       <div class="hero-facts">
         <span>Cartridge <b>Pokémon Blue</b>, USA/Europe</span>
@@ -60,27 +60,6 @@
           <li><a href="#sightline">A trainer sees through walls</a></li>
           <li><a href="#two-levels">Crossing two levels loses the move between them</a></li>
         </ol>
-      </div>
-    </section>
-
-    <section>
-      <div class="sec-head">
-        <h2>The rule this page is kept to</h2>
-        <p class="sub">
-          Every claim below was checked against a real cartridge image before it was
-          written down — by reading the bytes, by reading the routine that uses them,
-          and where the claim is about behaviour, by running the game and watching the
-          memory change.
-        </p>
-      </div>
-      <div class="callout">
-        <p class="eyebrow">Three steps, in this order</p>
-        <p>
-          Find the bytes. Read the code that touches them. Then run it. Each step is
-          allowed to <em>kill</em> the claim rather than decorate it — a string existing
-          in a ROM says nothing about whether the game ever loads it, and a routine that
-          looks like it runs is not the same as one that was watched running.
-        </p>
       </div>
     </section>
 
@@ -288,10 +267,9 @@
           </p>
         </div>
         <div class="card-ft">
-          Verified independently for this page: both encoded strings searched across the
-          full 1,048,576-byte image — exactly one hit each, at file offsets
-          <code>0x45AA</code> and <code>0x45B1</code>, on the cartridge whose SHA-1 is
-          <code>d7037c83e1ae5b39bde3c30787637ba1d4c48ce2</code>.
+          Both encoded strings occur exactly once in the 1,048,576-byte image, at file
+          offsets <code>0x45AA</code> and <code>0x45B1</code>, on the cartridge whose SHA-1
+          is <code>d7037c83e1ae5b39bde3c30787637ba1d4c48ce2</code>.
         </div>
       </div>
 
@@ -409,7 +387,7 @@
         <dt>Found by</dt>
         <dd>Property, not by a remembered address: the one offset in the image whose 190 consecutive little-endian words all land in <code>$4000-$7FFF</code> <em>and</em> whose records parse as valid evolution and learnset bytes throughout</dd>
         <dt>How it was verified</dt>
-        <dd>Re-derived for this page directly from the cartridge image: 190 slots located by that property (a unique hit across all 63 banks), <code>PokedexOrder</code> read back as 39 zero entries and 151 real species, 27 of them above internal index 151 — and every figure in the table above reproduced exactly, both wrong rows and both right ones</dd>
+        <dd>Read out of the cartridge image: 190 slots located by that property (a unique hit across all 63 banks), <code>PokedexOrder</code> read back as 39 zero entries and 151 real species, 27 of them above internal index 151</dd>
         <dt>Kind</dt>
         <dd>Cartridge mechanic, and the trap it sets for every reader of it</dd>
       </dl>
@@ -555,10 +533,9 @@
       <div class="provenance">
         <p>
           <strong>Where these come from.</strong> Every entry is drawn from the discovery
-          log of an evidence-only Gen 1 memory atlas, which records each finding with its
-          addresses, the messy symptom that produced it, the wrong turns, and the run that
-          settled it. Entries 01 and 02 were additionally re-derived from the cartridge
-          image while this page was written, and both reproduced exactly.
+          log of <a href="projects/atlasgb.html">AtlasGB</a>'s Gen 1 memory atlas, which
+          records each finding with its addresses, the symptom that produced it, the wrong
+          turns, and the run that settled it.
         </p>
         <p>
           <strong>The cartridge.</strong> Pokémon Blue, USA/Europe, SHA-1
@@ -567,8 +544,8 @@
           generalising quietly.
         </p>
         <p>
-          <strong>This page grows.</strong> New entries are appended as they are found and
-          checked; nothing goes on it that has only been read about.
+          <strong>This page grows.</strong> Entries are appended as they are found, and
+          nothing goes on it that has only been read about.
         </p>
       </div>
 
