@@ -24,7 +24,7 @@
   --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
 
-  --measure: 66ch;        /* body text line length */
+  --measure: 78ch;        /* body text line length */
   --container: 1000px;    /* max content width */
   --gap: 52px;            /* vertical rhythm between sections */
 
@@ -74,7 +74,16 @@ a:hover { text-decoration: underline; text-underline-offset: 2px; }
   padding: 0 24px;
 }
 
-.prose { max-width: var(--measure); }
+/* Running text keeps a comfortable reading measure; wide blocks (tables,
+   figures, callouts, code, the post list) share the full container width
+   instead, same as the metric band above them. */
+.prose > * { max-width: var(--measure); }
+.prose > h2,
+.prose > .callout,
+.prose > .table-wrap,
+.prose > figure,
+.prose > pre,
+.prose > .post-list { max-width: none; }
 .prose p, .prose ul, .prose ol { color: var(--ink); }
 .prose > * + * { margin-top: 1.15em; }
 
