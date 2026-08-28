@@ -509,6 +509,17 @@ figure.pixel img {
 figure.narrow { max-width: 520px; }
 figure.narrow img { border-radius: 4px; }
 
+/* ----- Figures carrying real footage ---------------------------------------- */
+/* Same treatment as figure img: full-bleed, same radius, never blows out a
+   phone. A muted autoplay loop (.clip-auto) swaps to its poster frame under
+   prefers-reduced-motion, with no script involved on either path. */
+figure video { width: 100%; height: auto; border-radius: 6px; display: block; background: var(--code-bg); }
+.clip-auto .clip-poster { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .clip-auto video { display: none; }
+  .clip-auto .clip-poster { display: block; }
+}
+
 /* Two captures side by side — a before and an after. Stacks under 640px. */
 .fig-pair {
   display: grid;
