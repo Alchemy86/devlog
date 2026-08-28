@@ -163,6 +163,16 @@ Project pages live in `projects/` and draw their facts from private repos under
   of the Kanto example. No page on this site links to `Alchemy86/ShowReel` or to any other
   private repo by URL — none of the project pages do, so that is the standing convention, not
   an oversight.
+  The page's lead video is ShowReel's own demo reel — `docs/showreel-reel.mobile.mp4` in the
+  source repo, copied byte-for-byte to `assets/video/showreel/showreel-reel-mobile.mp4` (verify
+  with `sha1sum`) — rendered by ShowReel itself from `examples/showreel_demo.film.jsonc`. It has
+  real audio and runs 52.6s, so it gets `controls` and a poster, never `autoplay`. A Pokémon
+  swarm clip rendered by AgentGB's own film tooling briefly led this page; it was moved off
+  entirely (it belongs on `projects/agentgb.html`, where it is the only place a battle's map
+  position can't show it) because another tool's output at the top of ShowReel's own page
+  demonstrated nothing about ShowReel. The same swarm footage now appears inside ShowReel's own
+  reel instead, as the "live footage" scene — composited by ShowReel, which is the honest way to
+  show it here.
 
 ## Standing pages (added 2026-08-27)
 

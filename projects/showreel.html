@@ -68,20 +68,20 @@
       </p>
     </section>
 
-    <figure class="clip-auto">
-      <video class="clip" autoplay muted loop playsinline preload="metadata"
-             poster="../assets/img/showreel/pewter-chain-poster.png"
-             width="1280" height="720">
-        <source src="../assets/video/showreel/pewter-chain-swarm.mp4" type="video/mp4">
+    <figure>
+      <video controls preload="metadata" poster="../assets/img/showreel/showreel-reel-poster.png"
+             width="720" height="406">
+        <source src="../assets/video/showreel/showreel-reel-mobile.mp4" type="video/mp4">
       </video>
-      <img class="clip-poster" src="../assets/img/showreel/pewter-chain-poster.png" width="1280" height="720"
-           alt="A HUD reading THE PEWTER CHAIN over a Pokémon Blue map, with dozens of agent sprites walking Pewter City's streets and a tally reading 600 of 600 agents live on link 3 of 3.">
       <figcaption>
-        600 independently-run cold boots of AgentGB's own student, composited onto the map it
-        walked — links 1–3 of the Pewter chain, certified 3,000/3,000 trajectories, colour
-        tracking how well-trodden each tile is. AgentGB's own film tooling made this, not
-        ShowReel: it's here as the kind of real clip footage a <code>Content::Clip</code>
-        camera move is built to receive.
+        ShowReel's own demo, authored as a plain film file and rendered by
+        <code>showreel render</code> — not edited by hand afterward. Seven scene changes, no
+        two transitions alike: a camera pulling back over a 57-megapixel still, a push-in over
+        a decoded video clip, the same frame ungraded and then graded, three depth planes cut
+        from one flat image, and a title built from filled vector glyphs, over two audio tracks
+        mixed together. The file behind every shot,
+        <code>examples/showreel_demo.film.jsonc</code> in the repository, reads top to bottom
+        the way the reel plays.
       </figcaption>
     </figure>
 
