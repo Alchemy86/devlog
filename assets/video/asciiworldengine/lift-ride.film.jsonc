@@ -1,0 +1,43 @@
+// The ShowReel film behind assets/video/asciiworldengine/lift-ride.gif.
+//
+// The clip it draws on, lift-ride-capture.mp4, is real captured footage —
+// AsciiWorldEngine's own renderer, walked to a lift, one press of the panel,
+// then hands off the whole way: the exact mechanic docs/lift.md in that
+// repository describes. Rendered with:
+//
+//   showreel gif lift-ride.film.jsonc -A . --width 480 --fps 15 \
+//     --colors 128 -o lift-ride.gif
+{
+  "width": 1980,
+  "height": 1080,
+  "fps": 30,
+  "title": "AsciiWorldEngine — the lift",
+
+  "opening": {
+    "duration": 3.6,
+    "layers": [
+      {
+        "type": "clip",
+        "asset": "lift-ride-capture.mp4",
+        "fit": "cover",
+        "trim": [0.0, 3.6],
+        "start": 0.0,
+        "decode_fps": 30.0,
+        "mode": "hold",
+        "max_width": 1980,
+        "audio": { "muted": true },
+        "from": 0.0, "duration": null,
+        "enter": null, "exit": null, "opacity": 1.0, "z": 0
+      },
+      {
+        "type": "lower-third",
+        "text": "AsciiWorldEngine — the lift",
+        "detail": "one press, hands free — captured from the running engine",
+        "from": 0.4,
+        "duration": 3.0
+      }
+    ]
+  },
+
+  "then": []
+}

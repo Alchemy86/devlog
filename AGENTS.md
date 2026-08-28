@@ -5,11 +5,11 @@ The captain's public engineering blog, served at https://alchemy86.github.io/dev
 ## What this is
 
 Static site: the captain's ongoing record of his own work. Its current contents are the
-private GB projects (TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal) plus
-Glyphsmith, the logo/house-text generator that is not GB work — the site is **not defined as
-a Game Boy family** — the opener and the site-level meta description
-must stay true as other work is added. Page-scoped copy naming Game Boy is fine; site-scoped
-copy that does is not.
+private GB projects (TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal) plus three
+non-GB projects — Glyphsmith (the logo/house-text generator), ShowReel (the film renderer) and
+AsciiWorldEngine (the walkable ASCII city) — the site is **not defined as a Game Boy family** —
+the opener and the site-level meta description must stay true as other work is added. Page-scoped
+copy naming Game Boy is fine; site-scoped copy that does is not.
 
 Plain HTML + CSS, no build step, no framework, no JS dependencies. The only external
 resource is Google Fonts. It must still work untouched in two years — keep it that way.
@@ -148,8 +148,8 @@ Project pages live in `projects/` and draw their facts from private repos under
   that back its numbers. SVGs on the page are copied byte-for-byte from `brand/`, `specimen/`
   and `gallery/originals/` — never re-rendered.
 - `projects/showreel.html` and `posts/the-number-that-could-have-sunk-it.html` /
-  `posts/the-one-clean-miss.html` → `showreel/` (repo `Alchemy86/ShowReel`, private, and —
-  with Glyphsmith — one of two non-GB pages on this site). `docs/performance.md`,
+  `posts/the-one-clean-miss.html` → `showreel/` (repo `Alchemy86/ShowReel`, private — one of
+  three non-GB pages on this site, with Glyphsmith and AsciiWorldEngine). `docs/performance.md`,
   `docs/native-encode-audit.md` and `docs/anarchist-study.md` back the project page's figures;
   `examples/kanto_reel.rs` backs the first post. Line/module counts on the project page are
   counted directly from `src/` (`find src -name '*.rs' | xargs wc -l`), not quoted from a doc —
@@ -173,6 +173,26 @@ Project pages live in `projects/` and draw their facts from private repos under
   demonstrated nothing about ShowReel. The same swarm footage now appears inside ShowReel's own
   reel instead, as the "live footage" scene — composited by ShowReel, which is the honest way to
   show it here.
+- `projects/asciiworldengine.html` → `asciiworldengine/` (repo `Alchemy86/AsciiWorldEngine`,
+  made **public** on 2026-08-28 — the second public source repo after Glyphsmith, so this page
+  links to it directly; that is a deliberate exception to the "no page links to a private repo"
+  convention above, not a precedent for the still-private ones). `docs/performance.md` backs the
+  frame-cost table; `docs/registration-plates.md` and `src/registrations.txt` back the plates
+  section (24 real private registrations, credited to regtransfers.co.uk in the repo's own docs).
+  Line/module count is `find src -name '*.rs' | xargs wc -l` — re-count before requoting, same
+  reason as ShowReel. The street and plate stills are real `.svg`-derived captures already
+  committed in the repo's own `docs/frames/`, copied and recompressed losslessly, not
+  re-rendered. The lift-ride clip is different: no continuous footage of a ride existed in the
+  repo (only six named keyframes from its own `--lift` evidence mode), so it was captured
+  fresh — a private, non-shipped `--ride-shot` mode was added to a scratch clone of the engine
+  (the same walk-to-lift-and-press-the-panel route `--lift` already takes, just writing every
+  tick of the hands-free part instead of six stills), encoded with the documented
+  `ffmpeg -i frames/%06d.svg` pipeline from `docs/film.md`, then built into a one-scene
+  ShowReel film and exported with `showreel gif` (palette generated from the footage itself,
+  not a fixed web palette). The film file and its source clip are committed alongside the GIF
+  in `assets/video/asciiworldengine/` so the page can point at exactly how it was made — the
+  first video asset on this site to use ShowReel's own `gif` export rather than a straight
+  video capture cut with `ffmpeg` alone.
 
 ## Standing pages (added 2026-08-27)
 
@@ -279,21 +299,30 @@ figure both draw on AgentGB's own film tooling (`agentgb pixelmapfilm` / `pixelc
 `~/Github/firstmate/projects/agentgb/src/agentgb/video.py`) — never imply ShowReel rendered
 game footage it didn't; say whose tooling made a clip in its caption.
 
+A short, silent hero loop can also ship as a plain `<img>` GIF instead of a `.clip-auto`
+`<video>` — a GIF autoplays and loops on its own with no CSS or `prefers-reduced-motion`
+handling needed, so it is the simpler choice when the source is already going through
+ShowReel's own `showreel gif` export (palette-optimised, generated from the actual footage —
+see `projects/asciiworldengine.html`'s lift-ride clip). Reach for `.clip-auto` `<video>` when a
+clip has audio or needs to stay a `<video>` for another reason; reach for a GIF when it doesn't.
+
 ## Project-grid wordmarks (added 2026-08-28)
 
-`index.html`'s eight project cards show each project's real Glyphsmith wordmark, not plain
+`index.html`'s project cards show each project's real Glyphsmith wordmark, not plain
 text: `<img class="pc-name" src="assets/img/glyphsmith/<slug>-logo.svg" alt="<Project Name>">`,
 CSS-fixed at `height: 40px; width: auto` (`.project-card .pc-name` in `main.css`) so the grid
-stays even — each SVG's own aspect ratio (1200×380 for most, 1400×420 for ShowReel) decides its
-width. `alt` is the bare project name only (not a motif description) since the image stands in
+stays even — each SVG's own aspect ratio (1200×380 for most, 1400×420 for ShowReel and
+AsciiWorldEngine) decides its width. `alt` is the bare project name only (not a motif
+description) since the image stands in
 for the heading text a screen reader or images-off browser would otherwise show. The mark's own
 panel background (`#0d1117`, fixed regardless of accent) is baked into every file and is
 designed to sit on both the light and dark page background — that's the family palette, not a
 theme bug; see `glyphsmith/glyphsmith/palette.py` in the source repo.
 
-Seven of the eight SVGs already lived at `assets/img/glyphsmith/<slug>-logo.svg` (copied for
-`projects/glyphsmith.html`'s own gallery — see **Source repositories** above). TerminalGB Portal
-had no mark anywhere. It was generated fresh with Glyphsmith's own public API (not by editing
+Eight of the nine SVGs (AsciiWorldEngine included) already lived at
+`assets/img/glyphsmith/<slug>-logo.svg` (copied for `projects/glyphsmith.html`'s own gallery —
+see **Source repositories** above). TerminalGB Portal had no mark anywhere. It was generated
+fresh with Glyphsmith's own public API (not by editing
 the CLI's default fit, which overflows badly at 1200px wide for an 18-character word) —
 `Mark(word="TERMINALGB PORTAL", tagline="TRADE OVER THE WEB", accent="dmg",
 content_width=1000, cap_y=110)`, `dmg` reused because Portal ships on top of TerminalGB. It has

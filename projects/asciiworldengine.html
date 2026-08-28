@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AsciiWorldEngine — devlog</title>
+  <meta name="description" content="AsciiWorldEngine: a walkable ASCII city in Rust, built from nothing — world, camera, raycaster and renderer, one dependency, 0.584 ms a frame. Traffic carries real private registration plates, and a glass lift you can watch the city fall away from.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="AsciiWorldEngine — devlog">
+  <meta property="og:description" content="AsciiWorldEngine: a walkable ASCII city in Rust, built from nothing — world, camera, raycaster and renderer, one dependency, 0.584 ms a frame. Traffic carries real private registration plates, and a glass lift you can watch the city fall away from.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/asciiworldengine.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <header class="post-header">
+      <p class="eyebrow">Project · World engine</p>
+      <h1>AsciiWorldEngine</h1>
+      <p class="lead">
+        A walkable ASCII city, in a terminal. There is no engine underneath it: the world, the
+        camera, the projection, the raycaster and every glyph and colour on screen are written
+        from scratch in Rust and painted straight into the terminal — no grid held in memory,
+        so the city is unbounded and walking further costs nothing. <a
+        href="https://github.com/Alchemy86/AsciiWorldEngine">Public on GitHub</a>.
+      </p>
+    </header>
+
+    <section>
+      <div class="metrics">
+        <div class="metric">
+          <div class="num">0.584</div>
+          <div class="label">ms/frame, 180&times;60 on the street</div>
+        </div>
+        <div class="metric">
+          <div class="num">3.2</div>
+          <div class="label">MB resident — no world grid, ever</div>
+        </div>
+        <div class="metric">
+          <div class="num">14,390</div>
+          <div class="label">Lines of Rust, 18 modules</div>
+        </div>
+        <div class="metric">
+          <div class="num"><span class="accent">1</span></div>
+          <div class="label">dependency — <code>libc</code>, for the terminal only</div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px;">
+        A 1,710 fps ceiling at that frame cost, at 10,800 cells with 223 kept a frame by the
+        occlusion cull. Indoors is cheaper still, 0.544 ms; riding a lift is the most expensive
+        room in the building, at 0.611 ms.
+      </p>
+    </section>
+
+    <figure>
+      <img src="../assets/video/asciiworldengine/lift-ride.gif" width="480" height="262"
+           alt="Animated: riding a glass lift up a tower. First the shaft wall slides past with a lit floor number going by, then the camera swings round to the street, which falls away below through the glass as the car keeps climbing.">
+      <figcaption>
+        One press of the panel, then hands off the whole way — the same mechanic
+        <a href="https://github.com/Alchemy86/AsciiWorldEngine/blob/main/docs/lift.md">docs/lift.md</a>
+        describes, captured live from the running engine and cut together with
+        <a href="showreel.html">ShowReel</a>'s own <code>gif</code> export, palette generated
+        from this footage rather than a fixed web palette.
+      </figcaption>
+    </figure>
+
+    <section>
+      <div class="sec-head">
+        <h2>What it does</h2>
+        <p class="sub">Everything here is built and shipping.</p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The world</p>
+            <h3>Nothing in memory, everything unbounded</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>Every cell is a pure function of its coordinate — height, hue, architecture,
+                which building it belongs to — so there is no grid to hold and no edge to reach</li>
+              <li>Six building silhouettes (flat, stepped, tapered, crowned, spired, masted), and
+                a seventh that means something: that tower has a lift in it</li>
+              <li>A building's name reads on its own facade, so the city is navigable rather than
+                anonymous, and <code>N</code> points at the nearest lift</li>
+              <li>Traffic, pedestrians, lampposts, street trees and a star field, all drawn as
+                billboards through the same per-column buffer the walls use</li>
+              <li>Weather: clear, rain or downpour, drawn through the same buffer everything else
+                is, leaning with your own velocity</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The insides</p>
+            <h3>A door on every building that faces a street</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>Walk through a doorway and you are in a real room — ten families, from lobby
+                and market to archive and bar, each with its own furniture and layout off the
+                building's own seed</li>
+              <li>The street wall is glazed: there is no backdrop and no parallax faking it, the
+                same raycast that found the wall carries on out into the real city beyond it</li>
+              <li>Furniture is baked-in geometry you collide with; a terminal, a notice board or
+                an exit sign is a labelled fixture instead, with a verb and a reach</li>
+              <li>Inside and outside are one mode the engine is in, not two code paths — the
+                raycaster, the collision and the renderer never learn there are two</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The lift</p>
+            <h3>One press, then hands off</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>About half the tall stock gets a glass lift, off the same seed as everything
+                else — walk in, press the panel</li>
+              <li>One press commits the car to the whole journey and releases you, so you can turn
+                round and watch the floors go past, or the city fall away out of the back glass</li>
+              <li>The car is world state, not a camera trick: it is a room with a base that moves,
+                and each floor is generated the same way the ground floor always was</li>
+              <li>Ride mode (<code>L</code>) loads straight into a car that runs up and down on
+                its own — a screensaver of the engine's own best view</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Registration plates</p>
+            <h3>Real plates, drawn honestly at distance</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>The committed default traffic carries 24 real, currently-held private
+                registrations for sale by their owner — not generated placeholders — with the
+                feature itself inspired by
+                <a href="https://www.regtransfers.co.uk/">regtransfers.co.uk</a></li>
+              <li>A plate is drawn out of the same characters as everything else on screen (<code>#</code>
+                body, <code>|</code> uprights), not a painted rectangle, and its panel is sized to
+                the registration it carries rather than a fixed sixteen cells</li>
+              <li>It degrades honestly with distance: readable text up close, a blank plate-shaped
+                panel at middle range, nothing at all past about 70 units — never an abbreviation
+                and never a half-drawn registration, because a plate that reads as some
+                <em>other</em> registration would be worse than no plate</li>
+              <li><code>--plates</code> and <code>--plates-file</code> swap the stock; nothing in
+                the renderer has to change</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">In the terminal, and beyond it</p>
+            <h3>One core, more than one frontend</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>24-bit ANSI, sizing itself to whatever terminal window it is given</li>
+              <li>The engine decides the whole picture and hands a frontend one flat buffer of
+                characters and colours; a frontend only paints it</li>
+              <li>The terminal binary is the product, but it is not the only target: the same
+                core compiles to WebAssembly (<code>--no-default-features --features wasm</code>),
+                dropping the one dependency the terminal frontend needed</li>
+              <li><code>--film</code> drives the engine through a readable script and writes every
+                tick to disk, ready for <code>ffmpeg</code> — how the clip above was captured</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The licence</p>
+            <h3>Personal and noncommercial, free</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              <a href="https://polyformproject.org/licenses/noncommercial/1.0.0">PolyForm
+              Noncommercial 1.0.0</a>, fetched byte-for-byte rather than typed from memory.
+              Personal and noncommercial use — study, hobby projects, forking it to see how a
+              raycaster works — is free. Commercial use needs permission first, which is the
+              one project on this site where that is true.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <figure class="narrow" style="max-width:720px; margin-inline:auto;">
+      <img src="../assets/img/asciiworldengine/city-street.png" width="1400" height="764"
+           alt="A street at night in AsciiWorldEngine: towers in six silhouettes rising on both sides, lit storefronts, and two cars on the road whose registration plates read ZD13 YAP and YJ58 FVG.">
+      <figcaption>
+        Street level, default seed. Both visible plates are real characters, not a texture —
+        <code>ZD13 YAP</code> and <code>YJ58 FVG</code> read the same in the frame's own bytes as
+        they do on screen.
+      </figcaption>
+    </figure>
+
+    <section>
+      <div class="sec-head">
+        <h2>What it costs</h2>
+        <p class="sub">
+          600 frames at 180&times;60, release profile, one machine. Absolute numbers move 30% or
+          more with machine load, so every delta below was measured interleaved against its own
+          control, not quoted cold.
+        </p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Where</th>
+              <th class="num">sim</th>
+              <th class="num">cast</th>
+              <th class="num">render</th>
+              <th class="num">paint</th>
+              <th class="num">total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>On the street, weather clear (default)</td><td class="num">0.009 ms</td><td class="num">0.077 ms</td><td class="num">0.362 ms</td><td class="num">0.136 ms</td><td class="num">0.584 ms</td></tr>
+            <tr><td>Indoors</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">0.544 ms</td></tr>
+            <tr><td>In a moving lift</td><td class="num">0.001 ms</td><td class="num">0.082 ms</td><td class="num">0.420 ms</td><td class="num">0.108 ms</td><td class="num">0.611 ms</td></tr>
+            <tr><td>Street, weather rain</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">0.572 ms</td></tr>
+            <tr><td>Street, weather downpour</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">0.608 ms</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:14px;">
+        Weather costs +8% of a frame off (unasked, since clear is the default), +14% in rain and
+        +21% in a downpour. Registration plates measured at +0.003 ms of a 0.546 ms frame — real,
+        but inside a run-to-run spread wide enough that <code>--no-plates</code> is not
+        measurably cheaper. Riding a lift's own +0.009 ms on the street is mostly the binary
+        being bigger, not new work: paired <code>--vista</code> renders before and after are
+        byte-identical.
+      </p>
+    </section>
+
+    <div class="fig-pair">
+      <figure class="narrow" style="max-width:none;">
+        <img src="../assets/img/asciiworldengine/plates-near.png" width="1980" height="1090"
+             alt="Two cars close up, their registration plates PAM 314S and 65 NN fully legible as characters on yellow and white plates.">
+        <p class="cap">Near: every character of both plates fits between the wheels</p>
+      </figure>
+      <figure class="narrow" style="max-width:none;">
+        <img src="../assets/img/asciiworldengine/plates-far.png" width="1980" height="1090"
+             alt="The same street from further back: the plates have degraded to blank yellow and white panels of the right size and colour, with no readable text on them.">
+        <p class="cap">Far: a blank panel of the right size and colour — never a guess at the registration</p>
+      </figure>
+    </div>
+
+    <section>
+      <div class="sec-head">
+        <h2>Where it stands</h2>
+      </div>
+      <ul class="gaps">
+        <li>
+          <b>One thing to press.</b> Every terminal, notice board and exit sign already carries a
+          label, a verb and a reach, and <code>X</code> acts on whatever is nearest — the lift
+          panel is the first thing it does something with. The rest is deciding what the others
+          should say.
+        </li>
+        <li>
+          <b>No basements.</b> A lift's shaft is cut to the roof, not below it — read directly off
+          <code>lift.rs</code>'s storey table, which has no entries under the ground floor yet.
+        </li>
+        <li>
+          <b>One seam in the doors.</b> With a lift car's doors open you see the building's raw
+          mass past them rather than that floor's own lobby, because only one interior exists at a
+          time. Named in the commit that shipped the lift, not found later.
+        </li>
+      </ul>
+    </section>
+
+    <section class="prose">
+      <h2>Milestones</h2>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-date">27 Aug 2026</div>
+          <p class="tl-title">Names, a shape you can see coming, and unmirrored floor numbers</p>
+          <p>
+            A building's name now reads on its own facade. A tower with a lift gets a seventh,
+            recognisable silhouette and a lit <code>LIFT</code> mark; one press commits the car
+            and releases you; an upper floor's outer wall stopped being walkable into thin air.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">27 Aug 2026</div>
+          <p class="tl-title">A glass lift in the tall buildings</p>
+          <p>
+            Step in, press the panel, and the car rises — floors sliding past on one side of the
+            shaft, the street falling away on the other, both drawn live rather than faked. Riding
+            costs 0.599 ms a frame against the street's 0.582.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">27 Aug 2026</div>
+          <p class="tl-title">Real registrations, and a real licence</p>
+          <p>
+            Traffic started carrying 24 real private registrations from Regtransfers' own stock,
+            shipped as an editable file rather than a literal in the renderer. The hand-written
+            proprietary notice was replaced by PolyForm Noncommercial 1.0.0, fetched
+            byte-for-byte.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">27 Aug 2026</div>
+          <p class="tl-title">A walkable ASCII city, native Rust terminal engine</p>
+          <p>
+            World, camera, projection, raycasting, interiors and renderer for a text-rendered
+            first-person city walker — the first commit, and already a native terminal binary
+            with an optional wasm target off the same core.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <hr>
+
+    <div class="provenance">
+      <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
+      <p>
+        Frame costs are the project's own <code>--bench</code> output, measured on the build in
+        the repository; every delta on this page came from an interleaved before/after pair, not
+        a cold absolute figure. Line and module counts are counted directly from the crate's own
+        <code>src/</code> tree. The street and plate frames are real <code>.svg</code> captures the
+        engine wrote of itself, converted losslessly to PNG.
+      </p>
+      <p>
+        AsciiWorldEngine ships no third-party art or map data — the city, the traffic and the
+        registration plates are all generated. The 24 plates in the committed default list are
+        real private registrations currently for sale by their owner, credited to
+        <a href="https://www.regtransfers.co.uk/">regtransfers.co.uk</a> in the project's own
+        documentation.
+      </p>
+    </div>
+
+    <a class="backlink" href="../#projects">← All projects</a>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

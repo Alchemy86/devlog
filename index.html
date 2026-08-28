@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>devlog — engineering notes</title>
-  <meta name="description" content="An ongoing engineering log — what gets built here, what it currently scores, and the stories worth telling from building it. Mostly Game Boy work — TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal — plus Glyphsmith, the alphabet that drew all of their logos, and ShowReel, the renderer that turns their footage into a film.">
+  <meta name="description" content="An ongoing engineering log — what gets built here, what it currently scores, and the stories worth telling from building it. Mostly Game Boy work — TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal — plus Glyphsmith, ShowReel and AsciiWorldEngine, which aren't.">
   <meta name="color-scheme" content="light dark">
   <meta property="og:type" content="website">
   <meta property="og:title" content="devlog — engineering notes">
-  <meta property="og:description" content="An ongoing engineering log — what gets built here, what it currently scores, and the stories worth telling from building it. Mostly Game Boy work — TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal — plus Glyphsmith, the alphabet that drew all of their logos, and ShowReel, the renderer that turns their footage into a film.">
+  <meta property="og:description" content="An ongoing engineering log — what gets built here, what it currently scores, and the stories worth telling from building it. Mostly Game Boy work — TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal — plus Glyphsmith, ShowReel and AsciiWorldEngine, which aren't.">
   <meta property="og:url" content="https://alchemy86.github.io/devlog/index.html">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,10 +37,11 @@
       <p class="lead">
         A running record of what gets built here — what each thing does, what it currently
         scores, and the stories worth telling from building it. Most of it is Game Boy work:
-        an emulator, a neural player, an evidenced cartridge atlas and three more. Two pieces
-        aren't — Glyphsmith is the hand-drawn alphabet that drew all of their logos, and
-        ShowReel is the renderer that turns their footage into a film. The source repositories
-        are private; this is where the interesting parts are visible.
+        an emulator, a neural player, an evidenced cartridge atlas and three more. Three pieces
+        aren't — Glyphsmith is the hand-drawn alphabet that drew all of their logos, ShowReel is
+        the renderer that turns their footage into a film, and AsciiWorldEngine is a walkable
+        ASCII city with nothing to do with any of it. Most of the source repositories are
+        private; this is where the interesting parts are visible.
       </p>
     </section>
 
@@ -91,6 +92,11 @@
         <a class="project-card" href="projects/showreel.html">
           <img class="pc-name" src="assets/img/glyphsmith/showreel-logo.svg" width="1400" height="420" alt="ShowReel">
           <span class="pc-desc">A Rust crate that renders a described film to mp4, deterministically. A camera holds steady over a 48-megapixel still at 4.3 ms a frame, and the same renderer compiles to WebAssembly and scrubs in a browser with no server at all.</span>
+          <span class="pc-go">Project page →</span>
+        </a>
+        <a class="project-card" href="projects/asciiworldengine.html">
+          <img class="pc-name" src="assets/img/glyphsmith/asciiworldengine-logo.svg" width="1400" height="420" alt="AsciiWorldEngine">
+          <span class="pc-desc">A walkable ASCII city in Rust, built from nothing: world, camera, raycaster and renderer at 0.584 ms a frame. Traffic carries real private registration plates, and a glass lift lets the city fall away below you through the glass.</span>
           <span class="pc-go">Project page →</span>
         </a>
       </div>
