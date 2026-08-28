@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShowReel — devlog</title>
+  <meta name="description" content="ShowReel: a Rust crate that renders a described film to mp4, deterministically — 12.0 ms a frame, a camera that holds steady over a 48-megapixel still, and a browser build that scrubs and exports with no server and no ffmpeg.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="ShowReel — devlog">
+  <meta property="og:description" content="ShowReel: a Rust crate that renders a described film to mp4, deterministically — 12.0 ms a frame, a camera that holds steady over a 48-megapixel still, and a browser build that scrubs and exports with no server and no ffmpeg.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/showreel.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <header class="post-header">
+      <p class="eyebrow">Project · Video rendering</p>
+      <h1>ShowReel</h1>
+      <p class="lead">
+        A Rust crate that turns a description of a film — a timeline, a camera, typography,
+        transitions — into a deterministic mp4. No browser, no Node, no headless Chromium to
+        render it: <code>tiny-skia</code> and <code>rustybuzz</code> draw the pixels and the
+        glyphs, <code>ffmpeg</code> encodes. The same renderer also compiles to WebAssembly, so
+        a film scrubs and edits in a browser tab with no server behind it at all.
+      </p>
+    </header>
+
+    <section>
+      <div class="metrics">
+        <div class="metric">
+          <div class="num">12.0</div>
+          <div class="label">ms/frame, the finished film</div>
+        </div>
+        <div class="metric">
+          <div class="num"><span class="accent">4.3</span></div>
+          <div class="label">ms/frame, 48 MP camera, 20 threads</div>
+        </div>
+        <div class="metric">
+          <div class="num">12,800</div>
+          <div class="label">Lines of Rust, 28 modules</div>
+        </div>
+        <div class="metric">
+          <div class="num">11</div>
+          <div class="label">CLI subcommands, one library underneath</div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px;">
+        The example film: 1920×1080 at 60fps, 2082 frames, 20 cores. Two renders of the same
+        film give byte-identical PNGs and byte-identical mp4s.
+      </p>
+    </section>
+
+    <figure>
+      <img src="../assets/img/showreel/browser-editor.png" width="1905" height="2053"
+           alt="The browser editor: a film's timeline, scenes and layers down the left, a video clip's properties down the right, and the live frame in the middle showing a camera layer callout reading 23.7 MP, source, this shot, over a title reading THE CAMERA. An Export video button sits top right.">
+      <figcaption>
+        The wasm build isn't a viewer — it edits. Add a clip, set its trim, pick a transition,
+        retype a title, reorder scenes, and save the changed film back out as JSON.
+      </figcaption>
+    </figure>
+
+    <section>
+      <div class="sec-head">
+        <h2>What it does</h2>
+        <p class="sub">Everything here is built and shipping.</p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Authoring</p>
+            <h3>A value, not a macro DSL</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>A film is a Rust builder or a JSON tree — the same tree either way, written
+                by hand, generated, or handed over by a tool</li>
+              <li>A timeline is <code>Scene (Transition Scene)*</code> — two transitions in a
+                row cannot be written down, in either form</li>
+              <li><code>showreel new</code> scaffolds a working starter film that needs no
+                assets at all</li>
+              <li><code>.jsonc</code> takes comments and a trailing comma; a plain
+                <code>.json</code> file still loads exactly as before</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The camera</p>
+            <h3>Holds steady over 48 megapixels</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>Geometrically-interpolated pan, zoom and hold, keyframed by <code>Shot</code>s,
+                over a mip-backed still</li>
+              <li>A 6832×7024 source renders to 1080p at 4.3 ms/frame across 20 threads — cost
+                tracks the output size, not the source</li>
+              <li>Nearest-neighbour resampling when the camera magnifies, so pixel art stays
+                sharp instead of turning to mush</li>
+              <li><code>Content::Parallax</code>: several depth planes share one authored camera
+                move, each departing from it by its own fraction</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">On screen</p>
+            <h3>Glyphs as filled paths</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>Real shaping and kerning, tracking in ems, tabular figures so a counter
+                doesn't jitter as it ticks</li>
+              <li>Nine transitions — cut, dissolve, fade-through-colour, wipe, slide, push,
+                iris, zoom, cross-blur — each composable with any easing curve or spring</li>
+              <li>Titles, lower-thirds, callouts that point at things, counters that count</li>
+              <li>A pull-up that lifts a region of the frame, dims the rest, and annotates it;
+                a progress bar that fills without drawing digits</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Audio</p>
+            <h3>Tracks, ducking, a clip's own mix</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>Any audio file placed and trimmed on the film's own clock, with fades, gain,
+                several tracks mixed</li>
+              <li>A clip's own soundtrack joins the mix by default — mute, duck or fade it
+                independently</li>
+              <li>Reaches both the full-quality master and the 720p/30fps mobile cut</li>
+              <li>Won't loop a clip's audio to match a looping picture, and drops it rather than
+                play it out of sync when the clip runs at another speed — documented, not
+                silent</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Automation</p>
+            <h3>A studio, an API, an agent</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li><code>showreel studio</code>: a scrubber, live reload, and the film's
+                structure in a browser, behind an opt-in feature flag</li>
+              <li>Four HTTP endpoints riding that same server — info, check, still, render — so
+                a script can drive it without shelling out to the CLI</li>
+              <li><code>showreel mcp</code>: five tools over the official <code>rmcp</code> SDK,
+                for an agent already in the same process tree</li>
+              <li>One implementation of "render a still" underneath all three surfaces, not
+                three</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">No server</p>
+            <h3>Compiled to WebAssembly</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li><code>showreel web-pack</code> turns a film into a static directory any file
+                host can serve — the renderer compiled to <code>wasm32-unknown-unknown</code></li>
+              <li>Scrubs and edits there exactly as the native studio does, down to reordering
+                scenes and saving the changed film back out</li>
+              <li>Dropping a clip in decodes it client-side with no ffmpeg, through the
+                browser's own <code>&lt;video&gt;</code> decoder</li>
+              <li>Exports a real WebM — <code>VideoEncoder</code> (WebCodecs) plus a hand-rolled
+                muxer, verified round-trip against <code>ffprobe</code></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>What it costs</h2>
+        <p class="sub">
+          Measured on the machine that renders it — a 20-core box, the build in this
+          repository. Every figure names its own thread count.
+        </p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Measurement</th>
+              <th class="num">Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Whole example film, full quality (2082 frames, 20 cores)</td><td class="num">12.0 ms/frame · 83 fps</td></tr>
+            <tr><td>— the 48 MP camera pull-back alone (660 frames)</td><td class="num">15.2 ms/frame · 66 fps</td></tr>
+            <tr><td>— a 0.35-scale preview pass</td><td class="num">3.1 ms/frame · 318 fps</td></tr>
+            <tr><td>48 MP camera: crop &amp; resample from full res, 1 thread</td><td class="num">142.1 ms/frame</td></tr>
+            <tr><td>48 MP camera: mip pyramid, 1 thread</td><td class="num">42.2 ms/frame</td></tr>
+            <tr><td>48 MP camera: mip pyramid, 20 threads</td><td class="num">4.3 ms/frame</td></tr>
+            <tr><td>Parallax, 3 planes at 1080p, 1 thread</td><td class="num">~45 ms/frame</td></tr>
+            <tr><td>— one ordinary still+camera layer, for comparison</td><td class="num">~15 ms/frame</td></tr>
+            <tr><td>Cross-blur dissolve, full-frame blur pass</td><td class="num">~170 ms/call</td></tr>
+            <tr><td>x264 encode, <code>crf 17</code> <code>preset slow</code>, ~3.15 cores</td><td class="num">12.1 ms/frame</td></tr>
+            <tr><td>Serial render vs. 20-thread parallel</td><td class="num">byte-identical</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:14px;">
+        The pyramid is what makes the camera figure hold: choosing an already-shrunk level
+        before resampling makes cost track the output area instead of the source area, near-
+        constant whatever the zoom. It is built once at load — 523 ms for the 48 MP source —
+        and holds 192 MB resident. The cross-blur cost is per call, twice a transition frame,
+        independent of blur radius; a short transition keeps it bounded, a film-length one
+        would not.
+      </p>
+    </section>
+
+    <figure>
+      <img src="../assets/img/showreel/wasm-whole-map.png" width="1440" height="900"
+           alt="The compiled wasm build mid-scrub in a browser tab, showing all 226 Pokémon Blue maps in one picture with a counter reading 226 maps in this picture, timecode 0:14.9 of 0:34.7, at 1920x1080, 60fps.">
+      <figcaption>
+        The same 48-megapixel pull-back the camera figures above are built from, scrubbing in a
+        browser tab — no server behind this frame at all.
+      </figcaption>
+    </figure>
+
+    <section>
+      <div class="sec-head">
+        <h2>Where the gaps are</h2>
+      </div>
+      <ul class="gaps">
+        <li>
+          <b>Browser export is picture-only.</b> Studio playback has real audio — a film's own
+          tracks decoded live and mixed in sync with the scrub — but the exported WebM does not
+          mux it in yet.
+        </li>
+        <li>
+          <b>No colour grade.</b> Nothing tone-maps a finished frame — no LUT, no
+          saturation/contrast pass, no vignette. Confirmed absent by reading the render
+          pipeline, not assumed.
+          <a href="../posts/the-one-clean-miss.html">Why it's the one thing missing →</a>
+        </li>
+        <li>
+          <b>ffmpeg still does the encode and the decode.</b> The fastest realistic pure-Rust
+          encoder measured about 30× slower than this crate's own x264 settings on identical
+          frames, and no mature pure-Rust general video decoder exists yet either.
+        </li>
+        <li>
+          <b>A clip's camera isn't mip-backed.</b> Pushing in tight on footage, rather than a
+          still, needs <code>max_width</code> raised to match or the image goes soft.
+        </li>
+        <li>
+          <b>Depth planes are hand-split.</b> <code>Content::Parallax</code> composes planes
+          that already exist; cutting one screenshot into two or three layers is still a
+          person's job, upstream of the crate.
+        </li>
+        <li>
+          <b>No rich text runs.</b> Every layer is one style for its whole string — a caption
+          where a single word changes weight or colour mid-line needs a second layer, not a
+          style range.
+        </li>
+      </ul>
+    </section>
+
+    <section class="prose">
+      <h2>Milestones</h2>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-date">28 Aug 2026</div>
+          <p class="tl-title">Six of seven, already built</p>
+          <p>
+            A study of a specific YouTube editor's technique found ShowReel already had almost
+            everything the look needed. The one clean gap was small.
+            <a href="../posts/the-one-clean-miss.html">Read it →</a>
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">28 Aug 2026</div>
+          <p class="tl-title">The browser became an editor</p>
+          <p>
+            Export without ffmpeg: a real <code>VideoEncoder</code> and a hand-rolled WebM
+            muxer, verified round-trip against <code>ffprobe</code>.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">27 Aug 2026</div>
+          <p class="tl-title">Compiled to WebAssembly</p>
+          <p>
+            The renderer runs in a browser tab. A film scrubs with no server behind it, and a
+            dropped clip decodes client-side with no ffmpeg.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">27 Aug 2026</div>
+          <p class="tl-title">The number that could have sunk it</p>
+          <p>
+            A 120-frame pull-back over a 48-megapixel still came back at 4.3 ms a frame,
+            settling whether to build a camera at all.
+            <a href="../posts/the-number-that-could-have-sunk-it.html">Read it →</a>
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="writing" class="prose">
+      <h2>Writing</h2>
+      <ul class="post-list">
+        <li>
+          <a class="post-card" href="../posts/the-one-clean-miss.html">
+            <div class="post-meta"><span class="tag">ShowReel</span><span>Study</span><span>28 Aug 2026</span></div>
+            <p class="post-title">The one clean miss</p>
+            <p class="post-dek">The captain wanted the display style of a specific YouTube editor. Six of the seven techniques it needed already existed.</p>
+          </a>
+        </li>
+        <li>
+          <a class="post-card" href="../posts/the-number-that-could-have-sunk-it.html">
+            <div class="post-meta"><span class="tag">ShowReel</span><span>Video · Rust</span><span>27 Aug 2026</span></div>
+            <p class="post-title">The number that could have sunk it</p>
+            <p class="post-dek">Could Remotion open on a title screen, pull back to a whole world map, and burst out real footage from where it happened? The one real unknown came back at 4.3 milliseconds a frame.</p>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <hr>
+
+    <div class="provenance">
+      <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
+      <p>
+        Every timing figure is ShowReel's own, measured on the machine that rendered it, with
+        the exact command recorded beside it in the source repository. Line and module counts
+        are counted directly from the crate's own <code>src/</code> tree.
+      </p>
+      <p>
+        ShowReel ships no game assets of its own — the worked example's Pokémon Blue stills
+        belong to whoever owns that cartridge and are not in the crate. The screenshots here
+        are of the crate's own tooling, the browser editor and the wasm build, which the
+        project is free to show.
+      </p>
+    </div>
+
+    <a class="backlink" href="../#projects">← All projects</a>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

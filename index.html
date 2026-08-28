@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>devlog — engineering notes</title>
-  <meta name="description" content="An ongoing engineering log — what gets built here, what it currently scores, and the stories worth telling from building it. Mostly Game Boy work — TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal — plus Glyphsmith, the alphabet that drew all of their logos.">
+  <meta name="description" content="An ongoing engineering log — what gets built here, what it currently scores, and the stories worth telling from building it. Mostly Game Boy work — TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal — plus Glyphsmith, the alphabet that drew all of their logos, and ShowReel, the renderer that turns their footage into a film.">
   <meta name="color-scheme" content="light dark">
   <meta property="og:type" content="website">
   <meta property="og:title" content="devlog — engineering notes">
-  <meta property="og:description" content="An ongoing engineering log — what gets built here, what it currently scores, and the stories worth telling from building it. Mostly Game Boy work — TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal — plus Glyphsmith, the alphabet that drew all of their logos.">
+  <meta property="og:description" content="An ongoing engineering log — what gets built here, what it currently scores, and the stories worth telling from building it. Mostly Game Boy work — TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal — plus Glyphsmith, the alphabet that drew all of their logos, and ShowReel, the renderer that turns their footage into a film.">
   <meta property="og:url" content="https://alchemy86.github.io/devlog/index.html">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,9 +37,10 @@
       <p class="lead">
         A running record of what gets built here — what each thing does, what it currently
         scores, and the stories worth telling from building it. Most of it is Game Boy work:
-        an emulator, a neural player, an evidenced cartridge atlas and three more. One piece
-        isn't — Glyphsmith is the hand-drawn alphabet that drew all of their logos. The
-        source repositories are private; this is where the interesting parts are visible.
+        an emulator, a neural player, an evidenced cartridge atlas and three more. Two pieces
+        aren't — Glyphsmith is the hand-drawn alphabet that drew all of their logos, and
+        ShowReel is the renderer that turns their footage into a film. The source repositories
+        are private; this is where the interesting parts are visible.
       </p>
     </section>
 
@@ -85,6 +86,11 @@
         <a class="project-card" href="projects/glyphsmith.html">
           <span class="pc-name">Glyphsmith</span>
           <span class="pc-desc">A hand-drawn alphabet of stroked letterforms, and the generator that sets words in it. No font anywhere — every mark on this blog, including its own, is drawn in the same 63 glyphs.</span>
+          <span class="pc-go">Project page →</span>
+        </a>
+        <a class="project-card" href="projects/showreel.html">
+          <span class="pc-name">ShowReel</span>
+          <span class="pc-desc">A Rust crate that renders a described film to mp4, deterministically. A camera holds steady over a 48-megapixel still at 4.3 ms a frame, and the same renderer compiles to WebAssembly and scrubs in a browser with no server at all.</span>
           <span class="pc-go">Project page →</span>
         </a>
       </div>
@@ -164,6 +170,18 @@
             </div>
             <p class="post-title">The number that could have sunk it</p>
             <p class="post-dek">Could Remotion open on Pok&eacute;mon Blue's title screen, pull back to the whole world map, and burst out real battle footage from where it happened? Two of the three ingredients already existed. The one real unknown came back at 4.3 milliseconds a frame.</p>
+          </a>
+        </li>
+
+        <li>
+          <a class="post-card" href="posts/the-one-clean-miss.html">
+            <div class="post-meta">
+              <span class="tag">ShowReel</span>
+              <span>Study</span>
+              <span>28 Aug 2026</span>
+            </div>
+            <p class="post-title">The one clean miss</p>
+            <p class="post-dek">The captain wanted the display style of a specific YouTube editor. Six of the seven techniques it needed already existed. The seventh was small, and it still isn't built.</p>
           </a>
         </li>
 
