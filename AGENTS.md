@@ -279,6 +279,36 @@ figure both draw on AgentGB's own film tooling (`agentgb pixelmapfilm` / `pixelc
 `~/Github/firstmate/projects/agentgb/src/agentgb/video.py`) — never imply ShowReel rendered
 game footage it didn't; say whose tooling made a clip in its caption.
 
+## Project-grid wordmarks (added 2026-08-28)
+
+`index.html`'s eight project cards show each project's real Glyphsmith wordmark, not plain
+text: `<img class="pc-name" src="assets/img/glyphsmith/<slug>-logo.svg" alt="<Project Name>">`,
+CSS-fixed at `height: 40px; width: auto` (`.project-card .pc-name` in `main.css`) so the grid
+stays even — each SVG's own aspect ratio (1200×380 for most, 1400×420 for ShowReel) decides its
+width. `alt` is the bare project name only (not a motif description) since the image stands in
+for the heading text a screen reader or images-off browser would otherwise show. The mark's own
+panel background (`#0d1117`, fixed regardless of accent) is baked into every file and is
+designed to sit on both the light and dark page background — that's the family palette, not a
+theme bug; see `glyphsmith/glyphsmith/palette.py` in the source repo.
+
+Seven of the eight SVGs already lived at `assets/img/glyphsmith/<slug>-logo.svg` (copied for
+`projects/glyphsmith.html`'s own gallery — see **Source repositories** above). TerminalGB Portal
+had no mark anywhere. It was generated fresh with Glyphsmith's own public API (not by editing
+the CLI's default fit, which overflows badly at 1200px wide for an 18-character word) —
+`Mark(word="TERMINALGB PORTAL", tagline="TRADE OVER THE WEB", accent="dmg",
+content_width=1000, cap_y=110)`, `dmg` reused because Portal ships on top of TerminalGB. It has
+**no motif** — every other mark's motif (block cursor, D-pad, region bar, …) is bespoke code
+specific to that project's own concept, and inventing one for Portal would be guessing at a
+visual metaphor, not reading one out of a source repo. A motif-less `Mark` is first-class
+Glyphsmith output (the CLI itself prints a note explaining the icon is a bare panel in that
+case, not an error), so this is the honest result, not a placeholder. Its icon variant is
+generated the same way but is a bare panel with nothing in it — not committed, since nothing on
+this site would use it; regenerate from the `Mark(...)` call above if a use appears.
+Project pages do **not** carry these marks in their hero — `projects/glyphsmith.html` sets the
+precedent by keeping its own hero plain-text `<h1>` and showing its wordmark later as an
+explained `<figure>` with a caption, not as hero furniture; the hero is prose-and-metrics only
+per **Voice and page shape**, so a logo image there would be shoehorned.
+
 ## Two source-repo docs that disagree with themselves — trust these
 
 Verified 2026-08-26 while writing the project pages; re-check before requoting:
