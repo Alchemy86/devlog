@@ -1,40 +1,70 @@
-// The ShowReel film behind assets/video/asciiworldengine/lift-ride.gif.
+// The ShowReel film behind assets/video/asciiworldengine/lift-ride.mp4.
 //
-// The clip it draws on, lift-ride-capture.mp4, is real captured footage —
-// AsciiWorldEngine's own renderer, walked to a lift, one press of the panel,
-// then hands off the whole way: the exact mechanic docs/lift.md in that
-// repository describes. Rendered with:
+// The clip it draws on, lift-ride-capture.mp4, is real captured footage of
+// AsciiWorldEngine's own renderer: a lift ride shot looking OUT of the car's
+// glass, so the city slides down past the window as the car climbs. It was
+// captured with a private, non-shipped `--ride-shot` mode added to a scratch
+// clone of the engine — the same walk-into-the-car / press-once / hands-free
+// ride the shipped `--lift` evidence mode drives, but standing at the back of
+// the car facing the outward glass (the `face_street` pose) and writing EVERY
+// tick of the climb rather than six stills. The car runs itself to the top of
+// its shaft on the engine's own smoothstep, so the motion eases in and eases
+// out; nothing is driven behind the engine's back. Encoded with the librsvg
+// pipeline from that repo's docs/film.md:
 //
-//   showreel gif lift-ride.film.jsonc -A . --width 480 --fps 15 \
-//     --colors 128 -o lift-ride.gif
+//   asciicity --ride-shot --out frames --name ride --fps 30
+//   ffmpeg -y -framerate 30 -start_number 1 -i frames/ride-%06d.svg \
+//     -c:v libx264 -pix_fmt yuv420p -crf 20 lift-ride-capture.mp4
+//
+// The soundtrack, lift-chiptune.wav, is a funky-retro pulse-wave chiptune
+// synthesised procedurally by chiptune.py (committed alongside) — self-authored,
+// public domain, nothing sampled and nothing from the internet, the same
+// position ShowReel takes on its own demo bed. It goes IN the film, placed on
+// the film clock with a fade in, a fade out and gain, the way ShowReel mixes
+// any track. Rendered with:
+//
+//   showreel render lift-ride.film.jsonc -A . --crf 20 -o lift-ride.mp4
+//   (the film is authored at 1280x720, so this master IS the 720p cut the page
+//    ships — lift-ride.mp4, ~4.5 MB with the audio in it. A 720w mobile cut is
+//    written alongside but not used here.)
 {
-  "width": 1980,
-  "height": 1080,
+  "width": 1280,
+  "height": 720,
   "fps": 30,
   "title": "AsciiWorldEngine — the lift",
+  "background": "#05070c",
+
+  "audio": [
+    {
+      "asset": "lift-chiptune.wav",
+      "at": 0.0,
+      "from": 0.0,
+      "fade_in": 0.6,
+      "fade_out": 2.8,
+      "gain": 0.9
+    }
+  ],
 
   "opening": {
-    "duration": 3.6,
+    "duration": 18.9,
     "layers": [
       {
         "type": "clip",
         "asset": "lift-ride-capture.mp4",
         "fit": "cover",
-        "trim": [0.0, 3.6],
+        "trim": [0.0, 18.9],
         "start": 0.0,
         "decode_fps": 30.0,
         "mode": "hold",
         "max_width": 1980,
-        "audio": { "muted": true },
-        "from": 0.0, "duration": null,
-        "enter": null, "exit": null, "opacity": 1.0, "z": 0
+        "audio": { "muted": true }
       },
       {
         "type": "lower-third",
         "text": "AsciiWorldEngine — the lift",
-        "detail": "one press, hands free — captured from the running engine",
-        "from": 0.4,
-        "duration": 3.0
+        "detail": "riding out over the city — captured from the running engine",
+        "from": 0.5,
+        "duration": 3.6
       }
     ]
   },

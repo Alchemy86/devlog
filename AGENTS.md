@@ -177,22 +177,39 @@ Project pages live in `projects/` and draw their facts from private repos under
   made **public** on 2026-08-28 — the second public source repo after Glyphsmith, so this page
   links to it directly; that is a deliberate exception to the "no page links to a private repo"
   convention above, not a precedent for the still-private ones). `docs/performance.md` backs the
-  frame-cost table; `docs/registration-plates.md` and `src/registrations.txt` back the plates
-  section (24 real private registrations, credited to regtransfers.co.uk in the repo's own docs).
+  frame-cost table; `src/registrations.txt` backs the one passing line that the traffic carries
+  real registrations (the page no longer features plates — the captain cut that back on
+  2026-08-28: a passing reference only, no legibility write-up, no dedicated screenshots).
   Line/module count is `find src -name '*.rs' | xargs wc -l` — re-count before requoting, same
-  reason as ShowReel. The street and plate stills are real `.svg`-derived captures already
-  committed in the repo's own `docs/frames/`, copied and recompressed losslessly, not
-  re-rendered. The lift-ride clip is different: no continuous footage of a ride existed in the
-  repo (only six named keyframes from its own `--lift` evidence mode), so it was captured
-  fresh — a private, non-shipped `--ride-shot` mode was added to a scratch clone of the engine
-  (the same walk-to-lift-and-press-the-panel route `--lift` already takes, just writing every
-  tick of the hands-free part instead of six stills), encoded with the documented
-  `ffmpeg -i frames/%06d.svg` pipeline from `docs/film.md`, then built into a one-scene
-  ShowReel film and exported with `showreel gif` (palette generated from the footage itself,
-  not a fixed web palette). The film file and its source clip are committed alongside the GIF
-  in `assets/video/asciiworldengine/` so the page can point at exactly how it was made — the
-  first video asset on this site to use ShowReel's own `gif` export rather than a straight
-  video capture cut with `ffmpeg` alone.
+  reason as ShowReel. The opening leads with the three things the captain named — Rust, runs in
+  your terminal, seed-generated — plus a pasteable `git clone … && ./play`. Seed determinism is
+  real and verified in `src/rng.rs` (every cell is `hash3(coord, seed)`; "a seed is a promise, not
+  a hint"). The `seed-42.png` / `seed-1337.png` comparison pair are `--vista --seed N --at 0,0
+  --cols 200 --rows 44` captures (same viewpoint, two seeds), `.svg` rendered to PNG and quantised
+  to 256 colours. `city-street.png` is the repo's own committed still.
+
+  The lift-ride video (redone 2026-08-28) is the page's marquee. It ships as
+  `assets/video/asciiworldengine/lift-ride.mp4` — a 720p `<video controls preload="metadata"
+  poster=…>` (ShowReel pattern, copied from `projects/showreel.html`), ~4.5 MB, WITH audio; the
+  poster is `assets/img/asciiworldengine/lift-ride-poster.png`. Three things were wrong with the
+  first cut and all three are fixed here: it was a silent GIF (now an mp4 with sound), it had no
+  music (now a funky-retro chiptune), and — the real point — **it faced the shaft wall, not out of
+  the window**. The shot must look OUT of the car's outward glass so the city slides down past it
+  as the car rises; the `face_street` pose in the shipped `--lift` mode (stand at the BACK of the
+  car, face the outward glass, pitch down) is the correct one, `face_shaft` is what framed the old
+  clip wrong. Capture path (all committed in `assets/video/asciiworldengine/` so the page points at
+  exactly how it was made): a private, non-shipped `--ride-shot` mode added to a scratch clone of
+  the engine (walk into the car with the real keys, `face_street`, one `ACT` press, then write
+  EVERY tick of the hands-free climb) → `ffmpeg -i frames/ride-%06d.svg` (the `docs/film.md`
+  pipeline) → `lift-ride-capture.mp4` (1980×1080 source clip). The soundtrack `lift-chiptune.wav`
+  is synthesised by `chiptune.py` (committed alongside) — self-authored, public domain, nothing
+  sampled and nothing from the internet, the position ShowReel takes on its own demo bed
+  (`showreel/examples/showreel_demo.assets.md`). It goes IN the ShowReel film
+  (`lift-ride.film.jsonc`, authored at 1280×720) as a placed track with a fade in/out and gain,
+  then `showreel render … --crf 20 -o lift-ride.mp4` produces the 720p master the page ships.
+  NOTE: an agent cannot literally hear audio — verify a soundtrack by ffprobe (stream present),
+  `volumedetect` (a sensible level, no clip) and a `showspectrumpic` spectrogram (real rhythm, not
+  noise), and say so plainly rather than claiming you listened.
 
 ## Standing pages (added 2026-08-27)
 
@@ -302,9 +319,11 @@ game footage it didn't; say whose tooling made a clip in its caption.
 A short, silent hero loop can also ship as a plain `<img>` GIF instead of a `.clip-auto`
 `<video>` — a GIF autoplays and loops on its own with no CSS or `prefers-reduced-motion`
 handling needed, so it is the simpler choice when the source is already going through
-ShowReel's own `showreel gif` export (palette-optimised, generated from the actual footage —
-see `projects/asciiworldengine.html`'s lift-ride clip). Reach for `.clip-auto` `<video>` when a
-clip has audio or needs to stay a `<video>` for another reason; reach for a GIF when it doesn't.
+ShowReel's own `showreel gif` export (palette-optimised, generated from the actual footage).
+Reach for a `<video>` when a clip has audio or real length: a short silent loop is a `.clip-auto`
+`<video>` (or a GIF); a longer clip with sound gets `<video controls preload="metadata"
+poster=…>` and no `autoplay` — `projects/asciiworldengine.html`'s lift-ride clip is that case
+(720p, a synthesised chiptune in it — see the lift-ride block under **Source repositories**).
 
 ## Project-grid wordmarks (added 2026-08-28)
 

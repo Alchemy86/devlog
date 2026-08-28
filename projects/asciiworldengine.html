@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AsciiWorldEngine — devlog</title>
-  <meta name="description" content="AsciiWorldEngine: a walkable ASCII city in Rust, built from nothing — world, camera, raycaster and renderer, one dependency, 0.584 ms a frame. Traffic carries real private registration plates, and a glass lift you can watch the city fall away from.">
+  <meta name="description" content="AsciiWorldEngine: a walkable ASCII city that runs in your terminal, written from scratch in Rust with one dependency. The whole city is generated from a seed; walk indoors, and ride a glass lift that watches the city fall away past the glass.">
   <meta name="color-scheme" content="light dark">
   <meta property="og:type" content="article">
   <meta property="og:title" content="AsciiWorldEngine — devlog">
-  <meta property="og:description" content="AsciiWorldEngine: a walkable ASCII city in Rust, built from nothing — world, camera, raycaster and renderer, one dependency, 0.584 ms a frame. Traffic carries real private registration plates, and a glass lift you can watch the city fall away from.">
+  <meta property="og:description" content="AsciiWorldEngine: a walkable ASCII city that runs in your terminal, written from scratch in Rust with one dependency. The whole city is generated from a seed; walk indoors, and ride a glass lift that watches the city fall away past the glass.">
   <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/asciiworldengine.html">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,11 +35,13 @@
       <p class="eyebrow">Project · World engine</p>
       <h1>AsciiWorldEngine</h1>
       <p class="lead">
-        A walkable ASCII city, in a terminal. There is no engine underneath it: the world, the
-        camera, the projection, the raycaster and every glyph and colour on screen are written
-        from scratch in Rust and painted straight into the terminal — no grid held in memory,
-        so the city is unbounded and walking further costs nothing. <a
-        href="https://github.com/Alchemy86/AsciiWorldEngine">Public on GitHub</a>.
+        A walkable ASCII city that runs in your terminal. The world, the camera, the raycaster
+        and every glyph and colour on screen are written from scratch in Rust — one dependency,
+        <code>libc</code>, and only so the terminal can be put in raw mode. The whole city is
+        generated from a seed: <code>--seed 42</code> gives you one city and <code>--seed
+        1337</code> gives you a different one, the same on every machine and every build. There
+        is no grid held in memory, so the map has no edge and walking further costs nothing.
+        <a href="https://github.com/Alchemy86/AsciiWorldEngine">Public on GitHub</a>.
       </p>
     </header>
 
@@ -69,15 +71,28 @@
       </p>
     </section>
 
-    <figure>
-      <img src="../assets/video/asciiworldengine/lift-ride.gif" width="480" height="262"
-           alt="Animated: riding a glass lift up a tower. First the shaft wall slides past with a lit floor number going by, then the camera swings round to the street, which falls away below through the glass as the car keeps climbing.">
+    <figure class="code">
+      <pre><code>git clone https://github.com/Alchemy86/AsciiWorldEngine.git &amp;&amp; cd AsciiWorldEngine &amp;&amp; ./play</code></pre>
       <figcaption>
-        One press of the panel, then hands off the whole way — the same mechanic
+        <code>./play</code> finds a Rust toolchain, builds in release, and drops you onto a
+        pavement. Everything after it goes straight to the binary: <code>./play --demo</code>
+        to watch the city walk itself, <code>./play --seed 1337</code> for a different city,
+        <code>./play --help</code> for the rest.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <video controls preload="metadata" poster="../assets/img/asciiworldengine/lift-ride-poster.png"
+             width="1280" height="720">
+        <source src="../assets/video/asciiworldengine/lift-ride.mp4" type="video/mp4">
+      </video>
+      <figcaption>
+        A glass lift, shot looking out of the car: one press of the panel and it climbs on its
+        own while the city slides down past the window — the mechanic
         <a href="https://github.com/Alchemy86/AsciiWorldEngine/blob/main/docs/lift.md">docs/lift.md</a>
-        describes, captured live from the running engine and cut together with
-        <a href="showreel.html">ShowReel</a>'s own <code>gif</code> export, palette generated
-        from this footage rather than a fixed web palette.
+        describes, captured live from the running engine. Cut and scored with
+        <a href="showreel.html">ShowReel</a>; the soundtrack is a chiptune synthesised for it,
+        nothing sampled.
       </figcaption>
     </figure>
 
@@ -101,8 +116,9 @@
                 a seventh that means something: that tower has a lift in it</li>
               <li>A building's name reads on its own facade, so the city is navigable rather than
                 anonymous, and <code>N</code> points at the nearest lift</li>
-              <li>Traffic, pedestrians, lampposts, street trees and a star field, all drawn as
-                billboards through the same per-column buffer the walls use</li>
+              <li>Traffic — carrying real, readable registration plates — pedestrians, lampposts,
+                street trees and a star field, all drawn as billboards through the same per-column
+                buffer the walls use</li>
               <li>Weather: clear, rain or downpour, drawn through the same buffer everything else
                 is, leaning with your own velocity</li>
             </ul>
@@ -150,24 +166,21 @@
 
         <div class="card">
           <div class="card-hd">
-            <p class="kicker">Registration plates</p>
-            <h3>Real plates, drawn honestly at distance</h3>
+            <p class="kicker">Seeded</p>
+            <h3>The same city, everywhere</h3>
           </div>
           <div class="card-bd">
             <ul>
-              <li>The committed default traffic carries 24 real, currently-held private
-                registrations for sale by their owner — not generated placeholders — with the
-                feature itself inspired by
-                <a href="https://www.regtransfers.co.uk/">regtransfers.co.uk</a></li>
-              <li>A plate is drawn out of the same characters as everything else on screen (<code>#</code>
-                body, <code>|</code> uprights), not a painted rectangle, and its panel is sized to
-                the registration it carries rather than a fixed sixteen cells</li>
-              <li>It degrades honestly with distance: readable text up close, a blank plate-shaped
-                panel at middle range, nothing at all past about 70 units — never an abbreviation
-                and never a half-drawn registration, because a plate that reads as some
-                <em>other</em> registration would be worse than no plate</li>
-              <li><code>--plates</code> and <code>--plates-file</code> swap the stock; nothing in
-                the renderer has to change</li>
+              <li>Every cell is a hash of its coordinate and one seed, so a seed is a promise, not
+                a hint: <code>--seed 42</code> is the same streets, towers and traffic on every
+                machine and in every build</li>
+              <li>The seed fixes everything off it at once — which towers are tall, which get a
+                glass lift, the traffic and its plates, and every room behind every door</li>
+              <li><code>--variety 0..1</code> sets how much neighbouring plots may differ: 1 (the
+                default) gives every plot its own windows, colours and roofline, 0 makes a whole
+                district read as one regular grid</li>
+              <li>There is no save file because there is nothing to save — the seed is the city,
+                and a different one is a different city</li>
             </ul>
           </div>
         </div>
@@ -186,7 +199,7 @@
                 core compiles to WebAssembly (<code>--no-default-features --features wasm</code>),
                 dropping the one dependency the terminal frontend needed</li>
               <li><code>--film</code> drives the engine through a readable script and writes every
-                tick to disk, ready for <code>ffmpeg</code> — how the clip above was captured</li>
+                tick to disk as an <code>.svg</code>, ready for <code>ffmpeg</code></li>
             </ul>
           </div>
         </div>
@@ -211,11 +224,11 @@
 
     <figure class="narrow" style="max-width:720px; margin-inline:auto;">
       <img src="../assets/img/asciiworldengine/city-street.png" width="1400" height="764"
-           alt="A street at night in AsciiWorldEngine: towers in six silhouettes rising on both sides, lit storefronts, and two cars on the road whose registration plates read ZD13 YAP and YJ58 FVG.">
+           alt="A street at night in AsciiWorldEngine: towers in six silhouettes rising on both sides, lit storefronts, and two cars on the road carrying registration plates.">
       <figcaption>
-        Street level, default seed. Both visible plates are real characters, not a texture —
-        <code>ZD13 YAP</code> and <code>YJ58 FVG</code> read the same in the frame's own bytes as
-        they do on screen.
+        Street level, the default seed: six tower silhouettes, lit storefronts, traffic on the
+        road. The plates on the cars are real registrations, drawn from characters like
+        everything else on screen rather than pasted on as a texture.
       </figcaption>
     </figure>
 
@@ -261,16 +274,19 @@
 
     <div class="fig-pair">
       <figure class="narrow" style="max-width:none;">
-        <img src="../assets/img/asciiworldengine/plates-near.png" width="1980" height="1090"
-             alt="Two cars close up, their registration plates PAM 314S and 65 NN fully legible as characters on yellow and white plates.">
-        <p class="cap">Near: every character of both plates fits between the wheels</p>
+        <img src="../assets/img/asciiworldengine/seed-42.png" width="2200" height="792"
+             alt="The AsciiWorldEngine skyline generated from seed 42: towers in green, orange, cyan and red silhouettes, with buildings named ORBIT OFFICES and VECTOR LOBBY on their own facades.">
+        <p class="cap"><code>--seed 42</code></p>
       </figure>
       <figure class="narrow" style="max-width:none;">
-        <img src="../assets/img/asciiworldengine/plates-far.png" width="1980" height="1090"
-             alt="The same street from further back: the plates have degraded to blank yellow and white panels of the right size and colour, with no readable text on them.">
-        <p class="cap">Far: a blank panel of the right size and colour — never a guess at the registration</p>
+        <img src="../assets/img/asciiworldengine/seed-1337.png" width="2200" height="792"
+             alt="The same viewpoint generated from seed 1337: a completely different skyline — a tall cyan tower on the right, a purple building, different names and silhouettes.">
+        <p class="cap"><code>--seed 1337</code></p>
       </figure>
     </div>
+    <p class="note" style="margin-top:6px; text-align:center;">
+      The same viewpoint, two seeds. Nothing else changed — a different number is a different city.
+    </p>
 
     <section>
       <div class="sec-head">
