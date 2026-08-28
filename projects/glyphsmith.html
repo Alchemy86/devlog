@@ -46,11 +46,11 @@
     <section>
       <div class="metrics">
         <div class="metric">
-          <div class="num">63</div>
-          <div class="label">Glyphs — A–Z, 0–9, punctuation</div>
+          <div class="num">79</div>
+          <div class="label">Glyphs — letters, digits, punctuation, currency, maths, arrows</div>
         </div>
         <div class="metric">
-          <div class="num">24<span style="color:var(--ink-soft)">/63</span></div>
+          <div class="num">24<span style="color:var(--ink-soft)">/79</span></div>
           <div class="label">Inherited unchanged, from marks already shipping</div>
         </div>
         <div class="metric">
@@ -102,7 +102,7 @@
               <pre><code>'I': (26, ["M13 13 V87"]),
 'H': (66, ["M13 13 V87", "M53 13 V87", "M13 50 H53"]),
 'O': (64, ["M32 13 A19 37 0 1 0 32 87 A19 37 0 1 0 32 13"]),</code></pre>
-              <figcaption>glyphsmith/alphabet.py — three of the sixty-three</figcaption>
+              <figcaption>glyphsmith/alphabet.py — three of the seventy-nine</figcaption>
             </figure>
             <p>
               Only five path commands appear anywhere: <code>M</code>, <code>L</code>,
@@ -195,6 +195,25 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>The alphabet, at 79</h2>
+      </div>
+      <p>
+        A second pass took the alphabet from 63 glyphs to 79: the rest of ASCII completion
+        (<code>`</code> <code>^</code> <code>~</code> <code>|</code> <code>{</code>
+        <code>}</code>), four currency marks (<code>$</code> <code>£</code> <code>€</code>
+        <code>¥</code>), a true minus built to the same 64-unit width as <code>+</code> and
+        <code>=</code> plus a multiply sign, and all four arrows. None of the settled 63
+        moved, and all 14 marks already in the wild still reproduce byte for byte.
+      </p>
+      <figure class="narrow">
+        <img src="../assets/img/glyphsmith/alphabet-specimen.svg" width="1045" height="1288"
+             alt="The complete Glyphsmith alphabet: A to Z, 0 to 9, the punctuation, currency, maths and arrow symbols, with the glyphs drawn for Glyphsmith picked out in ember against the inherited letters in white.">
+        <figcaption>specimen/alphabet.svg — drawn by <code>glyphsmith specimen</code></figcaption>
+      </figure>
     </section>
 
     <section>
@@ -321,8 +340,65 @@
 
     <section>
       <div class="sec-head">
+        <h2>Ten icons, in the same hand</h2>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The construction</p>
+            <h3>A centreline on the letters' own grid</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              <code>play</code>, <code>check</code>, <code>cross</code>, <code>warning</code>,
+              <code>folder</code>, <code>doc</code>, <code>clock</code>, <code>home</code>,
+              <code>chevron</code>, <code>terminal</code> — ten everyday marks, each a
+              centreline on the same 0–100 cap grid a letter lives on, stroked at the same 26
+              with the same round caps and joins. Beside a word set in this alphabet, an icon
+              reads as the same weight and the same temperature, not as clip-art dropped in.
+            </p>
+            <p>
+              <code>warning</code> is the one exception: a triangle at this stroke fills
+              solid, so its exclamation is knocked out in the panel colour — the same
+              iris technique already carving detail out of ShowReel's lens and
+              AsciiWorldEngine's setback tower.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The lockup</p>
+            <h3>IconMotif wears one like a word</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              An icon is drawn through the same public path as a glyph, so
+              <code>IconMotif</code> plugs one straight into <code>Mark</code> as a square
+              lockup — the job TerminalGB's block cursor and GBSelfTest's tick already do,
+              with no new drawing code.
+            </p>
+            <figure class="code">
+              <pre><code>mark = Mark(word="RUNNER", tagline="SHIP IT", motif=IconMotif("play"))
+open("icon.svg", "w").write(mark.icon())</code></pre>
+              <figcaption>docs/icons.md — a house icon set as a mark's square lockup</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+
+      <figure style="margin-top:16px;">
+        <img src="../assets/img/glyphsmith/icons-specimen.svg" width="1038" height="644"
+             alt="Ten icons drawn in the house alphabet's stroke — play, check, cross, warning, folder, doc, clock, home, chevron, terminal — captioned in the alphabet itself.">
+        <figcaption>specimen/icons.svg — drawn by <code>glyphsmith icons</code></figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <div class="sec-head">
         <h2>Where the alphabet says no</h2>
-        <p class="sub">A 26-unit stroke on a 100-unit cap is a quarter of the cap height. Three glyphs ran into that directly.</p>
+        <p class="sub">A 26-unit stroke on a 100-unit cap is a quarter of the cap height. Two passes over the alphabet have run into that directly.</p>
       </div>
       <ul class="gaps">
         <li>
@@ -344,6 +420,26 @@
           wider than W. The asterisk needs its arms long enough that the tips actually
           separate, which makes it 76.
         </li>
+        <li>
+          <b><code>¢</code> is not here.</b> A cent's bar runs down the C, parallel to its
+          arc, and at this stroke the two merge and close the bowl. <code>€</code>'s bar
+          works because it runs across the open mouth instead, where nothing merges.
+        </li>
+        <li>
+          <b><code>°</code> is not here.</b> A degree ring small enough to sit as a
+          superscript has a counter under 13 units, so it fills solid — a raised dot, not a
+          ring.
+        </li>
+        <li>
+          <b><code>÷</code> and <code>±</code> are not here.</b> Dot-bar-dot and a plus
+          stacked on a rule both need more clearance than the 100 units between cap and
+          baseline give at this stroke; each collapses into the mark beside it. <code>/</code>
+          stands in for divide.
+        </li>
+        <li>
+          <b>No accented capitals.</b> The alphabet has no combining-mark composition, and a
+          precomposed accented cap would sit above the cap line the grid forbids.
+        </li>
       </ul>
       <p style="max-width:var(--measure);margin-top:18px;">
         <code>glyphsmith.MissingGlyph</code> names the character and its code point when the
@@ -356,12 +452,12 @@
     <div class="provenance">
       <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
       <p>
-        Everything here was run against the repository as committed 27 Aug 2026:
-        <code>glyphsmith coverage</code> for the 63/24/39 alphabet split,
+        Everything here was run against the repository as committed 28 Aug 2026:
+        <code>glyphsmith coverage</code> for the 79/24/55 alphabet split,
         <code>python3 gallery/verify.py</code> for the fourteen-file byte-for-byte
-        reproduction, and <code>python3 -m pytest tests/</code> — 209 tests, including a
-        small SVG path sampler that measures where each glyph's ink actually sits rather than
-        trusting the stored string.
+        reproduction, and <code>python3 -m pytest tests/</code> — 302 tests, including a
+        small SVG path sampler that measures where each glyph's and each icon's ink actually
+        sits rather than trusting the stored string.
       </p>
       <p>
         The generator and the alphabet are Apache-2.0 — free to fork, extend, and draw

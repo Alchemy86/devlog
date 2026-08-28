@@ -144,9 +144,17 @@ Project pages live in `projects/` and draw their facts from private repos under
 - `projects/terminalgb-portal.html` → `terminalgb-portal/`.
 - `projects/glyphsmith.html` → `glyphsmith/` (repo `Alchemy86/Glyphsmith`, public — the only
   source repo that isn't private). The logo/house-text generator every other project's mark is
-  drawn with; `python3 gallery/verify.py` and `python3 -m pytest tests/` are the two commands
-  that back its numbers. SVGs on the page are copied byte-for-byte from `brand/`, `specimen/`
-  and `gallery/originals/` — never re-rendered.
+  drawn with; `glyphsmith coverage`, `python3 gallery/verify.py` and `python3 -m pytest tests/`
+  are the commands that back its numbers (79 glyphs / 24 inherited / 55 drawn here, 14/14 marks
+  byte-identical, 302 tests, as of commit `18fe3d0`, 28 Aug 2026). SVGs on the page are copied
+  byte-for-byte from `brand/`, `specimen/` and `gallery/originals/` — never re-rendered; the two
+  specimen sheets (the full alphabet, and the ten-icon library added in `18fe3d0`) live at
+  `assets/img/glyphsmith/alphabet-specimen.svg` and `icons-specimen.svg`, renamed from the
+  source repo's `specimen/alphabet.svg` / `specimen/icons.svg` to disambiguate from the other
+  projects' own logo/icon files already in that folder. **`@` is deliberately not a glyph** —
+  it's one of five rejected marks (`@ ¢ ° ÷ ±`) documented in `docs/alphabet.md`; a briefed list
+  of "new characters" that includes `@` is wrong and should be checked against
+  `glyphsmith.alphabet.GLYPHS` before publishing.
 - `projects/showreel.html` and `posts/the-number-that-could-have-sunk-it.html` /
   `posts/the-one-clean-miss.html` / `posts/the-chiptune-that-outgrew-its-blog-post.html` →
   `showreel/` (repo `Alchemy86/ShowReel`, private — one of
