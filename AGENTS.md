@@ -188,25 +188,35 @@ Project pages live in `projects/` and draw their facts from private repos under
   --cols 200 --rows 44` captures (same viewpoint, two seeds), `.svg` rendered to PNG and quantised
   to 256 colours. `city-street.png` is the repo's own committed still.
 
-  The lift-ride video (redone 2026-08-28) is the page's marquee. It ships as
+  The lift-ride video (recut as a FILM 2026-08-28) is the page's marquee. It ships as
   `assets/video/asciiworldengine/lift-ride.mp4` — a 720p `<video controls preload="metadata"
-  poster=…>` (ShowReel pattern, copied from `projects/showreel.html`), ~4.5 MB, WITH audio; the
-  poster is `assets/img/asciiworldengine/lift-ride-poster.png`. Three things were wrong with the
-  first cut and all three are fixed here: it was a silent GIF (now an mp4 with sound), it had no
-  music (now a funky-retro chiptune), and — the real point — **it faced the shaft wall, not out of
-  the window**. The shot must look OUT of the car's outward glass so the city slides down past it
-  as the car rises; the `face_street` pose in the shipped `--lift` mode (stand at the BACK of the
-  car, face the outward glass, pitch down) is the correct one, `face_shaft` is what framed the old
-  clip wrong. Capture path (all committed in `assets/video/asciiworldengine/` so the page points at
-  exactly how it was made): a private, non-shipped `--ride-shot` mode added to a scratch clone of
-  the engine (walk into the car with the real keys, `face_street`, one `ACT` press, then write
-  EVERY tick of the hands-free climb) → `ffmpeg -i frames/ride-%06d.svg` (the `docs/film.md`
-  pipeline) → `lift-ride-capture.mp4` (1980×1080 source clip). The soundtrack `lift-chiptune.wav`
-  is synthesised by `chiptune.py` (committed alongside) — self-authored, public domain, nothing
-  sampled and nothing from the internet, the position ShowReel takes on its own demo bed
-  (`showreel/examples/showreel_demo.assets.md`). It goes IN the ShowReel film
-  (`lift-ride.film.jsonc`, authored at 1280×720) as a placed track with a fade in/out and gain,
-  then `showreel render … --crf 20 -o lift-ride.mp4` produces the 720p master the page ships.
+  poster=…>` (ShowReel pattern, copied from `projects/showreel.html`), ~4.6 MB, WITH audio; the
+  poster is `assets/img/asciiworldengine/lift-ride-poster.png`. It is no longer one clip: it is a
+  30 s sequence the captain shot-listed — open on a bare terminal, `./play` types itself out, a
+  hard cut to the city, walk the avenue and look up the towers, then into the lift and up over the
+  rooftops. Everything about how it was made lives in `lift-ride.assets.md` alongside; read that
+  before touching it. The load-bearing facts, so they are not re-broken:
+
+  - **The ride looks UP-and-OUT at the skyline, never down at the floor.** The captain's whole
+    note on the first cut was "we're half looking at the floor". The `--lift` mode's `face_street`
+    pose pitches DOWN (−0.42) — that is the bug, not the fix. Ride pitch here is a ramp from
+    `+0.03` at the pavement to `−0.20` up by the rooftops (level leaves empty sky over the skyline
+    at the top; down puts the floor back in). Judge any recut by eye: more floor than sky is wrong.
+  - **Two captures, both real engine, seed `0xACC17`** (default — one city for street, tower and
+    lift): `street-capture.mp4` from the shipped `--film --script` recorder (`docs/film.md`),
+    `lift-ride-capture.mp4` from a private `--ride-film` mode on a scratch clone (walk in, one
+    `ACT` press, face the outward glass, write every tick of the hands-free climb). Both are 720p
+    CRF 23 — ShowReel SOURCE, not delivery. The scratch mode is not committed (same footing as the
+    prior `--ride-shot`); the pose and pitch ramp are in `lift-ride.assets.md`.
+  - **The chiptune is arranged to the cuts**, not laid under them: sparse intro under the terminal,
+    a riser, the band dropping in with a crash on the reveal cut (`--drop 3.75`), a resolve at the
+    end. `chiptune.py` is now seeded (`np.random.seed`), so `lift-chiptune.wav` reproduces
+    byte-for-byte from it — `sha1sum` the two to check. Self-authored, public domain.
+  - **The film is `lift-ride.film.jsonc`** (1280×720), the terminal built from `text` layers with a
+    `chars` entrance (the typing) and two transitions with taste — a `cut` for the boom, a
+    `cross-blur` for the look-up→lift bridge. Rendered `showreel render … --crf 36 -o lift-ride.mp4`
+    (CRF 36 because dense ASCII is expensive to compress; keeps it to a few MB).
+
   NOTE: an agent cannot literally hear audio — verify a soundtrack by ffprobe (stream present),
   `volumedetect` (a sensible level, no clip) and a `showspectrumpic` spectrogram (real rhythm, not
   noise), and say so plainly rather than claiming you listened.
