@@ -241,6 +241,34 @@ AtlasGB has no images of its own. Its chart is an inline SVG built from
 `collections.Counter`), and the page says so in its own figcaption. Any future
 AtlasGB visual has to be generated from that repo's real contents the same way.
 
+## Video (added 2026-08-28)
+
+Real captures only, same rule as images, copied byte-for-byte (`sha1sum` the source and the
+copy) rather than re-encoded — re-encoding is a last resort and must be justified and
+verified (compare a decoded frame) if it ever happens. Files live in `assets/video/<project>/`,
+poster frames are extracted with `ffmpeg -ss <t> -vframes 1` and compressed exactly like any
+other PNG (see **Images**). A `<video>` gets `figure` treatment via two rules at the bottom of
+`main.css` (*Figures carrying real footage*): plain `figure video { width:100%; height:auto;
+... }`, and a `.clip-auto` class for a muted autoplay loop that swaps to a sibling `.clip-poster`
+`<img>` under `prefers-reduced-motion: reduce` — pure CSS, no script, matching the rest of the
+site.
+
+**Gotcha:** unlike `<img>`, a `<video>`'s `height` HTML attribute resolves as a real CSS height
+even when only `width` is styled — `figure video { width:100% }` alone leaves `height` pinned
+to the attribute (e.g. a 1280×720 clip stays 720px tall in a 300px-wide column, badly
+letterboxed). `height: auto` is required and is already in the rule above; don't drop it.
+
+A video that autoplays only starts once it scrolls near the viewport (Chromium defers
+off-screen autoplay to save resources) — expected behaviour, not a bug, and exactly what
+`preload="metadata"` is for. Never autoplay anything with real length or unmuted audio;
+`.clip-auto` is for a short, silent, loop-forever hero only. A longer clip gets `controls`, a
+`poster`, and no `autoplay` attribute at all.
+
+Current example: `projects/showreel.html`'s hero and `projects/agentgb.html`'s swarm-view
+figure both draw on AgentGB's own film tooling (`agentgb pixelmapfilm` / `pixelchainfilm`,
+`~/Github/firstmate/projects/agentgb/src/agentgb/video.py`) — never imply ShowReel rendered
+game footage it didn't; say whose tooling made a clip in its caption.
+
 ## Two source-repo docs that disagree with themselves — trust these
 
 Verified 2026-08-26 while writing the project pages; re-check before requoting:
