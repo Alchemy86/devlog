@@ -148,7 +148,8 @@ Project pages live in `projects/` and draw their facts from private repos under
   that back its numbers. SVGs on the page are copied byte-for-byte from `brand/`, `specimen/`
   and `gallery/originals/` — never re-rendered.
 - `projects/showreel.html` and `posts/the-number-that-could-have-sunk-it.html` /
-  `posts/the-one-clean-miss.html` → `showreel/` (repo `Alchemy86/ShowReel`, private — one of
+  `posts/the-one-clean-miss.html` / `posts/the-chiptune-that-outgrew-its-blog-post.html` →
+  `showreel/` (repo `Alchemy86/ShowReel`, private — one of
   three non-GB pages on this site, with Glyphsmith and AsciiWorldEngine). `docs/performance.md`,
   `docs/native-encode-audit.md` and `docs/anarchist-study.md` back the project page's figures;
   `examples/kanto_reel.rs` backs the first post. Line/module counts on the project page are
@@ -173,6 +174,16 @@ Project pages live in `projects/` and draw their facts from private repos under
   demonstrated nothing about ShowReel. The same swarm footage now appears inside ShowReel's own
   reel instead, as the "live footage" scene — composited by ShowReel, which is the honest way to
   show it here.
+  Generated music (commit `64475d6`, 28 Aug 2026) is `src/music.rs`, not a `src/music/` dir —
+  re-`wc -l` before requoting a line count, same reason as the crate's own `src/`. It ports
+  `chiptune.py` from this repo's `assets/video/asciiworldengine/` (a throwaway asset script,
+  committed there first at 114 lines; it later grew to 193 when the AsciiWorldEngine lift film's
+  cut needed the chiptune arranged rather than looped — re-`wc -l` that file too, don't requote
+  114 as current). The 7ms-to-downbeat and 0.9997/0.9999 correlation figures are asserted in
+  ShowReel's own `README.md` and commit message, not independently re-derivable from a script in
+  this repo — cite them from there. `assets/video/showreel/music-demo-mobile.mp4` and its poster
+  are ShowReel's own `docs/music-demo.mobile.mp4`, copied byte-for-byte (`sha1sum`) — a render of
+  `examples/music_demo.film.jsonc`, ships no assets of its own.
 - `projects/asciiworldengine.html` → `asciiworldengine/` (repo `Alchemy86/AsciiWorldEngine`,
   made **public** on 2026-08-28 — the second public source repo after Glyphsmith, so this page
   links to it directly; that is a deliberate exception to the "no page links to a private repo"
