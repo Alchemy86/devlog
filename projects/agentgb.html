@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AgentGB — devlog</title>
-  <meta name="description" content="AgentGB: a 122,330-weight network that plays Pokémon Blue from the screen alone. What it is, what it does, and its current measured rates.">
+  <meta name="description" content="AgentGB: a 122,330-weight network that plays Pokémon Blue from the screen alone. Cold boot to the Pokédex and back out of the lab — eighteen links, fifty cold boots out of fifty — how it's measured, and the honest version of the trick that makes it fast.">
   <meta name="color-scheme" content="light dark">
   <meta property="og:type" content="article">
   <meta property="og:title" content="AgentGB — devlog">
-  <meta property="og:description" content="AgentGB: a 122,330-weight network that plays Pokémon Blue from the screen alone. What it is, what it does, and its current measured rates.">
+  <meta property="og:description" content="A 122,330-weight network that plays Pokémon Blue from the screen alone. Eighteen links, fifty cold boots out of fifty, and the honest version of the trick that makes it fast.">
   <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/agentgb.html">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,24 +37,25 @@
       <p class="lead">
         A small local network that plays Pokémon Blue from the screen and nothing else. A
         picture goes in, a button comes out, on any emulator, at no inference cost worth
-        measuring. It runs the game's opening — bedroom to the Pokédex in Oak's hand,
-        sixteen links — from a cold boot.
+        measuring. From a cold boot it runs the whole opening loop — bedroom to the Pokédex
+        in Oak's hand, back down to deliver Oak's parcel, and out of the lab heading north
+        again. Eighteen links, fifty cold boots out of fifty.
       </p>
     </header>
 
     <section>
       <div class="metrics">
         <div class="metric">
-          <div class="num"><span class="accent">145</span><span style="color:var(--ink-soft)">/150</span></div>
-          <div class="label">16-link chain, cold boot</div>
+          <div class="num"><span class="accent">50</span><span style="color:var(--ink-soft)">/50</span></div>
+          <div class="label">18-link chain, cold boot</div>
         </div>
         <div class="metric">
           <div class="num">122,330</div>
           <div class="label">Weights in the shipped file</div>
         </div>
         <div class="metric">
-          <div class="num">40×36</div>
-          <div class="label">The whole of its input</div>
+          <div class="num">4,720</div>
+          <div class="label">Decisions of budget, per attempt</div>
         </div>
         <div class="metric">
           <div class="num">0</div>
@@ -62,9 +63,11 @@
         </div>
       </div>
       <p class="note" style="margin-top:14px;">
-        <code>models/pixel-student.npz</code>, sha256 <code>b2bb7908…7262c109</code>.
-        Sampled at temperature 1.0, N=150 cold boots. A rate here always names the weights
-        it belongs to.
+        <code>models/pixel-student.npz</code>, sha256 <code>b2bb7908…7262c109</code>. The
+        18-link figure is two independent cold-boot runs of the same committed
+        configuration — 98 of 100, then 50 of 50 the following day on a fresh worktree —
+        not this project's usual 3,000-attempt certification convention. A rate here
+        always names the weights it belongs to.
       </p>
     </section>
 
@@ -117,7 +120,7 @@
                 rounds. A quarter of the collection is a random driver, because a competent
                 teacher never produces the picture of facing a wall</li>
               <li>Fixes since the star pupil are adapters that nudge a frozen base, proven
-                byte-identical before and after</li>
+                byte-identical before and after — <a href="#adapters">more below</a></li>
             </ul>
           </div>
         </div>
@@ -132,10 +135,10 @@
               <li>Success is a byte the cartridge writes, read out of the machine at the
                 moment a goal is claimed, with host-enforced no-memory-writes so nothing
                 the policy does can make that byte lie</li>
+              <li>Every attempt carries a fixed decision budget; running out counts as a
+                failure, no partial credit</li>
               <li>Certification runs 3,000 attempts a link, over held-out start tiles</li>
               <li>Every rate is reported per starter as well as in aggregate</li>
-              <li>Two start-offset spreads on everything: 0–96 frames and 0–3,000, because
-                the gap between them is how brittle a student is</li>
             </ul>
           </div>
         </div>
@@ -150,13 +153,33 @@
               <li>The committed weights drive the eleven-link opening on mGBA's libretro
                 core from a genuine cold power-on — every matrix multiply through a foreign
                 runtime</li>
-              <li>Fan-out certification across twenty workers</li>
+              <li>Fan-out certification across sixteen workers at once</li>
               <li>A swarm view: many emulated Game Boys at once, each at its own world
                 position</li>
             </ul>
           </div>
         </div>
       </div>
+    </section>
+
+    <section class="prose">
+      <h2>What gets recorded, and what doesn't</h2>
+      <p>
+        Two hundred emulator instances step through real button presses against a real
+        ROM, headless, and nothing about a run is staged afterwards. What a swarm film
+        draws comes from one line an agent writes every decision — map, position, facing,
+        which link, in battle or not — the instant that decision happens. A film doesn't
+        re-simulate anything and doesn't stand a screenshot in for a run that didn't
+        happen: the renderer draws characters at exactly the positions already on file, and
+        that file is the <em>output</em> of a real playthrough, not the input to a
+        synthetic one.
+      </p>
+      <p>
+        The score works the same way. Success is a byte the cartridge itself writes when a
+        goal is actually claimed, read back out of the machine at that moment, with
+        host-enforced no-memory-writes standing between the policy and any byte it might
+        otherwise be tempted to fake.
+      </p>
     </section>
 
     <figure>
@@ -168,7 +191,46 @@
         The swarm view in the one place a map position can't show it: 600 of 600 live agents
         reach Brock at once, and the map cuts to each agent's own real screen the instant it
         enters a battle — a battle has no position on the map — then returns to the walked
-        view as agents leave the gym.
+        view as agents leave the gym. Every cell is a live, separate cold boot.
+      </figcaption>
+    </figure>
+
+    <section class="prose">
+      <h2>The trick, and the honest version of it</h2>
+      <p>
+        None of this is affordable at real time. Every episode starts by loading a save
+        state — about 142 KB, the whole state of the machine — which is free: deserialised
+        and running again in under a millisecond. Headless, with the picture turned off for
+        the paths that don't need it, one instance steps at roughly 70 times real time;
+        fanned out across sixteen at once on one box, that measures at 31,485 frames a
+        second. Every one of those instances is provably deterministic — this project's own
+        emulator produces byte-identical framebuffers and save-state snapshots across four
+        processor architectures, with a recorded match on a PSP build besides.
+      </p>
+      <p>
+        Save-state scripting itself is not new, and it isn't the claim here. BizHawk and
+        PyBoy both drive an emulator this way, and PyBoy is the established Python Game
+        Boy emulator for exactly this kind of work — it's what a 50,000-hour reinforcement
+        learning run against this same game used, and PyBoy's own documentation states a
+        real speed ceiling above 5×. What's specific to this project isn't the trick. It's
+        the stack underneath it: an emulator built and pinned to a specific commit and
+        hash rather than borrowed, a memory atlas of the cartridge as ground truth instead
+        of a guess, and a self-test cartridge built to catch the emulator lying about
+        hardware behaviour before any agent is trained against it.
+      </p>
+    </section>
+
+    <figure>
+      <video controls preload="metadata" poster="../assets/img/agentgb/mapswarm-poster.png"
+             width="520" height="832">
+        <source src="../assets/video/agentgb/mapswarm-mobile.mp4" type="video/mp4">
+      </video>
+      <figcaption>
+        Six hundred cold boots, one save state, one composed map — Pallet Town through
+        Route 1 into Viridian City, stitched at the seams the cartridge itself draws them
+        at. Every dot is a live agent's real recorded position, walked between two known
+        points; nothing about the terrain is redrawn or invented. 573 of 600 finish all
+        sixteen milestones in this particular render.
       </figcaption>
     </figure>
 
@@ -192,15 +254,156 @@
             <tr><td>— starting SQUIRTLE</td><td class="num">47</td><td class="num">45 (95.7%)</td></tr>
             <tr><td>Take a starter, reaching the goal</td><td class="num">500</td><td class="num">499 (99.8%)</td></tr>
             <tr><td>Both doubling-back rooms, after the text trigger</td><td class="num">3,000 ea.</td><td class="num">100.0%</td></tr>
-            <tr><td>18-link attempt, two independent draws</td><td class="num">16, 16</td><td class="num">13, then 9</td></tr>
+            <tr><td>Whole 18-link chain, cold boot to leaving the lab a second time</td><td class="num">100</td><td class="num">98 (98.0%)</td></tr>
+            <tr><td>— independent re-verification, next day, fresh worktree</td><td class="num">50</td><td class="num"><strong>50 (100.0%)</strong></td></tr>
+            <tr><td>— <code>back-down-route-1</code> alone, same re-verification</td><td class="num">50</td><td class="num"><strong>50 (100.0%)</strong></td></tr>
           </tbody>
         </table>
       </div>
       <p class="note" style="margin-top:14px;">
         The starter is the student's own choice, read back off the cartridge by the harness;
-        the network never sees which one it took. At the entry tile the first decision
-        carries 0.992 bits of entropy and the split over 500 attempts is 254 / 118 / 127.
-        The eighteen-link row is an attempt, not a certification, and is not counted as one.
+        the network never sees which one it took. The 18-link rows are a screen, not a
+        certification — real, and reproduced twice on two different days, but not yet run
+        at this project's 3,000-attempt scale. On the 100-cold-boot run: BULBASAUR
+        67/68 (98.5%), SQUIRTLE 28/29 (96.6%), CHARMANDER 3/3 — no starter collapse. Why
+        there's a "before" figure worth having at all is the next section.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>What the rig actually records</h2>
+      <p>
+        A certification run doesn't just return a pass rate. Every attempt writes a full
+        record — which milestone it reached and when, where it was standing and what mode
+        the game was in if it ran out of budget, whether it looks like the project's own
+        known wild-battle menu trap — so a result comes back as a post-mortem, not a mark
+        out of a hundred. That distinction is the whole reason a partition like the parcel
+        problem below was findable as a partition, rather than filed as "sometimes fails."
+      </p>
+      <p>
+        The clean 50-of-50 run's own per-milestone timing is the plainest illustration of
+        where the chain's cost actually sits — not evenly across eighteen links, but
+        concentrated in two:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Link</th><th class="num">Decision reached, median</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="num">1</td><td class="mono">leave-the-bedroom</td><td class="num">9</td></tr>
+            <tr><td class="num">2</td><td class="mono">leave-the-house</td><td class="num">22</td></tr>
+            <tr><td class="num">3</td><td class="mono">trigger-oak-in-the-grass</td><td class="num">34</td></tr>
+            <tr><td class="num">4</td><td class="mono">follow-oak-to-the-lab</td><td class="num">69</td></tr>
+            <tr><td class="num">5</td><td class="mono">take-a-starter</td><td class="num">151</td></tr>
+            <tr><td class="num">6</td><td class="mono"><strong>battle-the-rival</strong></td><td class="num"><strong>343</strong></td></tr>
+            <tr><td class="num">7</td><td class="mono">out-of-the-lab</td><td class="num">371</td></tr>
+            <tr><td class="num">8</td><td class="mono">north-out-of-pallet</td><td class="num">390</td></tr>
+            <tr><td class="num">9</td><td class="mono">cross-route-1</td><td class="num">551</td></tr>
+            <tr><td class="num">10</td><td class="mono">into-the-viridian-mart</td><td class="num">579</td></tr>
+            <tr><td class="num">11</td><td class="mono">collect-oaks-parcel</td><td class="num">599</td></tr>
+            <tr><td class="num">12</td><td class="mono">out-of-the-mart</td><td class="num">605</td></tr>
+            <tr><td class="num">13</td><td class="mono">south-out-of-viridian</td><td class="num">633</td></tr>
+            <tr><td class="num">14</td><td class="mono"><strong>back-down-route-1</strong></td><td class="num"><strong>700</strong></td></tr>
+            <tr><td class="num">15</td><td class="mono">into-oaks-lab</td><td class="num">747</td></tr>
+            <tr><td class="num">16</td><td class="mono">receive-the-pokedex</td><td class="num">882</td></tr>
+            <tr><td class="num">17</td><td class="mono">out-of-the-lab-again</td><td class="num">903</td></tr>
+            <tr><td class="num">18</td><td class="mono">north-out-of-pallet-again</td><td class="num">922</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:14px;">
+        Read as the decisions each link itself costs rather than the running total,
+        <code>battle-the-rival</code> alone spends 192 — more than any other single link,
+        real combat rather than walking. <code>back-down-route-1</code> spends 67, well
+        over double what its own outbound mirror, <code>south-out-of-viridian</code>, costs
+        two rows above it (28). A return trip costing more than the matching outbound one
+        is the exact fingerprint of the problem the parcel latch below was built to fix.
+      </p>
+      <p>
+        The same file that reports 50 of 50 also carries a 95% confidence interval on the
+        whole-chain rate (92.9–100.0%), a histogram of how many links each agent actually
+        finished, where a stuck agent was standing and which game mode it was in, and a
+        dedicated counter for the wild-battle menu trap specifically. All of it reads
+        empty or zero here, because nothing failed this run — but the same fields are what
+        turned the pre-fix 69-of-100 run, a few sections down, into a named list of three
+        failure shapes instead of a bare 69%.
+      </p>
+    </section>
+
+    <section class="prose" id="parcel-latch">
+      <h2>The best idea in this project</h2>
+      <p>
+        Viridian City and Route 1 are each walked twice in this chain — once out, to fetch
+        Oak's parcel, once back, to deliver it — and to a screen-only policy the two
+        crossings look identical. A single student trained over both directions split
+        33.53% / 66.77% between them: two numbers that sum to a hundred, which is what a
+        partition looks like, not a policy doing something badly.
+      </p>
+      <p>
+        The first fix worked. It taught the agent to open its own bag mid-route and read
+        whether the parcel was in it — a genuine seventh button, a real recogniser,
+        certified at 299 of 300. It was thrown out anyway, on the captain's own correction:
+        the game already says the answer out loud. The instant the parcel is collected,
+        Gen 1 draws the fact across the screen in plain text.
+      </p>
+      <div class="pullquote">
+        <p>&ldquo;BLUE got OAK's PARCEL!&rdquo;</p>
+        <cite>The cartridge, saying the quiet part out loud</cite>
+      </div>
+      <p>
+        A recogniser trained on that one screen latches a stage change — a single integer,
+        advanced once and never re-checked — instead of answering the same ambiguous
+        question every decision for the rest of the run. Both doubling-back rooms now
+        certify at 100.00%, against random floors under 4%.
+      </p>
+    </section>
+
+    <div class="fig-pair">
+      <figure class="pixel">
+        <p class="cap">The abandoned approach</p>
+        <img src="../assets/img/agentgb/bag-parcel-structural.png" width="872" height="1284"
+             alt="Four panels comparing two Game Boy bag screens, one reading CANCEL alone and one reading OAK's PARCEL above CANCEL, with the coarse arrays the network would have received and a difference map between them.">
+        <figcaption>Genuinely worked — 299 of 300 — and was still the wrong layer to solve it at: reaching past an answer already sitting in plain text to go digging for a second, harder copy of the same fact.</figcaption>
+      </figure>
+      <figure class="pixel">
+        <p class="cap"><span class="accent">What shipped</span></p>
+        <img src="../assets/img/agentgb/parcel-latch-grid.png" width="1400" height="1222"
+             alt="A grid of 26 real Game Boy screens, one per cold-boot agent, most bordered green with one bordered blue reading BLUE got OAK's PARCEL, with per-cell status labels reading OUT or DTP.">
+        <figcaption>Twenty-six real cold boots, real captured frames. The blue-bordered cell is the instant that agent's own copy of the game announces the parcel is collected; every green border marks an agent whose latch has already fired. Captured on an earlier development checkpoint (named on the frame itself) — the mechanism it proves is what ships.</figcaption>
+      </figure>
+    </div>
+
+    <p class="note" style="margin-top:14px; max-width: var(--measure);">
+      The full story, including how the bag-check approach was diagnosed, built and then
+      abandoned after it already worked, is its own post:
+      <a href="../posts/the-doubling-back-wall.html">the wall you hit walking home →</a>
+    </p>
+
+    <section class="prose" id="adapters">
+      <h2>One frozen brain, and a nudge that starts at zero</h2>
+      <p>
+        Every fix to this project since the star pupil was committed is a small, separate
+        network bolted onto a frozen base — its own convolution-and-dense stack, sharing no
+        weights with the policy underneath it. It never replaces the base's opinion about
+        which button to press; it adds a nudge to the base's own pre-softmax scores before
+        one is chosen.
+      </p>
+      <p>
+        The nudge starts at exactly zero. Its last layer is initialised to a zero weight
+        matrix and a zero bias, which return zero for any input regardless of what the
+        layers before them computed — so on the day it's built, before a single training
+        step has run, the base's own answer passes through unchanged. Training only ever
+        pulls the adapter away from zero along directions its own small corpus actually
+        visits; a situation it has never seen stays at zero, not at some arbitrary learned
+        guess. The base network's weights are hashed before and after every adapter is
+        trained, and the hash is required to match.
+      </p>
+      <p>
+        That is why a new goal — a nickname prompt, a trainer battle, the return leg of a
+        route — costs a few hundred training episodes and a frozen-base guarantee, rather
+        than a retrain of the hundred-thousand-parameter network everything else depends
+        on.
       </p>
     </section>
 
@@ -236,24 +439,69 @@
       </p>
     </section>
 
+    <section class="prose">
+      <h2>The engine that quietly changed</h2>
+      <p>
+        The first honest 18-link read came back at 69 of 100, and the milestone breakdown
+        pointed straight at the return leg: every one of the 31 failures happened on the
+        second Route 1 crossing or later, split across a battle-menu trap (28 stuck in
+        battle mode) and a known no-op loop at two exit tiles (3 stuck in the overworld) —
+        both failure shapes already on this project's own record, nothing new.
+      </p>
+      <p>
+        The student hadn't gotten worse. The picture it was being judged on had changed.
+        One commit to this project's emulator, folded into the pinned build without anyone
+        noticing, flipped the default render mode from the cheap engine everything here was
+        trained and measured under to the hardware-accurate one — visually different on
+        exactly the battle-transition frames this project's screen recognisers key on, with
+        the underlying game state (position, mode, RNG) untouched. Nobody had told the
+        emulator which engine to use, so it silently inherited whichever one the binary
+        happened to be compiled with.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Render engine</th><th class="num">N</th><th class="num">Whole 18-link chain</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Hardware-accurate (the silent default)</td><td class="num">50</td><td class="num">41 (82.0%)</td></tr>
+            <tr><td>Cheap engine (what the student was trained under)</td><td class="num">50</td><td class="num"><strong>50 (100.0%)</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Same weights, same seeds, same code — nothing here was retrained or retuned. The
+        fix is a pin: which render engine an evaluation uses is now recorded and enforced
+        alongside the emulator's own commit and the ROM's own hash, defaulted to the cheap
+        engine everything was actually built against, with an explicit override still
+        available for anyone deliberately re-checking the hardware-accurate path. A guard
+        now asserts that default on every test run and fails loudly if a future change ever
+        moves it again without saying so.
+      </p>
+    </section>
+
     <section>
       <div class="sec-head">
         <h2>What is still not true</h2>
       </div>
       <ul class="gaps">
         <li>
-          <b>Sixteen links is the game's opening, not the game.</b> The chain ends in the
-          second town. Everything after that is unbuilt.
+          <b>Eighteen links is the game's opening, not the game.</b> The chain ends heading
+          back north out of Pallet Town. Everything after that is unbuilt.
         </li>
         <li>
-          <b>The eighteen-link chain is not close.</b> Two draws of 16 read 13 and 9. On
-          the new stage the split is SQUIRTLE 4/12 against BULBASAUR 17/18, reproduced
-          across both draws and not chased to a cause. Part of it is the room: that link's
-          own scripted teacher solves 620 of 800 episodes, with several held-out tiles dead.
+          <b>The 18-link figures are a screen, not a certification.</b> 50 of 50 and 98 of
+          100 are real, and reproduced on two different days — but this project's own bar
+          is 3,000 attempts, and nothing at 18 links has been run at that scale.
         </li>
         <li>
-          <b>N=150 is not N=3,000.</b> The headline certification bounds a failure rate near
-          2%, not 0.1%.
+          <b>N=150 is not N=3,000, either.</b> The 16-link headline bounds a failure rate
+          near 2%, not 0.1%.
+        </li>
+        <li>
+          <b>A silent dependency default cost the chain 18 points once already.</b> The fix
+          pins and guards the specific default that moved. It doesn't close the wider class
+          of bug — an upstream commit changing behaviour nobody told this project about.
         </li>
         <li>
           <b>Recorded seeds do not replay exactly.</b> Floating-point non-associativity
@@ -263,7 +511,7 @@
         </li>
         <li>
           <b>The foreign-emulator sweep is behind the student.</b> The mGBA run covers the
-          eleven-link opening. Nothing portable has been re-run at sixteen.
+          eleven-link opening. Nothing portable has been re-run past that.
         </li>
         <li>
           <b>Training is noisy and the noise is measured.</b> Five runs of one identical
@@ -276,50 +524,100 @@
 
     <section id="writing" class="prose">
       <h2>Writing</h2>
-      <ul class="post-list">
-        <li>
-          <a class="post-card" href="../posts/every-failure-was-the-same-starter.html">
-            <div class="post-meta"><span class="tag">AgentGB</span><span>Measurement</span><span>27 Aug 2026</span></div>
-            <p class="post-title">Every failure was the same starter</p>
-            <p class="post-dek">A swarm scored 88.5% and looked healthy. All three failures were the same starter Pokémon — one chance in 2,600.</p>
-          </a>
-        </li>
-        <li>
-          <a class="post-card" href="../posts/the-doubling-back-wall.html">
-            <div class="post-meta"><span class="tag">AgentGB</span><span>Route learning</span><span>27 Aug 2026</span></div>
-            <p class="post-title">The wall you hit walking home</p>
-            <p class="post-dek">Two measured rates that sum to a hundred are the signature of an impossible task, not a hard one.</p>
-          </a>
-        </li>
-        <li>
-          <a class="post-card" href="../posts/the-label-bug-in-oaks-lab.html">
-            <div class="post-meta"><span class="tag">AgentGB</span><span>Training data</span><span>27 Aug 2026</span></div>
-            <p class="post-title">293 runs stopped on the same text box</p>
-            <p class="post-dek">A nine-link chain collapsed from 300 of 300 to 7. The student was doing exactly what its supervisor told it.</p>
-          </a>
-        </li>
-        <li>
-          <a class="post-card" href="../posts/the-one-failure-in-twelve-thousand.html">
-            <div class="post-meta"><span class="tag">AgentGB</span><span>Failure analysis</span><span>27 Aug 2026</span></div>
-            <p class="post-title">The one failure in twelve thousand</p>
-            <p class="post-dek">Somebody was standing on the corner tile. Chasing a single attempt instead of rounding it away.</p>
-          </a>
-        </li>
-        <li>
-          <a class="post-card" href="../posts/reading-the-screen-without-the-letters.html">
-            <div class="post-meta"><span class="tag">AgentGB</span><span>Perception</span><span>27 Aug 2026</span></div>
-            <p class="post-title">Reading the screen without reading the letters</p>
-            <p class="post-dek">At 40×36 no letterform survives. Six in-game messages are still 97.2% separable, and the first two experiments that said otherwise were both too small.</p>
-          </a>
-        </li>
-        <li>
-          <a class="post-card" href="../posts/the-day-that-added-nothing.html">
-            <div class="post-meta"><span class="tag">AgentGB</span><span>Method</span><span>27 Aug 2026</span></div>
-            <p class="post-title">The day that added nothing</p>
-            <p class="post-dek">Five identical training runs, a 23-point spread, and two published numbers that turned out not to be readable.</p>
-          </a>
-        </li>
-      </ul>
+      <p>
+        Not gameplay: three thousand copies of one character, walked into a Pokéball shape
+        by a separate choreography stage with no cartridge and no trained policy anywhere
+        near it. The camera pulls back over one unbroken shot; the crowd is still moving
+        when it ends.
+      </p>
+      <figure class="narrow">
+        <img src="../assets/img/agentgb/livingart-formed-pokeball.png" width="1080" height="1080"
+             alt="Three thousand tiny character sprites arranged into a clean, centred Pokéball shape: top disc, bottom disc, the gap band, the centre button.">
+        <figcaption>Synthetic choreography, not the AI playing — every agent is walked to a target point on a shape, not driven by the trained network. The build, and the six real bugs it took to get here, is its own post below.</figcaption>
+      </figure>
+
+      <div class="card" style="margin-top:26px;">
+        <div class="card-hd">
+          <p class="kicker">Learning to see</p>
+          <h3>What the screen alone can and can't tell the network</h3>
+        </div>
+        <div class="card-bd">
+          <ul class="post-list">
+            <li>
+              <a class="post-card" href="../posts/reading-the-screen-without-the-letters.html">
+                <div class="post-meta"><span class="tag">AgentGB</span><span>Perception</span><span>27 Aug 2026</span></div>
+                <p class="post-title">Reading the screen without reading the letters</p>
+                <p class="post-dek">At 40×36 no letterform survives. Six in-game messages are still 97.2% separable — and the first two experiments that said otherwise were both too small.</p>
+              </a>
+            </li>
+            <li>
+              <a class="post-card" href="../posts/every-failure-was-the-same-starter.html">
+                <div class="post-meta"><span class="tag">AgentGB</span><span>Measurement</span><span>27 Aug 2026</span></div>
+                <p class="post-title">Every failure was the same starter</p>
+                <p class="post-dek">A swarm scored 88.5% and looked healthy. All three failures were the same starter Pokémon — one chance in 2,600.</p>
+              </a>
+            </li>
+            <li>
+              <a class="post-card" href="../posts/the-day-that-added-nothing.html">
+                <div class="post-meta"><span class="tag">AgentGB</span><span>Method</span><span>27 Aug 2026</span></div>
+                <p class="post-title">The day that added nothing</p>
+                <p class="post-dek">Five identical training runs, a 23-point spread, and two published numbers that turned out not to be readable.</p>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-hd">
+          <p class="kicker">Learning the route</p>
+          <h3>The doubling-back problem, and the training data underneath it</h3>
+        </div>
+        <div class="card-bd">
+          <ul class="post-list">
+            <li>
+              <a class="post-card" href="../posts/the-doubling-back-wall.html">
+                <div class="post-meta"><span class="tag">AgentGB</span><span>Route learning</span><span>27 Aug 2026</span></div>
+                <p class="post-title">The wall you hit walking home</p>
+                <p class="post-dek">Two measured rates that sum to a hundred are the signature of an impossible task, not a hard one.</p>
+              </a>
+            </li>
+            <li>
+              <a class="post-card" href="../posts/the-label-bug-in-oaks-lab.html">
+                <div class="post-meta"><span class="tag">AgentGB</span><span>Training data</span><span>27 Aug 2026</span></div>
+                <p class="post-title">293 runs stopped on the same text box</p>
+                <p class="post-dek">A nine-link chain collapsed from 300 of 300 to 7. The student was doing exactly what its supervisor told it.</p>
+              </a>
+            </li>
+            <li>
+              <a class="post-card" href="../posts/the-one-failure-in-twelve-thousand.html">
+                <div class="post-meta"><span class="tag">AgentGB</span><span>Failure analysis</span><span>27 Aug 2026</span></div>
+                <p class="post-title">The one failure in twelve thousand</p>
+                <p class="post-dek">Somebody was standing on the corner tile. Chasing a single attempt instead of rounding it away.</p>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-hd">
+          <p class="kicker">Proving it, watching it happen</p>
+          <h3>What the swarm renderer draws, and why it can be trusted</h3>
+        </div>
+        <div class="card-bd">
+          <ul class="post-list">
+            <li>
+              <a class="post-card" href="../posts/one-character-becomes-three-thousand.html">
+                <div class="post-meta"><span class="tag">AgentGB</span><span>Swarm film · debugging</span><span>29 Aug 2026</span></div>
+                <p class="post-title">One character becomes three thousand</p>
+                <p class="post-dek">A single character stands in a bedroom, then three thousand of it walk themselves into a Pokéball, in one unbroken shot. Six real bugs, most of them nowhere near the camera.</p>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
       <p class="note" style="margin-top:24px;">
         The whole arc in order, with the number that was true at each point, is on the
         <a href="../agentgb-progress.html">progress page</a>.
@@ -335,15 +633,21 @@
         15,504, the dense layer 102,528, the six-way head 774 — 118,806 for the inference
         core — plus 320 conditioning coefficients and a 3,204-parameter goal head for
         122,330. The file's own metadata records <code>in_shape [4, 36, 40]</code>,
-        <code>n_actions 6</code>, <code>observation "screen"</code>.
+        <code>n_actions 6</code>, <code>observation "screen"</code>. The 18-link and
+        per-milestone figures are read directly from this project's own certification
+        summaries (JSON, one file per run, provenance fields included), not quoted from a
+        document; the engine-drift comparison and the emulator's own speed and determinism
+        figures carry their method alongside the number, per this project's own standing
+        rule against merging different measurements into one.
       </p>
       <p>
         Every rate carries the weights file it was measured on, its sample size and its
         temperature, and is recorded in the source repository beside the command that
-        produced it. Both images are committed artefacts of real runs, copied here
-        byte-for-byte apart from PNG re-compression. Game art is Nintendo and Game Freak's
-        and appears here as documentation of a measurement; the project ships no cartridge,
-        no save and no game data.
+        produced it. Every image and video here is a real, unedited capture — copied
+        byte-for-byte apart from lossless re-compression, or a straight re-encode where a
+        heavier source needed a lighter cut, verified frame by frame before publishing.
+        Game art is Nintendo and Game Freak's and appears here as documentation of a
+        measurement; the project ships no cartridge, no save and no game data.
       </p>
     </div>
 

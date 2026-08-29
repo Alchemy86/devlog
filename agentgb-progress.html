@@ -37,7 +37,7 @@
       <h1>AgentGB, over time.</h1>
       <p class="lead">
         A neural player that reads nothing but the screen, from a random-walk floor where
-        nobody leaves the first town to a sixteen-link chain from a cold boot. The arc in
+        nobody leaves the first town to an eighteen-link chain from a cold boot. The arc in
         order, with the number that was true at each point, and then the ledger of what is
         still not true.
       </p>
@@ -46,7 +46,8 @@
         <span>Observation <b>4 × 36 × 40</b></span>
         <span>Actions <b>6</b></span>
         <span>Longest certified chain <b>16 links</b></span>
-        <span>Updated <b>27 Aug 2026</b></span>
+        <span>Furthest chain run <b>18 links</b>, 50/50</span>
+        <span>Updated <b>29 Aug 2026</b></span>
       </div>
     </section>
 
@@ -69,16 +70,16 @@
       <div class="sec-head">
         <h2>Where it stands today</h2>
         <p class="sub">
-          One committed set of weights driving a sixteen-link chain from a cold boot to the
-          Pokédex in Oak's hand.
+          One committed set of weights driving an eighteen-link chain from a cold boot,
+          out to Viridian and back, and north again.
         </p>
       </div>
 
       <div class="tiles">
         <div class="tile">
-          <div class="t-num"><span class="accent">145</span><small>&nbsp;/ 150</small></div>
-          <div class="t-label">Whole 16-link chain, cold boot</div>
-          <div class="t-note">96.67% [92.4–98.6%]. Sampled at T=1.0, gate 0.80, from the bedroom.</div>
+          <div class="t-num"><span class="accent">50</span><small>&nbsp;/ 50</small></div>
+          <div class="t-label">Whole 18-link chain, cold boot</div>
+          <div class="t-note">100.0% [92.9–100.0%]. Screen, not this project's 3,000-attempt certification. The 16-link chain alone is certified at 145/150.</div>
         </div>
         <div class="tile">
           <div class="t-num">122,330</div>
@@ -367,6 +368,32 @@
           <p class="tl-detail">18 links · <b>13/16</b>, then <b>9/16</b> · the helper retired from the default</p>
         </div>
 
+        <div class="tl-item">
+          <div class="tl-date">28 Aug 2026</div>
+          <p class="tl-title">The picture engine was quietly wrong<span class="status">found and fixed</span></p>
+          <p>
+            A dependency bump had silently changed which render engine the pinned emulator
+            build defaulted to, mismatched against the engine the student was actually
+            trained and certified under — the game state was untouched, but the pixels the
+            screen recognisers saw were not. Fixed and pinned, with a guard that now fails
+            loudly if the default ever moves again unannounced.
+          </p>
+          <p class="tl-detail">18 links, same weights, no retrain · <b>69/100 → 98/100</b></p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">29 Aug 2026</div>
+          <p class="tl-title">Fifty for fifty, reproduced<span class="status">screen, not certified</span></p>
+          <p>
+            An independent re-verification on a fresh worktree, the day after the fix,
+            confirmed it exactly: fifty cold boots, fifty complete eighteen-link chains,
+            including the previously weak return leg — and a paired re-run of the old,
+            silently-wrong engine default on the same seeds read 41/50, the same shape of
+            loss the 69/100 screen had already shown.
+          </p>
+          <p class="tl-detail">18 links · <b>50/50</b> · <code>back-down-route-1</code> alone also 50/50</p>
+        </div>
+
       </div>
     </section>
 
@@ -434,18 +461,20 @@
           <text x="567.3" y="67.4" text-anchor="middle" class="val">16</text>
           <text x="567.3" y="264.0" text-anchor="middle" class="dat">26 Aug</text>
           <text x="567.3" y="279.0" text-anchor="middle" class="rat">145/150</text>
-          <rect x="633.9" y="55.2" width="57.1" height="190.8" class="bar p"/>
-          <rect x="633.9" y="55.2" width="57.1" height="190.8" class="bab p"/>
+          <rect x="633.9" y="55.2" width="57.1" height="190.8" class="bar"/>
+          <rect x="633.9" y="55.2" width="57.1" height="190.8" class="bab"/>
           <text x="662.4" y="46.2" text-anchor="middle" class="val">18</text>
-          <text x="662.4" y="264.0" text-anchor="middle" class="dat">26 Aug</text>
-          <text x="662.4" y="279.0" text-anchor="middle" class="rat">13/16</text>
-          <text x="662.4" y="291.0" text-anchor="middle" class="rat">then 9/16</text>
+          <text x="662.4" y="264.0" text-anchor="middle" class="dat">29 Aug</text>
+          <text x="662.4" y="279.0" text-anchor="middle" class="rat">50/50</text>
         </svg>        <figcaption id="fig-chain-cap">
           <strong>Links completed from a cold boot, with the figure recorded at the
           time.</strong> The two bars on 25 August are the same day: eleven links committed
           and portable in the morning, sixteen with the return leg wired in by the evening
           at 21/26. The 26 August pair are the sixteen-link certification (145/150) and the
-          eighteen-link attempt, which is not a certification.
+          first eighteen-link attempt (13/16, then 9/16). The 29 August bar is the same
+          eighteen-link chain after a mismatched render engine was found and fixed —
+          reproduced at 50/50 on a fresh worktree, still a screen rather than a
+          certification.
         </figcaption>
       </figure>
 
@@ -534,15 +563,17 @@
           Pokédex in hand, in the second town. Everything after that is unbuilt.
         </li>
         <li>
-          <b>The eighteen-link chain is not certified and is not close.</b> Two independent
-          N=16 draws read 13/16 and 9/16. On the new stage the split by starter is
-          SQUIRTLE 4/12 against BULBASAUR 17/18 — reproduced across both draws, not chased
-          to a cause.
+          <b>The eighteen-link chain is real, but it is a screen, not a certification.</b>
+          The first two N=16 draws read 13/16 and 9/16; both turned out to be measuring a
+          picture-engine mismatch as much as the student. Fixed and re-verified, the chain
+          now reads 50/50 and 98/100 — but this project's own bar is 3,000 attempts, and
+          nothing at eighteen links has run at that scale.
         </li>
         <li>
-          <b>Part of that is the room, not the student.</b> The new link's own teacher —
-          the scripted expert, not a network — solves only <b>620 of 800</b> episodes in its
-          own corpus, with several held-out tiles dead at 16/16. That is a navigation trap
+          <b>The room itself has a real navigation trap, independent of the student.</b> The
+          last link's own teacher — the scripted expert, not a network — solves only
+          <b>620 of 800</b> episodes in its own corpus, with several held-out tiles dead at
+          16/16. That is a navigation trap
           in the map, and it puts a ceiling under anything trained on it.
         </li>
         <li>

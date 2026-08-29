@@ -134,7 +134,38 @@ Project pages live in `projects/` and draw their facts from private repos under
 
 - `projects/terminalgb.html` → `gameboy/` (the emulator is named **TerminalGB**; the
   repo/dir is `gameboy`).
-- `projects/agentgb.html` → `agentgb/` (the neural player).
+- `projects/agentgb.html` → `agentgb/` (the neural player). AgentGB is the site's
+  **flagship** (set 2026-08-29): `index.html` carries a full-width `.feature-banner`
+  above `#projects` (CSS at the bottom of `main.css`, "Feature banner") linking straight
+  to this page, image `assets/img/agentgb/brock-swarm-poster.png`. The project page is
+  the hub — its own "Writing" section groups AgentGB posts into three chapter `.card`s
+  rather than one flat list; add the next post by dropping a new `<li>` into whichever
+  chapter it belongs to, or a new chapter `.card` if it doesn't fit one.
+  **`AGENTS.md` in the agentgb repo runs ahead of its own polished `docs/` and
+  `README.md`** — when a figure disagrees between them, `AGENTS.md`'s mtime wins; check
+  it first, not last. As of 2026-08-29 the committed chain is **eighteen links** (through
+  `north-out-of-pallet-again`), not sixteen: **50/50 cold boots**, N=50, 95% CI
+  92.9–100.0% (`fm/gb-ppu-standard-pin-p2`, reproduced independently the day after a
+  98/100 N=100 screen), config `--return-leg parcel-return-and-north-v5-oak-alltiles
+  --return-leg-interact wild-battle`, decision budget **4,720**. Per-milestone median
+  decisions and the diagnostic fields (`whole_chain`, `links_completed_histogram`,
+  `stopped_at`, `stopped_in_mode`, `wild_battle_trap`) are read straight out of the
+  certification JSON (e.g. `evaluation/chain/pixel-chaingbppupinp2-clean.json` under a
+  `pokemon-run-*` scratch dir, `policy_sha256` checked against
+  `models/pixel-student.npz`) — re-derive from a fresh JSON, don't requote. **Save-state
+  size is `~142 KB`, not the `170 KB` figure in `docs/no-pixels.md`** — the agentgb
+  repo's own `AGENTS.md` style guide flags that file as the stale one; use 142 KB.
+  The engine-drift story (a TerminalGB commit silently flipping the default render
+  engine, costing the chain 41/50=82% against the pinned 50/50=100%) is documented in
+  the agentgb repo's `docs/emulator-pin.md`, closing section. New AgentGB media:
+  `assets/video/agentgb/mapswarm-mobile.mp4` (600-agent map swarm, re-encoded at 60fps
+  from `mapswarm600-full.mp4` under `pokemon-run-h5/evaluation/chain/` — mobile cuts of
+  AgentGB swarm/chain footage are 60fps here, not the 30fps convention the agentgb
+  repo's own `docs/media/README.md` uses, per the captain's standing instruction that a
+  walk cycle never drops below 60fps) and `assets/img/agentgb/parcel-latch-grid.png` (a
+  full-res frame from `pixel-chain-gridcoldboot-overlay-proof-highlight.mp4` under the
+  same dir, captured on a development checkpoint named on the frame itself, not the
+  shipped weights — caption accordingly).
 - `projects/atlasgb.html` → `atlasgb/`.
 - `projects/pixelgb.html` → `mapgb/`. **Gotcha:** the dir is `mapgb` but the project was
   renamed to **PixelGB** (crate `pixelgb`, repo `Alchemy86/PixelGB`). It is the

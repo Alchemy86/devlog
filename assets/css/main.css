@@ -903,3 +903,82 @@ a.card:hover .card-ft { color: var(--accent); }
   figure.scrollfig svg { width: 640px; max-width: none; }
   figure.scrollfig figcaption { position: sticky; left: 0; }
 }
+
+/* ============================================================================
+   Feature banner (added 2026-08-29)
+   The one full-width, above-everything link the front page gives to its
+   flagship project. Same card anatomy as .project-card, scaled up, with a
+   real capture standing in for the wordmark image project cards use.
+   ========================================================================== */
+.feature-banner {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: stretch;
+  gap: 0;
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  color: inherit;
+  transition: border-color .12s ease, transform .12s ease;
+}
+.feature-banner:hover { text-decoration: none; border-color: var(--accent); transform: translateY(-2px); }
+.feature-banner .fb-copy {
+  padding: 36px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.feature-banner .fb-copy .eyebrow { margin-bottom: 14px; }
+.feature-banner h2 {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: 0 0 12px;
+}
+.feature-banner:hover h2 { color: var(--accent); }
+.feature-banner .fb-dek {
+  font-size: 16px;
+  color: var(--ink-soft);
+  max-width: 52ch;
+  margin: 0 0 22px;
+}
+.feature-banner .fb-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+  margin-bottom: 22px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--hairline);
+}
+.feature-banner .fb-facts b { color: var(--ink); font-weight: 700; }
+.feature-banner .fb-go {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.feature-banner .fb-media { position: relative; min-height: 260px; background: var(--code-bg); }
+.feature-banner .fb-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+@media (max-width: 780px) {
+  .feature-banner { grid-template-columns: 1fr; }
+  .feature-banner .fb-media { min-height: 200px; order: -1; }
+  .feature-banner .fb-copy { padding: 26px 22px; }
+}
