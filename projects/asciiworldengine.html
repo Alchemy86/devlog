@@ -48,7 +48,7 @@
     <section>
       <div class="metrics">
         <div class="metric">
-          <div class="num">0.584</div>
+          <div class="num">0.537</div>
           <div class="label">ms/frame, 180&times;60 on the street</div>
         </div>
         <div class="metric">
@@ -56,7 +56,7 @@
           <div class="label">MB resident — no world grid, ever</div>
         </div>
         <div class="metric">
-          <div class="num">14,390</div>
+          <div class="num">14,785</div>
           <div class="label">Lines of Rust, 18 modules</div>
         </div>
         <div class="metric">
@@ -65,8 +65,8 @@
         </div>
       </div>
       <p class="note" style="margin-top:14px;">
-        A 1,710 fps ceiling at that frame cost, at 10,800 cells with 223 kept a frame by the
-        occlusion cull. Indoors is cheaper still, 0.544 ms; riding a lift is the most expensive
+        A 1,860 fps ceiling at that frame cost, at 10,800 cells with 207 kept a frame by the
+        occlusion cull. Indoors is cheaper still, 0.517 ms; riding a lift is the most expensive
         room in the building, at 0.611 ms.
       </p>
     </section>
@@ -207,6 +207,31 @@
 
         <div class="card">
           <div class="card-hd">
+            <p class="kicker">The view</p>
+            <h3>Coloured glyphs, or a filled city</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li><code>--view classic|blocks|middle</code>, read the same way
+                <code>--weather</code> is — set it at launch or cycle it live with <code>B</code>
+                while you walk</li>
+              <li><code>blocks</code> fills the frame buffer's own background plane behind every
+                surface, so the road becomes a lit surface and a tower reads as a solid block
+                instead of coloured dots on black</li>
+              <li><code>middle</code> fills the buildings only and leaves the road and traffic
+                bare — a lit skyline over a dark street</li>
+              <li>The fill is derived from each surface's own hue at the moment it's drawn, not
+                stored — no new field on the world, a building, a car or a cell</li>
+              <li>Works everywhere the engine runs — <code>--vista</code>, <code>--capture</code>,
+                <code>--film</code>, <code>--doorway</code>, <code>--lift</code>, the browser
+                build — and <code>--view classic</code> stays byte-identical to every capture
+                already on this site</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
             <p class="kicker">The licence</p>
             <h3>Personal and noncommercial, free</h3>
           </div>
@@ -224,12 +249,14 @@
     </section>
 
     <figure class="narrow" style="max-width:720px; margin-inline:auto;">
-      <img src="../assets/img/asciiworldengine/city-street.png" width="1400" height="764"
-           alt="A street at night in AsciiWorldEngine: towers in six silhouettes rising on both sides, lit storefronts, and two cars on the road carrying registration plates.">
+      <img src="../assets/img/asciiworldengine/view-street-blocks.png" width="1400" height="750"
+           alt="A street at night in AsciiWorldEngine's --view blocks mode: towers filled with a dark shade of their own hue behind the glyphs, a lit grey road with lane markings, and traffic on it.">
       <figcaption>
-        Street level, the default seed: six tower silhouettes, lit storefronts, traffic on the
-        road. The plates on the cars are real registrations, drawn from characters like
-        everything else on screen rather than pasted on as a texture.
+        Street level, <code>--view blocks</code>: every surface carries a filled colour field
+        behind its glyphs, so the road reads as a lit surface and each tower as a solid block
+        rather than coloured dots on black. <code>--view classic</code> is still the default and
+        still free — <a href="../posts/three-bytes-a-cell-doing-nothing.html">why it shipped as a
+        mode, not a replacement →</a>
       </figcaption>
     </figure>
 
@@ -255,8 +282,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>On the street, weather clear (default)</td><td class="num">0.009 ms</td><td class="num">0.077 ms</td><td class="num">0.362 ms</td><td class="num">0.136 ms</td><td class="num">0.584 ms</td></tr>
-            <tr><td>Indoors</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">0.544 ms</td></tr>
+            <tr><td>On the street, weather clear (default)</td><td class="num">0.009 ms</td><td class="num">0.075 ms</td><td class="num">0.325 ms</td><td class="num">0.127 ms</td><td class="num">0.537 ms</td></tr>
+            <tr><td>Indoors</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">0.517 ms</td></tr>
             <tr><td>In a moving lift</td><td class="num">0.001 ms</td><td class="num">0.082 ms</td><td class="num">0.420 ms</td><td class="num">0.108 ms</td><td class="num">0.611 ms</td></tr>
             <tr><td>Street, weather rain</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">0.572 ms</td></tr>
             <tr><td>Street, weather downpour</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">0.608 ms</td></tr>
@@ -269,7 +296,9 @@
         but inside a run-to-run spread wide enough that <code>--no-plates</code> is not
         measurably cheaper. Riding a lift's own +0.009 ms on the street is mostly the binary
         being bigger, not new work: paired <code>--vista</code> renders before and after are
-        byte-identical.
+        byte-identical. <code>--view blocks</code> costs +19% of a frame on the street over the
+        classic default — <a href="../posts/three-bytes-a-cell-doing-nothing.html">measured and
+        explained here →</a>
       </p>
     </section>
 
@@ -317,6 +346,19 @@
       <div class="timeline">
 
         <div class="tl-item">
+          <div class="tl-date">28 Aug 2026</div>
+          <p class="tl-title">A second view, and a render that got faster along the way</p>
+          <p>
+            <code>--view blocks</code> fills a colour field behind every surface instead of
+            drawing bright glyphs on black — the frame buffer already had the plane to do it
+            with, wired in and doing nothing since the plate work landed. Profiling it for cost
+            found two redundant per-cell passes; hoisting them left the whole street faster, even
+            with the new mode built in.
+            <a href="../posts/three-bytes-a-cell-doing-nothing.html">Read it →</a>
+          </p>
+        </div>
+
+        <div class="tl-item">
           <div class="tl-date">27 Aug 2026</div>
           <p class="tl-title">Names, a shape you can see coming, and unmirrored floor numbers</p>
           <p>
@@ -358,6 +400,19 @@
         </div>
 
       </div>
+    </section>
+
+    <section id="writing" class="prose">
+      <h2>Writing</h2>
+      <ul class="post-list">
+        <li>
+          <a class="post-card" href="../posts/three-bytes-a-cell-doing-nothing.html">
+            <div class="post-meta"><span class="tag">AsciiWorldEngine</span><span>Study · Rust</span><span>28 Aug 2026</span></div>
+            <p class="post-title">Three bytes a cell, doing nothing</p>
+            <p class="post-dek">A reference clip filled the cell behind every glyph instead of drawing bright characters on black. The plumbing to do the same here turned out to already be wired in, and doing nothing.</p>
+          </a>
+        </li>
+      </ul>
     </section>
 
     <hr>

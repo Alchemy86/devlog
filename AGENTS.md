@@ -192,20 +192,45 @@ Project pages live in `projects/` and draw their facts from private repos under
   this repo — cite them from there. `assets/video/showreel/music-demo-mobile.mp4` and its poster
   are ShowReel's own `docs/music-demo.mobile.mp4`, copied byte-for-byte (`sha1sum`) — a render of
   `examples/music_demo.film.jsonc`, ships no assets of its own.
-- `projects/asciiworldengine.html` → `asciiworldengine/` (repo `Alchemy86/AsciiWorldEngine`,
-  made **public** on 2026-08-28 — the second public source repo after Glyphsmith, so this page
-  links to it directly; that is a deliberate exception to the "no page links to a private repo"
-  convention above, not a precedent for the still-private ones). `docs/performance.md` backs the
-  frame-cost table; `src/registrations.txt` backs the one passing line that the traffic carries
-  real registrations (the page no longer features plates — the captain cut that back on
-  2026-08-28: a passing reference only, no legibility write-up, no dedicated screenshots).
-  Line/module count is `find src -name '*.rs' | xargs wc -l` — re-count before requoting, same
-  reason as ShowReel. The opening leads with the three things the captain named — Rust, runs in
-  your terminal, seed-generated — plus a pasteable `git clone … && ./play`. Seed determinism is
-  real and verified in `src/rng.rs` (every cell is `hash3(coord, seed)`; "a seed is a promise, not
-  a hint"). The `seed-42.png` / `seed-1337.png` comparison pair are `--vista --seed N --at 0,0
-  --cols 200 --rows 44` captures (same viewpoint, two seeds), `.svg` rendered to PNG and quantised
-  to 256 colours. `city-street.png` is the repo's own committed still.
+- `projects/asciiworldengine.html` → **`asciicity/`** (repo `Alchemy86/AsciiWorldEngine`; the
+  local dir is named `asciicity`, not `asciiworldengine` — a mismatch between the project's brand
+  and its repo dirname, not a typo to "fix" back), made **public** on 2026-08-28 — the second
+  public source repo after Glyphsmith, so this page links to it directly; that is a deliberate
+  exception to the "no page links to a private repo" convention above, not a precedent for the
+  still-private ones). `docs/performance.md` backs the frame-cost table; `src/registrations.txt`
+  backs the one passing line that the traffic carries real registrations (the page no longer
+  features plates — the captain cut that back on 2026-08-28: a passing reference only, no
+  legibility write-up, no dedicated screenshots). Line/module count is
+  `find src -name '*.rs' | xargs wc -l` — re-count before requoting, same reason as ShowReel (was
+  14,785 lines / 18 modules as of commit `cdfe484`, 28 Aug 2026 — it grows every session). The
+  opening leads with the three things the captain named — Rust, runs in your terminal,
+  seed-generated — plus a pasteable `git clone … && ./play`. Seed determinism is real and verified
+  in `src/rng.rs` (every cell is `hash3(coord, seed)`; "a seed is a promise, not a hint"). The
+  `seed-42.png` / `seed-1337.png` comparison pair are `--vista --seed N --at 0,0 --cols 200 --rows
+  44` captures (same viewpoint, two seeds), `.svg` rendered to PNG and quantised to 256 colours.
+  `city-street.png`, the repo's own earlier committed still, was retired from the page on
+  2026-08-29 in favour of a `--view blocks` capture of the street (see below) — do not re-add it
+  without also re-deciding which look the page's hero street shot should show.
+
+  **The `--view` mode** (commit `cdfe484`, 28 Aug 2026) added `--view classic|blocks|middle`, a
+  run parameter read the same way `--weather` is and cycled live with `B`: `blocks` fills the
+  frame buffer's existing per-cell background plane (dead code before this, wired end to end but
+  never written to) behind every surface; `middle` fills buildings only. The fill is derived at
+  `Grid::put` from the glyph's own hue (`shade(rgb)`, a flat `render::BLOCK_SHADE` = 0.30
+  downscale) and stores nothing new on the world model. `docs/base-colour.md` is the study that
+  preceded it (commit `2c8b608`) and carries the *why a mode, not a flag* reasoning — read that,
+  not just the commit message, before writing anything about this feature again. `tools/bench-view.sh`
+  is the project's own tool for both comparisons this feature needs (engine before/after via
+  `git archive`, and classic-vs-blocks on one binary) — use it rather than hand-rolling a
+  benchmark; it warns on the load average itself. The render also got faster in the same commit
+  (two per-row hoists in `sky` and `ground`, found while profiling the fill's cost) — current
+  baseline is **0.537 ms/frame** street / **0.517 ms indoors** / **1,860 fps** ceiling / 207 cells
+  kept by the occlusion cull, all from `docs/performance.md`, re-verify before requoting as these
+  move with every render change. Post: `posts/three-bytes-a-cell-doing-nothing.html`, which
+  independently re-ran `tools/bench-view.sh` rather than quoting the doc figures — its numbers
+  (−4.7% engine, +19.2% blocks-over-classic) were measured on a moderately loaded machine (load
+  ~7–8, not the settled <0.5 the project's own docs ask for) and differ slightly from the
+  project's own settled-machine figures for that reason; both are real, neither is wrong.
 
   The lift-ride video (recut as a FILM 2026-08-28) is the page's marquee. It ships as
   `assets/video/asciiworldengine/lift-ride.mp4` — a 720p `<video controls preload="metadata"
