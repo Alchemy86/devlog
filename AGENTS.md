@@ -137,27 +137,42 @@ Project pages live in `projects/` and draw their facts from private repos under
 - `projects/agentgb.html` → `agentgb/` (the neural player). AgentGB is the site's
   **flagship** (set 2026-08-29): `index.html` carries a full-width `.feature-banner`
   above `#projects` (CSS at the bottom of `main.css`, "Feature banner") linking straight
-  to this page, image `assets/img/agentgb/brock-swarm-poster.png`. The project page is
-  the hub — its own "Writing" section groups AgentGB posts into three chapter `.card`s
+  to this page, image `assets/img/agentgb/pixel-observation.png` (see the Brock gotcha
+  below for why this isn't `brock-swarm-poster.png` any more). The project page is
+  the hub — its own "Writing" section groups AgentGB posts into four chapter `.card`s
   rather than one flat list; add the next post by dropping a new `<li>` into whichever
   chapter it belongs to, or a new chapter `.card` if it doesn't fit one.
   **`AGENTS.md` in the agentgb repo runs ahead of its own polished `docs/` and
   `README.md`** — when a figure disagrees between them, `AGENTS.md`'s mtime wins; check
-  it first, not last. As of 2026-08-29 the committed chain is **eighteen links** (through
-  `north-out-of-pallet-again`), not sixteen: **50/50 cold boots**, N=50, 95% CI
-  92.9–100.0% (`fm/gb-ppu-standard-pin-p2`, reproduced independently the day after a
-  98/100 N=100 screen), config `--return-leg parcel-return-and-north-v5-oak-alltiles
-  --return-leg-interact wild-battle`, decision budget **4,720**. Per-milestone median
-  decisions and the diagnostic fields (`whole_chain`, `links_completed_histogram`,
-  `stopped_at`, `stopped_in_mode`, `wild_battle_trap`) are read straight out of the
-  certification JSON (e.g. `evaluation/chain/pixel-chaingbppupinp2-clean.json` under a
-  `pokemon-run-*` scratch dir, `policy_sha256` checked against
+  it first, not last. As of 2026-08-31 the committed chain is **twenty-one links**
+  (through `buy-pokeballs`, three more than the prior `north-out-of-pallet-again`
+  headline): **600/600 cold boots**, N=600, record
+  `pixel-chainchamberedheal-n600-floor092-LANDING.json`, seed 42. It does not reach
+  Pewter and has not fought Brock. Two mechanisms shipped the same day: **NoEffectDecay**
+  (a confidence gate above 0.80 took the argmax, and a no-op on a static screen could
+  never unlock it — 14/14 recorded failures across three 600-run sweeps were this one
+  bug; the fix subtracts a flat amount from a repeated no-op action's logit, taking
+  594/600 to 600/600) and **chambered goals** (an arm condition read from cartridge
+  memory decoupled from a fire condition read from the screen — 306/600 runs now detour
+  to a Pokémon Center and heal mid-chain at zero cost). Both are written up in
+  `posts/exponential-decay-of-belief.html`. Per-milestone median decisions and the
+  diagnostic fields (`whole_chain`, `links_completed_histogram`, `stopped_at`,
+  `stopped_in_mode`, `wild_battle_trap`) are read straight out of the certification JSON
+  (e.g. under a `pokemon-run-*` scratch dir, `policy_sha256` checked against
   `models/pixel-student.npz`) — re-derive from a fresh JSON, don't requote. **Save-state
   size is `~142 KB`, not the `170 KB` figure in `docs/no-pixels.md`** — the agentgb
   repo's own `AGENTS.md` style guide flags that file as the stale one; use 142 KB.
   The engine-drift story (a TerminalGB commit silently flipping the default render
-  engine, costing the chain 41/50=82% against the pinned 50/50=100%) is documented in
-  the agentgb repo's `docs/emulator-pin.md`, closing section. New AgentGB media:
+  engine, costing the chain 41/50=82% against the pinned 50/50=100%, at the prior
+  18-link length) is documented in the agentgb repo's `docs/emulator-pin.md`, closing
+  section.
+  **Gotcha, found 2026-08-31: `assets/img/agentgb/brock-swarm-poster.png` and
+  `assets/video/agentgb/brock-battles-swarm-mobile.mp4` are stale.** The poster's own
+  baked-in overlay reads "link 17 of 17" and "BROCK: 600 BATTLES AT ONCE" — evidence of
+  a longer chain concept that no longer matches the committed chain (21 links, ending at
+  `buy-pokeballs`, no Brock fight). Removed from `index.html`'s feature banner and from
+  the project page; do not reintroduce a Brock claim from these two files without
+  re-verifying against the agentgb repo first. New AgentGB media:
   `assets/video/agentgb/mapswarm-mobile.mp4` (600-agent map swarm, re-encoded at 60fps
   from `mapswarm600-full.mp4` under `pokemon-run-h5/evaluation/chain/` — mobile cuts of
   AgentGB swarm/chain footage are 60fps here, not the 30fps convention the agentgb
@@ -462,7 +477,18 @@ conv1/2/3 = 15,504 · `fc` = 102,528 · `action` = 774 → **118,806** inference
 (86.3% is the single dense layer, 13.1% the three convolutions), plus `film3` 320 and
 `goal_head` 3,204 → **122,330** weights and one metadata string in the committed
 goal-conditioned file. The file's own `meta` records `in_shape [4, 36, 40]`,
-`n_actions 6`, `observation "screen"`.
+`n_actions 6`, `observation "screen"`. `assets/img/agentgb/pixel-network.png` bakes in
+this exact arithmetic (`1,616+4,640+9,248+102,528+774 = 118,806`, "every parameter that
+ships") and is drawn live from the policy object, so it's the fastest way to re-check
+this figure without loading the file yourself.
+
+**Gotcha, found 2026-08-31:** a firstmate-supplied facts sheet gave this network's
+weight count as `118,291` — arithmetically unreachable from the architecture it itself
+described (three stride-2 convs 16/32/32, 800→128 dense, 6-way softmax; that shape only
+ever sums to 118,806) and for the same sha256-identified file as above. Treated as a
+transcription slip and not published; `projects/agentgb.html` and `index.html` use
+118,806. If a future facts sheet repeats `118,291`, re-derive from the npz or from
+`pixel-network.png` rather than trusting the sheet.
 
 ## Local preview and verification
 

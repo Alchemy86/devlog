@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exponential decay of belief — devlog</title>
+  <meta name="description" content="A confidence gate that locks onto one button and never lets go, fixed by letting the belief in it decay instead of banning it. 594 of 600 became 600 of 600, and the same machinery taught the agent to heal itself mid-run.">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Exponential decay of belief">
+  <meta property="og:description" content="A confidence gate that locks onto one button and never lets go, fixed by letting the belief in it decay instead of banning it. 594 of 600 became 600 of 600.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/posts/exponential-decay-of-belief.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <article>
+
+      <header class="post-header">
+        <p class="eyebrow">AgentGB · Robustness</p>
+        <h1>Exponential decay of belief</h1>
+        <p class="lead">
+          The chain was already good: 594 of 600 cold boots. What was left wasn't a spread of
+          small problems — it was fourteen failures, across three separate 600-run sweeps, and
+          every one of them was the same bug. The agent found one button, believed in it
+          completely, and pressed it until the run ran out of budget and died. The fix that
+          cleared it also turned into the tool that taught the agent to walk itself to a
+          Pokémon Center and heal, mid-chain, for free.
+        </p>
+        <div class="post-meta">
+          <span class="tag">AgentGB</span>
+          <span>Confidence gating · self-repair</span>
+          <span>31 Aug 2026</span>
+        </div>
+      </header>
+
+      <section>
+        <div class="metrics">
+          <div class="metric">
+            <div class="num"><span class="accent">600</span><span style="color:var(--ink-soft)">/600</span></div>
+            <div class="label">21-link chain, after the fix</div>
+          </div>
+          <div class="metric">
+            <div class="num">14<span style="color:var(--ink-soft)">/14</span></div>
+            <div class="label">Failures, before it — all one bug</div>
+          </div>
+          <div class="metric">
+            <div class="num">306</div>
+            <div class="label">Runs that now heal themselves mid-chain</div>
+          </div>
+          <div class="metric">
+            <div class="num">13,673</div>
+            <div class="label">Times the first version of the fix fired</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="prose">
+        <h2>Fourteen failures, one bug</h2>
+        <p>
+          A cold-boot chain scoring 594 of 600 looks, at a glance, like six runs that each went
+          slightly wrong in their own way — bad luck spread thin across six hundred attempts.
+          It wasn't. Three separate 600-run sweeps produced fourteen failures between them, and
+          every single one ended the same way: twelve identical actions in a row, the same
+          button, right up until the run ran out of decisions and was scored a loss.
+        </p>
+        <p>
+          The cause was the confidence gate the agent already relies on to act decisively.
+          Above 0.80 confidence, it stops sampling and takes the argmax — the single most
+          likely action, no randomness. That's the right behaviour almost everywhere in the
+          chain. It's the wrong behaviour on a screen that a no-op cannot change: press a
+          button that does nothing, the frame stays exactly as it was, the network sees the
+          same input it just saw, and produces the same output. Confidence in the wrong button
+          doesn't wobble. It locks, and there is nothing in a static screen that can ever
+          unlock it.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>Don't ban the action. Let the belief in it decay.</h2>
+        <p>
+          The obvious fix is a blocklist — once an action has done nothing N times running,
+          take it off the table. It works, and it's also exactly the kind of hard rule that
+          breaks the next time the situation looks a little different. The fix that shipped
+          instead doesn't forbid anything. It penalises belief.
+        </p>
+        <p>
+          Every time an action fires and the frame doesn't change, a flat amount is subtracted
+          from that action's logit — its pre-softmax score — before the next decision. Nothing
+          else on the board moves. The other five actions keep whatever scores the network gave
+          them; only the one that just proved it does nothing gets docked.
+        </p>
+        <div class="pullquote">
+          <p>Exponential decay of belief.</p>
+          <cite>The framing is the captain's, and it is exact — not a metaphor</cite>
+        </div>
+        <p>
+          The exactness is in the arithmetic. Subtracting a flat amount <em>D</em> from a
+          logit divides that action's odds against every alternative by <em>e<sup>-D</sup></em>
+          on every repeat — the same shape as an exponential backoff, arrived at from the
+          opposite direction. A backoff grows the wait after a failure; this shrinks the
+          confidence after one. Repeat the no-op enough times and the action that looked
+          certain a moment ago stops being the argmax at all, sampling opens back up, and the
+          agent tries something else — not because it was told to, but because it stopped
+          believing the thing it was doing was working.
+        </p>
+        <p>
+          Whole-chain result: <strong>594 of 600 to 600 of 600</strong>. The specific failure
+          mode the record calls <code>stuck_in_battle</code> — an agent locked in a real fight,
+          repeating an action combat wasn't accepting — went from 4 occurrences to 0.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>The same machinery, pointed at healing</h2>
+        <p>
+          Once an agent can notice that repeating something isn't working, the next question is
+          obvious: can it notice a good reason to go do something else entirely, mid-chain,
+          without derailing the chain it's already following? The answer shipped the same day,
+          as a second mechanism: <strong>chambered goals</strong>.
+        </p>
+        <p>
+          A chambered goal has two conditions, decoupled in time. An <em>arm</em> condition,
+          read from cartridge memory — the agent has taken damage. A <em>fire</em> condition,
+          read from the screen, checked only once armed — the agent is looking at a Pokémon
+          Center. Take damage, and the chamber loads. Later, whenever a Center actually comes
+          into view, it fires: walk in, heal at the counter, walk back out, resume whatever
+          the chain was already doing.
+        </p>
+        <p>
+          Satisfaction doesn't have to come from the direction the design expects. A blackout
+          heals the party too, so it discharges the chamber on its own, with no Center visit at
+          all — the condition the mechanism exists to detect stopped being true, and the
+          mechanism notices that as readily as it notices the Center. And because the fire
+          condition's recogniser is never even consulted while the chamber is unarmed, it is
+          the least-exposed recogniser anywhere in the system: arming isn't just a trigger, it's
+          a safety property. A screen can only fire this goal at the one moment the agent is
+          actually carrying damage.
+        </p>
+        <p>
+          Across the current 600-run certification, <strong>306 runs</strong> take that detour —
+          walk to a Center, heal, walk back out — mid-chain, at zero cost to the chain itself.
+        </p>
+      </section>
+
+      <figure class="pixel">
+        <img src="../assets/img/agentgb/pixel-network.png" width="1240" height="2771"
+             alt="A technical sheet drawing the student network: three convolution layers with their live feature maps, a dense layer, and a six-bar softmax output at the bottom.">
+        <figcaption>
+          The six-way head both mechanisms above operate against. Decay is a flat subtraction
+          against one of these six bars, before the softmax is taken — nothing upstream of this
+          layer changes, and nothing about the convolutions above it knows the subtraction
+          happened.
+        </figcaption>
+      </figure>
+
+      <section class="prose">
+        <h2>How badly hurt he is decides how sure the recogniser has to be</h2>
+        <p>
+          A chambered goal still needs to know how confident is confident enough, and that
+          threshold isn't fixed. It's a gradient against how much the arm condition actually
+          hurt: barely scratched, the recogniser has to be almost certain the building in front
+          of it is a Center before it fires. Badly hurt, a glimpse is enough — the cost of a
+          false negative goes up as the party's health goes down.
+        </p>
+        <p>
+          Where that gradient's floor sits was measured, not guessed, one value at a time:
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Confidence floor</th><th class="num">N</th><th class="num">Heals fired</th><th class="num">Chain result</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>0.945</td><td class="num">300</td><td class="num">96</td><td class="num">300/300</td></tr>
+              <tr><td>0.94</td><td class="num">300</td><td class="num">100</td><td class="num">300/300</td></tr>
+              <tr><td>0.93</td><td class="num">300</td><td class="num">131</td><td class="num">300/300</td></tr>
+              <tr><td><strong>0.92</strong></td><td class="num">300</td><td class="num">152</td><td class="num"><strong>300/300</strong></td></tr>
+              <tr><td>0.91</td><td class="num">600</td><td class="num">—</td><td class="num">599/600</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          0.92 is the measured last safe rung, and its margin is one notch: drop one more click
+          to 0.91 and the chain loses a run it wasn't losing before. Every floor from 0.945 down
+          to 0.92 fires more heals as it loosens and still lands the chain clean — the gradient
+          buys more coverage for free right up until the exact point it doesn't.
+        </p>
+      </section>
+
+      <section class="prose">
+        <h2>The honest bits</h2>
+        <p>
+          The gradient shipped in its measured, governed form. It didn't start there. The first
+          version of the confidence threshold was tuned too hot — loose enough that the
+          recogniser it gated fired <strong>13,673 times</strong> over the course of testing it,
+          and five runs got trapped standing at a door, chambering and re-chambering a heal that
+          kept almost-firing. At the floor that actually shipped, 0.92, the same recogniser
+          fires 591 times. The difference between those two numbers is the entire reason the
+          floor sweep above exists instead of a single value picked once and trusted.
+        </p>
+        <p>
+          A separate change tried to make the Center recogniser more precise by narrowing what
+          it was allowed to look at — cropping the frame down to just the POKé sign over the
+          door, instead of the wider shot that includes the building around it. It scored worse:
+          77.7% against the wider crop's 79.6%. The pixel observation the tighter crop produced
+          was correct; the classifier simply had less to work with than the wider one gave it.
+          That result didn't get deleted for not helping. It's in the record as a negative,
+          because the next person tempted to crop tighter for the same reason should be able to
+          find out it already didn't work.
+        </p>
+        <p>
+          And once, earlier in this same stretch of work, a chain got certified, reported and
+          merged while four of the weight files it depended on existed only in a scratch folder
+          — real on the machine that ran the certification, absent from everything committed.
+          The build didn't catch it because nothing was checking. It does now:
+          <code>tools/test_studentconfig_guards.py</code> test 10 fails the build if any
+          registered goal points at a path that isn't tracked.
+        </p>
+      </section>
+
+      <hr>
+
+      <p class="note">
+        The 594/600 baseline, the three 600-run failure sweeps, the 600-run certification after
+        the fix, and the floor-sweep table are this project's own run records from 2026-08-31,
+        not quoted from a doc. The wider project, its methodology and its tooling are on the
+        <a href="../projects/agentgb.html">AgentGB project page</a>.
+      </p>
+
+      <a class="backlink" href="../">← Back to devlog</a>
+
+    </article>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

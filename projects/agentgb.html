@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AgentGB — devlog</title>
-  <meta name="description" content="AgentGB: a 122,330-weight network that plays Pokémon Blue from the screen alone. Cold boot to the Pokédex and back out of the lab — eighteen links, fifty cold boots out of fifty — how it's measured, and the honest version of the trick that makes it fast.">
+  <meta name="description" content="AgentGB: a 118,806-weight network that plays Pokémon Blue from the screen alone. Cold boot to Poké Balls in hand — twenty-one links, six hundred cold boots out of six hundred — the method, the tooling, and the honest version of how it got there.">
   <meta name="color-scheme" content="light dark">
   <meta property="og:type" content="article">
   <meta property="og:title" content="AgentGB — devlog">
-  <meta property="og:description" content="A 122,330-weight network that plays Pokémon Blue from the screen alone. Eighteen links, fifty cold boots out of fifty, and the honest version of the trick that makes it fast.">
+  <meta property="og:description" content="A 118,806-weight network that plays Pokémon Blue from the screen alone. Twenty-one links, six hundred cold boots out of six hundred, and the method built to transfer to a different game.">
   <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/agentgb.html">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,25 +37,27 @@
       <p class="lead">
         A small local network that plays Pokémon Blue from the screen and nothing else. A
         picture goes in, a button comes out, on any emulator, at no inference cost worth
-        measuring. From a cold boot it runs the whole opening loop — bedroom to the Pokédex
-        in Oak's hand, back down to deliver Oak's parcel, and out of the lab heading north
-        again. Eighteen links, fifty cold boots out of fifty.
+        measuring. From a cold boot it runs the whole opening loop — bedroom to the Pokédex,
+        out to deliver Oak's parcel, back for it a second time, and out again with Poké Balls
+        in hand. Twenty-one links, six hundred cold boots out of six hundred. Everything below
+        the scores — the training pipeline, the certification harness, the tooling — is built
+        to be pointed at a different cartridge, which is the actual point of writing it up.
       </p>
     </header>
 
     <section>
       <div class="metrics">
         <div class="metric">
-          <div class="num"><span class="accent">50</span><span style="color:var(--ink-soft)">/50</span></div>
-          <div class="label">18-link chain, cold boot</div>
+          <div class="num"><span class="accent">600</span><span style="color:var(--ink-soft)">/600</span></div>
+          <div class="label">21-link chain, cold boot to Poké Balls</div>
         </div>
         <div class="metric">
-          <div class="num">122,330</div>
-          <div class="label">Weights in the shipped file</div>
+          <div class="num">306</div>
+          <div class="label">Of those, self-heal mid-chain at zero cost</div>
         </div>
         <div class="metric">
-          <div class="num">4,720</div>
-          <div class="label">Decisions of budget, per attempt</div>
+          <div class="num">118,806</div>
+          <div class="label">Weights in the student's inference core</div>
         </div>
         <div class="metric">
           <div class="num">0</div>
@@ -63,11 +65,12 @@
         </div>
       </div>
       <p class="note" style="margin-top:14px;">
-        <code>models/pixel-student.npz</code>, sha256 <code>b2bb7908…7262c109</code>. The
-        18-link figure is two independent cold-boot runs of the same committed
-        configuration — 98 of 100, then 50 of 50 the following day on a fresh worktree —
-        not this project's usual 3,000-attempt certification convention. A rate here
-        always names the weights it belongs to.
+        <code>models/pixel-student.npz</code>, policy sha256 <code>b2bb79082c88…</code>,
+        emulator <code>1c7a78398b76…</code>, ROM <code>2a951313c264…</code>. Sampled at
+        temperature 1.0, not argmax — argmax takes the same starter every time; sampling is
+        what produces a real distribution. Record:
+        <code>pixel-chainchamberedheal-n600-floor092-LANDING.json</code>, seed 42, N=600. A
+        rate on this page always names the weights and the record it belongs to.
       </p>
     </section>
 
@@ -137,7 +140,8 @@
                 the policy does can make that byte lie</li>
               <li>Every attempt carries a fixed decision budget; running out counts as a
                 failure, no partial credit</li>
-              <li>Certification runs 3,000 attempts a link, over held-out start tiles</li>
+              <li>Certification runs 3,000 attempts a link; the whole-chain figure on this
+                page is a 600-run cold-boot certification, not the per-link scale</li>
               <li>Every rate is reported per starter as well as in aggregate</li>
             </ul>
           </div>
@@ -162,17 +166,141 @@
       </div>
     </section>
 
+    <section>
+      <div class="sec-head">
+        <h2>Method — the part that transfers to another game</h2>
+        <p class="sub">
+          This is the section that matters if the plan is to point this at a different
+          cartridge. None of it is specific to Pokémon.
+        </p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Ground truth</p>
+            <h3>Certify on a memory milestone, never a picture</h3>
+          </div>
+          <div class="card-bd">
+            <p>Every link's goal is a cartridge value — <code>$D35E == 37</code>, not "does
+              this look right". A picture is what the student acts on; it never gets to
+              grade itself.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Recognisers</p>
+            <h3>Ask what just happened, not where you are</h3>
+          </div>
+          <div class="card-bd">
+            <p>Two false-fire bugs on 2026-08-31 were exactly that mistake: one decided a
+              street tile was a shop at 0.647 confidence, one fired on a shop menu. A
+              recogniser that answers "where am I" is answering the wrong question.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Recognisers</p>
+            <h3>Restrict what a recogniser can see</h3>
+          </div>
+          <div class="card-bd">
+            <p><code>crop_region</code> is a hard structural limit, not a hope that a
+              balanced corpus makes the network ignore the rest of the screen. A declared
+              region beats hard negatives, because exclusion is free and training is not.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Measurement</p>
+            <h3>One variable per measurement</h3>
+          </div>
+          <div class="card-bd">
+            <p>Every wrong number recorded on 2026-08-31 came from changing two things at
+              once.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Measurement</p>
+            <h3>Measured negatives are kept, not deleted</h3>
+          </div>
+          <div class="card-bd">
+            <p>Cropping a recogniser to just the POKé/MART sign scored 77.7% against the
+              wider crop's 79.6%. The pixel observation was fine; the classifier win wasn't
+              there. That result is documented, not binned.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Build hygiene</p>
+            <h3>Artefacts must be committed, and a guard enforces it</h3>
+          </div>
+          <div class="card-bd">
+            <p>A chain was once certified, reported and merged while four of the weight
+              files it depended on existed only in a scratch folder.
+              <code>tools/test_studentconfig_guards.py</code> test 10 now fails the build
+              if any registered goal points at an untracked path.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Tooling</p>
+            <h3>Tools must not have silent foot-guns</h3>
+          </div>
+          <div class="card-bd">
+            <p><code>pixelchainfilm</code> ran happily without <code>--every-frame</code>,
+              produced a valid file, and silently yielded a teleporting film. It's now the
+              default, with an explicit opt-out instead of a silent one.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>The tooling someone else would use</h2>
+        <p class="sub">
+          What ships in the repository, not a description of it.
+        </p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Command</th><th>What it does</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>agentgb pixelchain</code></td><td>Runs the student over the chain, N runs, reports per-link rates</td></tr>
+            <tr><td><code>agentgb pixelchainfilm</code></td><td>N agents side by side, each on its own screen</td></tr>
+            <tr><td><code>agentgb pixelmapfilm</code></td><td>The same swarm on one composed map, follow camera</td></tr>
+            <tr><td><code>agentgb pixelprofile</code></td><td>Where the time actually goes: student vs. emulator</td></tr>
+            <tr><td><code>agentgb studentconfig compare|promote</code></td><td>The certification gate — nothing ships without it</td></tr>
+            <tr><td><code>tools/train_adapters.py</code></td><td>Trains a frozen-base adapter for a new goal</td></tr>
+            <tr><td><code>TerminalGB</code></td><td>The emulator underneath: <code>--speed uncapped|realtime|Nx</code>, <code>--audio</code>, <code>--video-out</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:14px;">
+        None of these are wrappers built for this page. They're the same commands the chain
+        above was certified with.
+      </p>
+    </section>
+
     <section class="prose">
       <h2>What gets recorded, and what doesn't</h2>
       <p>
-        Two hundred emulator instances step through real button presses against a real
-        ROM, headless, and nothing about a run is staged afterwards. What a swarm film
-        draws comes from one line an agent writes every decision — map, position, facing,
-        which link, in battle or not — the instant that decision happens. A film doesn't
-        re-simulate anything and doesn't stand a screenshot in for a run that didn't
-        happen: the renderer draws characters at exactly the positions already on file, and
-        that file is the <em>output</em> of a real playthrough, not the input to a
-        synthetic one.
+        Emulator instances step through real button presses against a real ROM, headless, and
+        nothing about a run is staged afterwards. What a swarm film draws comes from one line
+        an agent writes every decision — map, position, facing, which link, in battle or not —
+        the instant that decision happens. A film doesn't re-simulate anything and doesn't
+        stand a screenshot in for a run that didn't happen: the renderer draws characters at
+        exactly the positions already on file, and that file is the <em>output</em> of a real
+        playthrough, not the input to a synthetic one.
       </p>
       <p>
         The score works the same way. Success is a byte the cartridge itself writes when a
@@ -183,15 +311,15 @@
     </section>
 
     <figure>
-      <video controls preload="metadata" poster="../assets/img/agentgb/brock-swarm-poster.png"
-             width="1280" height="720">
-        <source src="../assets/video/agentgb/brock-battles-swarm-mobile.mp4" type="video/mp4">
+      <video controls preload="metadata" poster="../assets/img/agentgb/mapswarm-poster.png"
+             width="520" height="832">
+        <source src="../assets/video/agentgb/mapswarm-mobile.mp4" type="video/mp4">
       </video>
       <figcaption>
-        The swarm view in the one place a map position can't show it: 600 of 600 live agents
-        reach Brock at once, and the map cuts to each agent's own real screen the instant it
-        enters a battle — a battle has no position on the map — then returns to the walked
-        view as agents leave the gym. Every cell is a live, separate cold boot.
+        Six hundred cold boots, one save state, one composed map — Pallet Town through
+        Route 1 into Viridian City, stitched at the seams the cartridge itself draws them
+        at. Every dot is a live agent's real recorded position, walked between two known
+        points; nothing about the terrain is redrawn or invented.
       </figcaption>
     </figure>
 
@@ -220,20 +348,6 @@
       </p>
     </section>
 
-    <figure>
-      <video controls preload="metadata" poster="../assets/img/agentgb/mapswarm-poster.png"
-             width="520" height="832">
-        <source src="../assets/video/agentgb/mapswarm-mobile.mp4" type="video/mp4">
-      </video>
-      <figcaption>
-        Six hundred cold boots, one save state, one composed map — Pallet Town through
-        Route 1 into Viridian City, stitched at the seams the cartridge itself draws them
-        at. Every dot is a live agent's real recorded position, walked between two known
-        points; nothing about the terrain is redrawn or invented. 573 of 600 finish all
-        sixteen milestones in this particular render.
-      </figcaption>
-    </figure>
-
     <section>
       <div class="sec-head">
         <h2>Current scores</h2>
@@ -248,86 +362,113 @@
             <tr><th>What was run</th><th class="num">N</th><th class="num">Result</th></tr>
           </thead>
           <tbody>
-            <tr><td>Whole 16-link chain, cold boot to the Pokédex</td><td class="num">150</td><td class="num"><strong>145 (96.7%)</strong></td></tr>
-            <tr><td>— of those, starting BULBASAUR</td><td class="num">90</td><td class="num">87 (96.7%)</td></tr>
-            <tr><td>— starting CHARMANDER</td><td class="num">13</td><td class="num">13 (100%)</td></tr>
-            <tr><td>— starting SQUIRTLE</td><td class="num">47</td><td class="num">45 (95.7%)</td></tr>
-            <tr><td>Take a starter, reaching the goal</td><td class="num">500</td><td class="num">499 (99.8%)</td></tr>
-            <tr><td>Both doubling-back rooms, after the text trigger</td><td class="num">3,000 ea.</td><td class="num">100.0%</td></tr>
-            <tr><td>Whole 18-link chain, cold boot to leaving the lab a second time</td><td class="num">100</td><td class="num">98 (98.0%)</td></tr>
-            <tr><td>— independent re-verification, next day, fresh worktree</td><td class="num">50</td><td class="num"><strong>50 (100.0%)</strong></td></tr>
-            <tr><td>— <code>back-down-route-1</code> alone, same re-verification</td><td class="num">50</td><td class="num"><strong>50 (100.0%)</strong></td></tr>
+            <tr><td>Whole 21-link chain, cold boot to Poké Balls in hand</td><td class="num">600</td><td class="num"><strong>600 (100%)</strong></td></tr>
+            <tr><td>— of those, self-healing detour mid-chain, at no cost to the chain</td><td class="num">600</td><td class="num">306 (51.0%)</td></tr>
+            <tr><td>Starter chosen — BULBASAUR</td><td class="num">600</td><td class="num">389 (64.8%)</td></tr>
+            <tr><td>Starter chosen — SQUIRTLE</td><td class="num">600</td><td class="num">184 (30.7%)</td></tr>
+            <tr><td>Starter chosen — CHARMANDER</td><td class="num">600</td><td class="num">27 (4.5%)</td></tr>
           </tbody>
         </table>
       </div>
       <p class="note" style="margin-top:14px;">
         The starter is the student's own choice, read back off the cartridge by the harness;
-        the network never sees which one it took. The 18-link rows are a screen, not a
-        certification — real, and reproduced twice on two different days, but not yet run
-        at this project's 3,000-attempt scale. On the 100-cold-boot run: BULBASAUR
-        67/68 (98.5%), SQUIRTLE 28/29 (96.6%), CHARMANDER 3/3 — no starter collapse. Why
-        there's a "before" figure worth having at all is the next section.
+        the network never sees which one it took. It's sampled, not forced — argmax takes
+        Bulbasaur every time, which is why the distribution above exists at all.
       </p>
     </section>
 
     <section class="prose">
-      <h2>What the rig actually records</h2>
+      <h2>The twenty-one links</h2>
       <p>
-        A certification run doesn't just return a pass rate. Every attempt writes a full
-        record — which milestone it reached and when, where it was standing and what mode
-        the game was in if it ran out of budget, whether it looks like the project's own
-        known wild-battle menu trap — so a result comes back as a post-mortem, not a mark
-        out of a hundred. That distinction is the whole reason a partition like the parcel
-        problem below was findable as a partition, rather than filed as "sometimes fails."
+        This is the actual decomposition, not a description of one — each entry below is a
+        single cartridge condition, checked, nothing more:
+      </p>
+      <p style="font-size:13px; line-height:2.1; color:var(--ink-soft);">
+        <code>leave-the-bedroom</code> → <code>leave-the-house</code> →
+        <code>trigger-oak-in-the-grass</code> → <code>follow-oak-to-the-lab</code> →
+        <code>take-a-starter</code> → <code>battle-the-rival</code> →
+        <code>out-of-the-lab</code> → <code>north-out-of-pallet</code> →
+        <code>cross-route-1</code> → <code>into-the-viridian-mart</code> →
+        <code>collect-oaks-parcel</code> → <code>out-of-the-mart</code> →
+        <code>south-out-of-viridian</code> → <code>back-down-route-1</code> →
+        <code>into-oaks-lab</code> → <code>receive-the-pokedex</code> →
+        <code>out-of-the-lab-again</code> → <code>north-out-of-pallet-again</code> →
+        <code>cross-route-1-again</code> → <code>into-the-viridian-mart-again</code> →
+        <code>buy-pokeballs</code>
+      </p>
+      <p class="note" style="margin-top:14px;">
+        The last three links are new since the chain last certified at eighteen: cross Route
+        1 a second time, back into the Viridian mart, buy the balls. The chain ends there —
+        it does not yet reach Pewter, and it has not fought Brock.
+      </p>
+    </section>
+
+    <section class="prose" id="robustness">
+      <h2>Staying alive: not getting stuck, and healing when it doesn't need to ask</h2>
+      <p>
+        A chain scoring 594 of 600 looks like several small problems spread thin. It wasn't.
+        Three separate 600-run sweeps produced fourteen failures between them, and every one
+        ended the same way: twelve identical actions in a row, the same button, until the run
+        ran out of decisions. The cause was the confidence gate itself — above 0.80 confidence
+        the policy takes the argmax rather than sampling, and a no-op on a screen that can't
+        change produces the exact same input on the next decision, so the same output, forever.
+        Confidence in the wrong button doesn't wobble once it's locked; nothing about a static
+        screen can unlock it.
       </p>
       <p>
-        The clean 50-of-50 run's own per-milestone timing is the plainest illustration of
-        where the chain's cost actually sits — not evenly across eighteen links, but
-        concentrated in two:
+        The fix doesn't ban the action. It subtracts a flat amount from the repeated action's
+        logit every time it fires without changing the frame — nothing else on the board
+        moves. Subtracting <em>D</em> from a logit divides that action's odds against every
+        alternative by <em>e<sup>-D</sup></em> per repeat: exponential decay of belief, the
+        exact mirror of an exponential backoff, arrived at from the opposite direction. Enough
+        repeats and the action that looked certain stops being the argmax, sampling reopens,
+        and the agent moves on. Result: 594 of 600 to <strong>600 of 600</strong>, and the
+        <code>stuck_in_battle</code> failure mode specifically went from 4 occurrences to 0.
+      </p>
+      <p>
+        The same day, the same underlying machinery — noticing a condition without being told
+        to check it constantly — became <strong>chambered goals</strong>: two conditions
+        decoupled in time. An <em>arm</em> condition read from cartridge memory (the agent has
+        taken damage) and a <em>fire</em> condition read from the screen, checked only once
+        armed (a Pokémon Center is in view). Take damage, the chamber loads; later, a Center
+        comes into view, it fires — heal, walk out, resume whatever the chain was already
+        doing. A blackout heals the party too, so it discharges the chamber with no Center
+        visit at all; satisfaction can arrive from any direction. Because the fire recogniser
+        is never consulted while unarmed, it's the least-exposed recogniser in the whole
+        system — arming is a safety property, not just a trigger. Across the current
+        certification, <strong>306 of 600 runs</strong> take that detour mid-chain, at zero
+        cost to the chain itself.
+      </p>
+      <p>
+        How confident the fire recogniser must be isn't fixed either — it's a gradient against
+        how much the arm condition hurt. Barely scratched, it has to be almost certain a
+        building is a Center. Badly hurt, a glimpse is enough. The floor was found by
+        measurement, one value at a time:
       </p>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>#</th><th>Link</th><th class="num">Decision reached, median</th></tr>
+            <tr><th>Confidence floor</th><th class="num">N</th><th class="num">Heals fired</th><th class="num">Chain result</th></tr>
           </thead>
           <tbody>
-            <tr><td class="num">1</td><td class="mono">leave-the-bedroom</td><td class="num">9</td></tr>
-            <tr><td class="num">2</td><td class="mono">leave-the-house</td><td class="num">22</td></tr>
-            <tr><td class="num">3</td><td class="mono">trigger-oak-in-the-grass</td><td class="num">34</td></tr>
-            <tr><td class="num">4</td><td class="mono">follow-oak-to-the-lab</td><td class="num">69</td></tr>
-            <tr><td class="num">5</td><td class="mono">take-a-starter</td><td class="num">151</td></tr>
-            <tr><td class="num">6</td><td class="mono"><strong>battle-the-rival</strong></td><td class="num"><strong>343</strong></td></tr>
-            <tr><td class="num">7</td><td class="mono">out-of-the-lab</td><td class="num">371</td></tr>
-            <tr><td class="num">8</td><td class="mono">north-out-of-pallet</td><td class="num">390</td></tr>
-            <tr><td class="num">9</td><td class="mono">cross-route-1</td><td class="num">551</td></tr>
-            <tr><td class="num">10</td><td class="mono">into-the-viridian-mart</td><td class="num">579</td></tr>
-            <tr><td class="num">11</td><td class="mono">collect-oaks-parcel</td><td class="num">599</td></tr>
-            <tr><td class="num">12</td><td class="mono">out-of-the-mart</td><td class="num">605</td></tr>
-            <tr><td class="num">13</td><td class="mono">south-out-of-viridian</td><td class="num">633</td></tr>
-            <tr><td class="num">14</td><td class="mono"><strong>back-down-route-1</strong></td><td class="num"><strong>700</strong></td></tr>
-            <tr><td class="num">15</td><td class="mono">into-oaks-lab</td><td class="num">747</td></tr>
-            <tr><td class="num">16</td><td class="mono">receive-the-pokedex</td><td class="num">882</td></tr>
-            <tr><td class="num">17</td><td class="mono">out-of-the-lab-again</td><td class="num">903</td></tr>
-            <tr><td class="num">18</td><td class="mono">north-out-of-pallet-again</td><td class="num">922</td></tr>
+            <tr><td>0.945</td><td class="num">300</td><td class="num">96</td><td class="num">300/300</td></tr>
+            <tr><td>0.94</td><td class="num">300</td><td class="num">100</td><td class="num">300/300</td></tr>
+            <tr><td>0.93</td><td class="num">300</td><td class="num">131</td><td class="num">300/300</td></tr>
+            <tr><td><strong>0.92</strong></td><td class="num">300</td><td class="num">152</td><td class="num"><strong>300/300</strong></td></tr>
+            <tr><td>0.91</td><td class="num">600</td><td class="num">—</td><td class="num">599/600</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="note" style="margin-top:14px;">
-        Read as the decisions each link itself costs rather than the running total,
-        <code>battle-the-rival</code> alone spends 192 — more than any other single link,
-        real combat rather than walking. <code>back-down-route-1</code> spends 67, well
-        over double what its own outbound mirror, <code>south-out-of-viridian</code>, costs
-        two rows above it (28). A return trip costing more than the matching outbound one
-        is the exact fingerprint of the problem the parcel latch below was built to fix.
-      </p>
       <p>
-        The same file that reports 50 of 50 also carries a 95% confidence interval on the
-        whole-chain rate (92.9–100.0%), a histogram of how many links each agent actually
-        finished, where a stuck agent was standing and which game mode it was in, and a
-        dedicated counter for the wild-battle menu trap specifically. All of it reads
-        empty or zero here, because nothing failed this run — but the same fields are what
-        turned the pre-fix 69-of-100 run, a few sections down, into a named list of three
-        failure shapes instead of a bare 69%.
+        0.92 is the measured last safe rung, one notch of margin above where it breaks. The
+        first version of this gate was tuned looser than that and fired 13,673 times over the
+        course of testing it, trapping five runs standing at a door; gated at 0.92 the same
+        recogniser fires 591 times.
+      </p>
+      <p class="note" style="margin-top:14px;">
+        The full story — three 600-run sweeps of the same bug, the fix, and the honest bits
+        that came with building it — is its own post:
+        <a href="../posts/exponential-decay-of-belief.html">exponential decay of belief →</a>
       </p>
     </section>
 
@@ -387,7 +528,10 @@
         network bolted onto a frozen base — its own convolution-and-dense stack, sharing no
         weights with the policy underneath it. It never replaces the base's opinion about
         which button to press; it adds a nudge to the base's own pre-softmax scores before
-        one is chosen.
+        one is chosen. Goals themselves work the same way structurally: each is its own small
+        network of the same shape, two-class, restricted to a declared screen region, with its
+        own confidence threshold — not one head bolted onto the trunk trying to answer every
+        question at once.
       </p>
       <p>
         The nudge starts at exactly zero. Its last layer is initialised to a zero weight
@@ -413,9 +557,8 @@
       <figcaption>
         The student, drawn from a live policy object. The feature maps beside each
         convolution are that frame's own activations; the six bars at the bottom are the
-        softmax it actually produced. 86% of the model is the single dense layer between the
-        last convolution and the trunk — 102,400 weights of 118,806. The three convolutions
-        together are 13%. The expensive part of a convolutional network is the flattening.
+        softmax it actually produced — the same six-way head both the confidence gate and
+        the decay fix operate against.
       </figcaption>
     </figure>
 
@@ -442,11 +585,11 @@
     <section class="prose">
       <h2>The engine that quietly changed</h2>
       <p>
-        The first honest 18-link read came back at 69 of 100, and the milestone breakdown
-        pointed straight at the return leg: every one of the 31 failures happened on the
-        second Route 1 crossing or later, split across a battle-menu trap (28 stuck in
-        battle mode) and a known no-op loop at two exit tiles (3 stuck in the overworld) —
-        both failure shapes already on this project's own record, nothing new.
+        An earlier 18-link read came back at 69 of 100, and the milestone breakdown pointed
+        straight at the return leg: every one of the 31 failures happened on the second
+        Route 1 crossing or later, split across a battle-menu trap (28 stuck in battle mode)
+        and a known no-op loop at two exit tiles (3 stuck in the overworld) — both failure
+        shapes already on this project's own record, nothing new.
       </p>
       <p>
         The student hadn't gotten worse. The picture it was being judged on had changed.
@@ -486,17 +629,19 @@
       </div>
       <ul class="gaps">
         <li>
-          <b>Eighteen links is the game's opening, not the game.</b> The chain ends heading
-          back north out of Pallet Town. Everything after that is unbuilt.
+          <b>Twenty-one links is the game's opening, not the game.</b> The chain ends
+          walking out of the Viridian mart with Poké Balls in hand. It does not reach
+          Pewter, and it has not fought Brock — the forest between here and there is being
+          built.
         </li>
         <li>
-          <b>The 18-link figures are a screen, not a certification.</b> 50 of 50 and 98 of
-          100 are real, and reproduced on two different days — but this project's own bar
-          is 3,000 attempts, and nothing at 18 links has been run at that scale.
+          <b>N=600 is not this project's 3,000-per-link scale.</b> Individual links are
+          certified at that scale; the whole cold-boot-to-cold-boot chain isn't, yet.
         </li>
         <li>
-          <b>N=150 is not N=3,000, either.</b> The 16-link headline bounds a failure rate
-          near 2%, not 0.1%.
+          <b>Self-healing only fires when there's damage to fire on.</b> 306 of 600 runs
+          take the detour; the other 294 never took damage worth chambering, which is a
+          statement about the run, not a mechanism that failed to notice.
         </li>
         <li>
           <b>A silent dependency default cost the chain 18 points once already.</b> The fix
@@ -537,6 +682,24 @@
       </figure>
 
       <div class="card" style="margin-top:26px;">
+        <div class="card-hd">
+          <p class="kicker">Staying alive</p>
+          <h3>Locks, chambers and the honest bits</h3>
+        </div>
+        <div class="card-bd">
+          <ul class="post-list">
+            <li>
+              <a class="post-card" href="../posts/exponential-decay-of-belief.html">
+                <div class="post-meta"><span class="tag">AgentGB</span><span>Robustness</span><span>31 Aug 2026</span></div>
+                <p class="post-title">Exponential decay of belief</p>
+                <p class="post-dek">A confidence gate locked onto one button, 14 times out of 14 the same way. The fix decays belief instead of banning the action &mdash; 594&nbsp;&rarr;&nbsp;600/600, and 306 runs now heal themselves for free.</p>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
         <div class="card-hd">
           <p class="kicker">Learning to see</p>
           <h3>What the screen alone can and can't tell the network</h3>
@@ -629,16 +792,13 @@
     <div class="provenance">
       <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
       <p>
-        The parameter counts are read out of the committed weights file: three convolutions
-        15,504, the dense layer 102,528, the six-way head 774 — 118,806 for the inference
-        core — plus 320 conditioning coefficients and a 3,204-parameter goal head for
-        122,330. The file's own metadata records <code>in_shape [4, 36, 40]</code>,
-        <code>n_actions 6</code>, <code>observation "screen"</code>. The 18-link and
-        per-milestone figures are read directly from this project's own certification
-        summaries (JSON, one file per run, provenance fields included), not quoted from a
-        document; the engine-drift comparison and the emulator's own speed and determinism
-        figures carry their method alongside the number, per this project's own standing
-        rule against merging different measurements into one.
+        The weight count, the chain result, the self-healing rate and the starter
+        distribution are read directly from this project's own certification records —
+        <code>pixel-chainchamberedheal-n600-floor092-LANDING.json</code> and the confidence-
+        floor sweep beside it — not quoted from a document. The 21-link decomposition is the
+        chain's own configuration, listed in full above rather than described. Provenance is
+        pinned in every record: the policy's sha256, the emulator's commit hash and the ROM's
+        own hash, all checked before a certification is accepted.
       </p>
       <p>
         Every rate carries the weights file it was measured on, its sample size and its
