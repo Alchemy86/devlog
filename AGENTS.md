@@ -162,6 +162,16 @@ Project pages live in `projects/` and draw their facts from private repos under
   `models/pixel-student.npz`) — re-derive from a fresh JSON, don't requote. **Save-state
   size is `~142 KB`, not the `170 KB` figure in `docs/no-pixels.md`** — the agentgb
   repo's own `AGENTS.md` style guide flags that file as the stale one; use 142 KB.
+  The recogniser write-up published as `posts/teaching-a-network-to-notice.html` was
+  authored in the agentgb repo (`docs/writing/teaching-a-network-to-notice.md`, commit
+  `4d9c5fe`) and republished here; that in-repo copy stays as the record. Its six montages
+  are `assets/img/agentgb/recogniser-*.png`, copied from the repo's
+  `docs/media/recognisers/` and renamed with the `recogniser-` prefix to disambiguate
+  inside the shared agentgb image folder. The full-frame recogniser's **118,290**
+  parameters is a *different network* from the student's 118,806 inference core and is not
+  a variant of the `118,291` transcription slip below: it is the same trunk with a 2-class
+  head instead of the 6-way one (118,806 - 774 + 258 = 118,290).
+
   The engine-drift story (a TerminalGB commit silently flipping the default render
   engine, costing the chain 41/50=82% against the pinned 50/50=100%, at the prior
   18-link length) is documented in the agentgb repo's `docs/emulator-pin.md`, closing
@@ -382,6 +392,15 @@ stored file) and the `compare` step is the gate: a copy that is not pixel-identi
 source does not land. Game Boy screenshots carry `class="pixel"` on the `<figure>`
 (`image-rendering: pixelated`) — a four-shade picture must never be smoothed by the
 browser, which is the same rule PixelGB and TerminalGB both enforce in code.
+
+**Layout gotcha:** `.prose > * { max-width: var(--measure) }` (78ch) caps figures *and*
+`.fig-pair`, so a side-by-side pair inside `.prose` gets ~390px columns. Fine for the wide,
+short before/afters `.fig-pair` was built for (271-colours' 1000x572 pair); it shrinks a tall
+montage to half its native width and the in-image labels stop being readable. A one-off
+`style="max-width:none;"` on that `.fig-pair` gives it the full 1000px container instead —
+inline styles on a `figure` are already site convention (`posts/*.html` uses
+`style="margin-inline:auto;"`). Two 678px-wide images still cannot both be native side by
+side; the comparison has to carry on gestalt, with the specifics stated in the figcaptions.
 
 AtlasGB has no images of its own. Its chart is an inline SVG built from
 `atlases/pokemon-rb/data/atlas.tsv` (tally the `verify` column with `csv.DictReader` +
