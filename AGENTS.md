@@ -172,7 +172,12 @@ Project pages live in `projects/` and draw their facts from private repos under
   chapter it belongs to, or a new chapter `.card` if it doesn't fit one.
   **`AGENTS.md` in the agentgb repo runs ahead of its own polished `docs/` and
   `README.md`** — when a figure disagrees between them, `AGENTS.md`'s mtime wins; check
-  it first, not last. As of 2026-08-31 the committed chain is **twenty-one links**
+  it first, not last. **A recogniser's false-alarm rate there is meaningless without its
+  threshold**, and the repo prints both without saying so: the five-round table for
+  `viridian-restore-recognizer` in `docs/transitional-goals.md` reads 26.13% / 0.186% /
+  0.380% / 0.0009% at 0.999, while the same rounds summarised in
+  `data/transitional-goals.json` read 30.8% / 2.8% / 0.44% at 0.8. Both are real. Quote the
+  table, name the threshold. As of 2026-08-31 the committed chain is **twenty-one links**
   (through `buy-pokeballs`, three more than the prior `north-out-of-pallet-again`
   headline): **600/600 cold boots**, N=600, record
   `pixel-chainchamberedheal-n600-floor092-LANDING.json`, seed 42. It does not reach
