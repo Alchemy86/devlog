@@ -1,0 +1,113 @@
+# Named colour palettes. Pick one with `palette: <name>` in _config.yml.
+#
+# Each has a full light and dark set - the site follows the reader's system
+# setting, so a palette that only works in one of them is a broken palette.
+# Every accent and secondary text colour here clears WCAG AA (4.5:1) against
+# its own background in both modes.
+#
+# Adding one: copy a block, rename it, change the ten values. Nothing else in
+# the site needs to know about it.
+
+# The devlog's own look: warm paper, white cards, one burnt-amber accent.
+devlog:
+  note: burnt amber, used sparingly
+  light:
+    paper:      "#F3F5EE"
+    card:       "#FFFFFF"
+    ink:        "#14170F"
+    ink-soft:   "#565C4E"
+    hairline:   "#DDE1D4"
+    hairline-2: "#E9ECE2"
+    accent:     "#A8431F"
+    accent-dim: "#B4552A"
+    code-bg:    "#F5F6F0"
+    shadow:     "0 1px 2px rgba(20, 23, 15, .04), 0 8px 24px rgba(20, 23, 15, .05)"
+  dark:
+    paper:      "#12140E"
+    card:       "#1A1D15"
+    ink:        "#ECEFE4"
+    ink-soft:   "#9BA290"
+    hairline:   "#2C3124"
+    hairline-2: "#23271C"
+    accent:     "#E6935F"
+    accent-dim: "#D8824C"
+    code-bg:    "#1E2118"
+    shadow:     "0 1px 2px rgba(0, 0, 0, .25), 0 8px 24px rgba(0, 0, 0, .30)"
+
+# Cool and architectural: steel-blue paper, a clear blue accent.
+midnight:
+  note: signal blue
+  light:
+    paper:      "#F1F4F8"
+    card:       "#FFFFFF"
+    ink:        "#0F1620"
+    ink-soft:   "#4C5867"
+    hairline:   "#D4DBE5"
+    hairline-2: "#E3E8EF"
+    accent:     "#1F5FA8"
+    accent-dim: "#2A6FBC"
+    code-bg:    "#EFF3F8"
+    shadow:     "0 1px 2px rgba(15, 22, 32, .05), 0 8px 24px rgba(15, 22, 32, .07)"
+  dark:
+    paper:      "#0D1117"
+    card:       "#151B23"
+    ink:        "#E6EDF5"
+    ink-soft:   "#8B98A8"
+    hairline:   "#232C38"
+    hairline-2: "#1B222C"
+    accent:     "#6FB2F0"
+    accent-dim: "#589FE0"
+    code-bg:    "#131A22"
+    shadow:     "0 1px 2px rgba(0, 0, 0, .30), 0 8px 24px rgba(0, 0, 0, .38)"
+
+# Phosphor: near-monochrome greens, the look of a screen rather than a page.
+terminal:
+  note: phosphor green
+  light:
+    paper:      "#F4F6F2"
+    card:       "#FFFFFF"
+    ink:        "#10180F"
+    ink-soft:   "#4A584A"
+    hairline:   "#D5DFD2"
+    hairline-2: "#E5EBE3"
+    accent:     "#1B7038"
+    accent-dim: "#248445"
+    code-bg:    "#F0F4EF"
+    shadow:     "0 1px 2px rgba(16, 24, 15, .05), 0 8px 24px rgba(16, 24, 15, .06)"
+  dark:
+    paper:      "#0A0F0B"
+    card:       "#111811"
+    ink:        "#D8F0D6"
+    ink-soft:   "#87A385"
+    hairline:   "#1E2A1E"
+    hairline-2: "#161F16"
+    accent:     "#4FD37A"
+    accent-dim: "#3EC069"
+    code-bg:    "#0E140E"
+    shadow:     "0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .45)"
+
+# Newsprint: flat off-white stock, black text, one red for emphasis.
+press:
+  note: press red
+  light:
+    paper:      "#F7F6F3"
+    card:       "#FFFFFF"
+    ink:        "#131211"
+    ink-soft:   "#55514B"
+    hairline:   "#DDD9D1"
+    hairline-2: "#EBE8E2"
+    accent:     "#B32014"
+    accent-dim: "#C43223"
+    code-bg:    "#F3F1EC"
+    shadow:     "0 1px 2px rgba(19, 18, 17, .05), 0 8px 24px rgba(19, 18, 17, .06)"
+  dark:
+    paper:      "#141310"
+    card:       "#1C1B17"
+    ink:        "#EFECE4"
+    ink-soft:   "#A29C90"
+    hairline:   "#302E27"
+    hairline-2: "#25231D"
+    accent:     "#F0685A"
+    accent-dim: "#E0564A"
+    code-bg:    "#1A1915"
+    shadow:     "0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .45)"

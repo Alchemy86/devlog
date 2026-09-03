@@ -1,3 +1,8 @@
+---
+# Colours come from _data/palettes.yml; choose one with `palette:` in _config.yml.
+---
+{%- assign pal = site.data.palettes[site.palette] -%}
+{%- unless pal %}{% assign pal = site.data.palettes.devlog %}{% endunless -%}
 /* ============================================================================
    devlog — design system
    A crossover between the restraint of grownowgames.com and the structured
@@ -10,16 +15,16 @@
 
 /* ----- Tokens -------------------------------------------------------------- */
 :root {
-  --paper:      #F3F5EE;
-  --card:       #FFFFFF;
-  --ink:        #14170F;
-  --ink-soft:   #565C4E;
-  --hairline:   #DDE1D4;
-  --hairline-2: #E9ECE2;
-  --accent:     #A8431F;   /* burnt amber, used sparingly */
-  --accent-dim: #B4552A;
-  --code-bg:    #F5F6F0;
-  --shadow:     0 1px 2px rgba(20, 23, 15, .04), 0 8px 24px rgba(20, 23, 15, .05);
+  --paper:      {{ pal.light.paper }};
+  --card:       {{ pal.light.card }};
+  --ink:        {{ pal.light.ink }};
+  --ink-soft:   {{ pal.light['ink-soft'] }};
+  --hairline:   {{ pal.light.hairline }};
+  --hairline-2: {{ pal.light['hairline-2'] }};
+  --accent:     {{ pal.light.accent }};   /* {{ pal.note }} */
+  --accent-dim: {{ pal.light['accent-dim'] }};
+  --code-bg:    {{ pal.light['code-bg'] }};
+  --shadow:     {{ pal.light.shadow }};
 
   --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
@@ -33,16 +38,16 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper:      #12140E;
-    --card:       #1A1D15;
-    --ink:        #ECEFE4;
-    --ink-soft:   #9BA290;
-    --hairline:   #2C3124;
-    --hairline-2: #23271C;
-    --accent:     #E6935F;
-    --accent-dim: #D8824C;
-    --code-bg:    #1E2118;
-    --shadow:     0 1px 2px rgba(0, 0, 0, .25), 0 8px 24px rgba(0, 0, 0, .30);
+    --paper:      {{ pal.dark.paper }};
+    --card:       {{ pal.dark.card }};
+    --ink:        {{ pal.dark.ink }};
+    --ink-soft:   {{ pal.dark['ink-soft'] }};
+    --hairline:   {{ pal.dark.hairline }};
+    --hairline-2: {{ pal.dark['hairline-2'] }};
+    --accent:     {{ pal.dark.accent }};
+    --accent-dim: {{ pal.dark['accent-dim'] }};
+    --code-bg:    {{ pal.dark['code-bg'] }};
+    --shadow:     {{ pal.dark.shadow }};
   }
 }
 

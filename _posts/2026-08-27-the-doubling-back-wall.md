@@ -1,0 +1,396 @@
+---
+title: 'The wall you hit walking home'
+tag: 'AgentGB'
+kicker: 'Imitation learning · state · adapters'
+card_kicker: 'Route learning'
+eyebrow: 'AgentGB · Route learning'
+order: 9
+description: >-
+  An agent that learns the way to the shop perfectly cannot learn the way back, because the
+  tiles are identical and the answer is opposite. Two numbers that sum to a hundred prove it
+  is impossible, not merely hard — and the fix was to stop looking in the bag and read what
+  the game already says out loud.
+og_title: >-
+  The wall you hit walking home
+og_description: >-
+  Two numbers that sum to a hundred are the signature of an impossible task, not a hard one.
+  How a screen-only agent got past a route that doubles back.
+dek: >-
+  An agent learned the walk to the shop perfectly and could not learn the walk back. Two
+  measured rates that sum to a hundred are the signature of an impossible task, not a hard
+  one.
+lead: >-
+  An agent that reads nothing but the screen learned the walk to the shop perfectly and then
+  could not learn the walk back. Not badly — <em>at all</em>. Two measured numbers that sum to
+  a hundred are what told us it was impossible rather than merely hard, and the fix was not a
+  bigger network. It was noticing that the cartridge had already said the thing out loud.
+metrics:
+  - num: '33.53'
+    label: '% on one direction'
+    accent: true
+  - num: '66.77'
+    label: '% on the other'
+  - num: '100.00<span class="accent">%</span>'
+    label: 'Both hard rooms, after'
+  - num: '0'
+    label: 'Base weights changed'
+note: >-
+  Every figure here comes from this project's own certification and swarm tooling against one
+  named weights file, with its sample size, temperature and confidence interval recorded
+  beside the command that produced it. The base network's hash was checked before and after
+  every training run on this page and never moved. The wider arc is on the <a
+  href="../agentgb-progress.html">AgentGB progress page</a>.
+---
+
+<section class="prose" markdown="1">
+
+## Two numbers that sum to a hundred
+
+The route this agent is learning goes out and comes back. Pallet Town, up Route 1, into
+Viridian City, into the Mart to collect Oak's parcel — and then the same ground again in
+reverse, all the way home to Oak's lab. Viridian City and Route 1 are each crossed
+twice, and from almost every tile in them the two crossings want *opposite* directions.
+
+A single student trained over both directions of Viridian City scores **33.53%** on one
+task and **66.77%** on the other. Those two numbers are not a pair of disappointing
+results. They sum to a hundred, and that is the signature of a partition: from any given
+start the shared student walks one way or the other, and whichever it picks, exactly one
+of the two tasks is satisfied. There is no third outcome and no middle ground.
+
+<div class="callout">
+  <p class="eyebrow">Why that number shape matters</p>
+  <p>
+    A policy scoring 40% and 45% is doing something imperfectly. A policy scoring
+    33.53% and 66.77% is doing something <em>perfectly</em> — it is just answering a
+    different question than the one being asked. When two rates in a supposedly
+    independent pair add to one, stop tuning and go and find out what the model
+    cannot see.
+  </p>
+</div>
+
+</section>
+
+<figure class="scrollfig" aria-labelledby="fig-route-cap">
+  <svg viewBox="0 0 720 286" role="img" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', monospace">
+    <style>
+      .nd  { fill: var(--code-bg); stroke: var(--hairline); stroke-width: 1.5; }
+      .nd.a{ fill: var(--card); stroke: var(--accent); stroke-width: 2; }
+      .nt  { fill: var(--ink); font-size: 13px; font-weight: 700; }
+      .ns  { fill: var(--ink-soft); font-size: 10px; }
+      .ns.a{ fill: var(--accent); font-weight: 700; }
+      .lnk { stroke: var(--hairline); stroke-width: 2; }
+      .out { stroke: var(--accent); stroke-width: 2; fill: none; }
+      .ret { stroke: var(--ink-soft); stroke-width: 2; fill: none; }
+      .lo  { fill: var(--accent); font-size: 10.5px; font-weight: 700; letter-spacing: .1em; }
+      .lr  { fill: var(--ink-soft); font-size: 10.5px; font-weight: 700; letter-spacing: .1em; }
+      .amb { fill: var(--accent); font-size: 10.5px; font-weight: 700; }
+    </style>
+    <defs>
+      <marker id="ao" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+        <path d="M0,0 L9,4.5 L0,9 z" fill="var(--accent)"/>
+      </marker>
+      <marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+        <path d="M0,0 L9,4.5 L0,9 z" fill="var(--ink-soft)"/>
+      </marker>
+    </defs>
+    <line x1="157.0" y1="143.0" x2="189.7" y2="143.0" class="lnk"/>
+    <line x1="343.7" y1="143.0" x2="376.3" y2="143.0" class="lnk"/>
+    <line x1="530.3" y1="143.0" x2="563.0" y2="143.0" class="lnk"/>
+    <rect x="3.0" y="110" width="154" height="66" rx="8" class="nd"/>
+    <text x="80.0" y="138" text-anchor="middle" class="nt">Oak's Lab</text>
+    <text x="80.0" y="156" text-anchor="middle" class="ns">Pallet Town</text>
+    <rect x="189.7" y="110" width="154" height="66" rx="8" class="nd a"/>
+    <text x="266.7" y="138" text-anchor="middle" class="nt">Route 1</text>
+    <text x="266.7" y="156" text-anchor="middle" class="ns a">crossed twice</text>
+    <rect x="376.3" y="110" width="154" height="66" rx="8" class="nd a"/>
+    <text x="453.3" y="138" text-anchor="middle" class="nt">Viridian City</text>
+    <text x="453.3" y="156" text-anchor="middle" class="ns a">crossed twice</text>
+    <rect x="563.0" y="110" width="154" height="66" rx="8" class="nd"/>
+    <text x="640.0" y="138" text-anchor="middle" class="nt">Viridian Mart</text>
+    <text x="640.0" y="156" text-anchor="middle" class="ns">the parcel</text>
+    <text x="3" y="20" class="lo">OUTBOUND — GO AND FETCH OAK&#8217;S PARCEL</text>
+    <path d="M80.0,102 L80.0,66 L640.0,66 L640.0,99" class="out" marker-end="url(#ao)"/>
+    <text x="3" y="280" class="lr">RETURN — CARRY IT BACK TO OAK, OVER THE SAME GROUND</text>
+    <path d="M640.0,184 L640.0,220 L80.0,220 L80.0,187" class="ret" marker-end="url(#ar)"/>
+    <text x="360.0" y="96" text-anchor="middle" class="amb">same tiles, opposite answer</text>
+  </svg>        <figcaption id="fig-route-cap">
+    The two rooms in amber are walked twice, in opposite directions. A policy that
+    sees only the overworld screen meets the identical picture on both passes and has
+    no basis on which to answer differently — the thing that distinguishes them is a
+    parcel in the bag, and the bag is not drawn on the overworld.
+  </figcaption>
+</figure>
+
+<section class="prose" markdown="1">
+
+## Why no amount of training fixes it
+
+What tells the two crossings apart is `OAK's PARCEL` sitting in the inventory. The
+inventory is not drawn on the overworld screen. This agent reads a 4 × 36 × 40 picture
+and nothing else — no coordinates, no map register, no memory read of any kind — so the
+input on the way out and the input on the way back are, for practical purposes, the same
+input.
+
+A function cannot return two different values for the same argument. This is not a
+capacity problem that a wider network or another thousand epochs reaches; it is a
+statement about what is representable. The 33.53/66.77 split is that statement,
+measured.
+
+</section>
+
+<section class="prose" markdown="1">
+
+## The first fix worked, and was abandoned anyway
+
+The obvious answer is to go and look. Gen 1 *does* draw the bag's contents, and the two
+states are visibly different — `▶OAK's PARCEL / CANCEL` with it, `▶CANCEL` alone
+without. So the first design gave the agent a seventh button, taught it to open the bag,
+read it, close it, and only then decide which way to walk.
+
+It was built, trained, and smoke-tested successfully. A real certification run put the
+harder of the two rooms at 5/5 and then 299/300. It genuinely worked.
+
+</section>
+
+<figure class="pixel" aria-labelledby="fig-bag-cap">
+  <img src="../assets/img/agentgb/bag-parcel-structural.png"
+       alt="Four panels. Top row: two real 160 by 144 Game Boy screens of the item bag, one reading CANCEL alone and one reading OAK's PARCEL above CANCEL. Middle row: the same two screens as the coarse 40 by 36 arrays the network actually receives. Bottom: a difference map of those two arrays, mostly black with a small red band where the extra menu row sits.">
+  <figcaption id="fig-bag-cap">
+    <strong>The abandoned approach, and why it was tempting.</strong> The two bag states
+    really are distinguishable in what the network receives — 57 of 1,440 cells differ,
+    4.0% of the observation. The middle row is the literal array handed to the policy,
+    not a re-render of the screen above it.
+  </figcaption>
+</figure>
+
+<section class="prose" markdown="1">
+
+It was thrown away on the captain's correction, and the reason is the interesting part.
+The game *already announces* that the parcel has been collected, in plain unmissable
+text, at the exact frame the milestone fires:
+
+<div class="pullquote">
+  <p>“BLUE got OAK's PARCEL!”</p>
+  <cite>The cartridge, saying the quiet part out loud</cite>
+</div>
+
+Building a seventh button, a bag-opening sequence, and an
+on-the-way-in-versus-on-the-way-out disambiguation at an identical menu picture was
+solving a problem the cartridge had already solved — one layer further from the screen
+than necessary. The bag check was not wrong in the sense of not working. It was wrong in
+the sense of reaching *past* an answer already sitting in plain text to go digging for a
+second, harder copy of the same fact.
+
+</section>
+
+<figure class="pixel narrow" aria-labelledby="fig-parcel-cap">
+  <img src="../assets/img/agentgb/mgba-collect-oaks-parcel.png"
+       alt="A Game Boy screenshot of the Viridian Mart interior with the player standing at the counter and a dialogue box drawing at the bottom of the screen, captioned as the collect-oaks-parcel milestone at decision 578 on the mGBA libretro core, seed 0.">
+  <figcaption id="fig-parcel-cap">
+    The frame the cartridge set the <code>collect-oaks-parcel</code> milestone byte, on
+    a genuine cold power-on — captured on mGBA's libretro core rather than our own
+    emulator, seed 0, decision 578. The dialogue box is mid-draw here; the announcement
+    text lands in the frames immediately after.
+  </figcaption>
+</figure>
+
+<section class="prose" markdown="1">
+
+## The pattern that came out of it
+
+Once you look for it, the shape is everywhere in this route: **every goal in the chain
+ends with the cartridge announcing, in unique on-screen text, that it is done — and that
+announcement is the trigger for the next goal.** A recogniser per announcement, a
+trained behaviour per goal, chained in order.
+
+Nothing is deduced, nothing is inspected, nothing is hard-coded. The driver that
+implements this knows nothing about parcels, Oak, or any specific room; declaring a new
+stage is a longer list in a data file, never a change to the code.
+
+Two design details are worth pulling out, because they are the whole difference between
+this and the interrupt mechanism the project already had:
+
+</section>
+
+<div class="cards">
+  <div class="card">
+    <div class="card-hd">
+      <p class="kicker">A latch, not a check</p>
+      <h3>The trigger screen is gone within a handful of frames</h3>
+    </div>
+    <div class="card-bd">
+      <p>
+        A per-decision recogniser — the kind that hands control back the instant its
+        screen disappears — would see the announcement once and forget it on the very
+        next decision. That is useless for a fact which, once true, stays true for the
+        rest of the episode.
+      </p>
+      <p>
+        So the stage is <em>latched</em>: a single integer held across the episode,
+        advanced once, never re-checked. Once a stage fires, every earlier recogniser
+        is never consulted again, and the route itself has changed — this is not a
+        momentary interruption of some other goal.
+      </p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd">
+      <p class="kicker">A nudge, not a retrain</p>
+      <h3>The base network is proven byte-identical before and after</h3>
+    </div>
+    <div class="card-bd">
+      <p>
+        The behaviour each stage latches is a small separate head nudging a
+        <em>frozen</em> base policy, at its original six-action width — no seventh
+        button, no padding. Five links share one pooled adapter rather than five
+        separate ones, which keeps peak memory during training well under 5 GB against
+        a 20 GB ceiling that had cancelled a full retrain.
+      </p>
+      <p>
+        The base weights are hashed before training and after, and the hash is required
+        to match. A fix that quietly moved the thing it was meant to leave alone would
+        not be a fix.
+      </p>
+    </div>
+  </div>
+</div>
+
+<section class="prose" markdown="1">
+
+## The trigger did not need a crop, and that was checked first
+
+Another recogniser in this project keys on a nickname prompt and needs a deliberate
+crop, to hide a species name a wider view would let it cheat on. This one takes the full
+observation, because the parcel announcement is not a screen that could plausibly be
+confused with anything else in the game.
+
+That was verified before a recogniser was trained rather than assumed after. Playing the
+scripted teacher through the collection and recording the on-screen text at every
+decision found the exact string and the exact decision it appears on. Then the last
+recorded frame of successful episodes — from a 1,500-episode corpus whose episode
+lengths range from 13 to 34 decisions — was compared against a fresh live capture of
+that screen: **byte-for-byte identical, zero difference, on every one of five
+spot-checked episodes of very different lengths**.
+
+The reason it is identical is structural rather than lucky. The dialogue box is opaque,
+and the success flag fires at a fixed point in the game's own script no matter which
+button got the player there. That is what makes "the last frame of a successful episode"
+a correct way to harvest training positives without any per-frame text matching at all.
+
+The shipped recogniser scores **99.93%** held-out accuracy and 99.96% balanced accuracy,
+trained on 1,500 positives against 6,000 negatives sampled from six other links' own
+corpora.
+
+</section>
+
+<section class="prose" markdown="1">
+
+## What it measured
+
+Each of the five return-leg links certified on its own, with the adapter applied
+unconditionally, sampled at temperature 1.0, N=300 — alongside two floors, because a
+rate with nothing under it is not evidence:
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Link</th>
+        <th class="num">Success</th>
+        <th class="num">Random floor</th>
+        <th class="num">Press-A floor</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">out-of-the-mart</td><td class="num">300 / 300 = 100.00%</td><td class="num">34.80%</td><td class="num">0.00%</td></tr>
+      <tr><td class="mono"><strong>south-out-of-viridian</strong></td><td class="num"><strong>300 / 300 = 100.00%</strong></td><td class="num">3.40%</td><td class="num">0.00%</td></tr>
+      <tr><td class="mono"><strong>back-down-route-1</strong></td><td class="num"><strong>300 / 300 = 100.00%</strong></td><td class="num">1.20%</td><td class="num">0.00%</td></tr>
+      <tr><td class="mono">into-oaks-lab</td><td class="num">294 / 300 = 98.00%</td><td class="num">4.00%</td><td class="num">0.00%</td></tr>
+      <tr><td class="mono">receive-the-pokedex</td><td class="num">221 / 300 = 73.67%</td><td class="num">6.40%</td><td class="num">0.00%</td></tr>
+    </tbody>
+  </table>
+</div>
+
+The two rows in bold are the doubling-back rooms — the entire reason the work exists.
+Both certify at 100.00%, against random floors of 3.40% and 1.20%. The mechanism
+resolves an ambiguity that a memoryless, unconditioned student *provably* could not.
+
+N=300, not this project's usual 3,000. Three hundred clean attempts bound a failure rate
+near 1% by the rule of three.
+
+</section>
+
+<section class="prose" markdown="1">
+
+## And then the honest part
+
+The first full sixteen-link cold-boot swarm, with everything wired in, reached the last
+link before the parcel is delivered — and scored **0 of 26** on it.
+
+Not 60%. Zero. Fifteen of sixteen milestones at 100%, both hard rooms perfect, and the
+last one a complete failure.
+
+It was worth having, because it was specific. The 73.67% above was the same weakness
+measured in isolation, and the chain's own actual entry tile evidently sits on the
+unlucky side of it consistently enough that no draw of 26 clears it. Isolated replay
+showed the failure precisely: the adapter reproduces the teacher's first eight moves
+exactly — `left`, then seven `up`s — and then, at the one decision the teacher turns
+`right` toward Oak, presses `down` and oscillates `up`/`down` at that junction for the
+rest of its budget.
+
+A second training draw with more epochs and a larger sampled corpus produced the
+*identical* failure at the *identical* junction. Not seed noise — stable across
+independent draws, which is its own finding: this project has now found three times that
+"more epochs" is not an answer to a genuinely blind tile.
+
+</section>
+
+<section class="prose" markdown="1">
+
+## The mechanism suspected, half confirmed and half refuted
+
+The plausible story was that the frozen base holds a confident, actively *wrong* prior
+at that tile — it shares its room with several links the base *was* trained on — so the
+adapter has to overturn a strong opinion rather than fill an empty one.
+
+Measured directly at the stuck tile, that half is true: the base reads **96.3–97.7%
+`down`** — the wrong answer — under every trained goal id.
+
+The proposed *fix*, though, was refuted rather than left untested. Feeding the untrained
+neutral conditioning row instead of the usual one gives 96.3% `down`, statistically
+indistinguishable from what it replaced. The identity transform passes features through
+unmodified, but the action head was never trained on unconditioned features in isolation
+— so an "untrained" row is not the same thing as an "unbiased" one. That is a
+distinction worth carrying out of here.
+
+One id *is* measurably different, reading 61.3% `right` / 38.7% `down` — not confidently
+correct, but the only one whose prior does not actively fight the right answer.
+Retraining against it is the next thing worth trying, and it was deliberately not tried
+here: that id's semantics for this checkpoint are not established, and changing it risks
+four links in the same stage that already work.
+
+</section>
+
+<section class="prose" markdown="1">
+
+## Where it ended up
+
+The last link was closed in a later round — a fresh corpus for the conversation half of
+it, a dedicated goal for the press that *starts* the conversation (the base gets that
+right only 4.55% of the time unaided), a battle policy on the return crossing of Route 1
+changed from flee to fight-or-flee after a real seed was traced into an infinite
+battle-menu deadlock, and two purpose-built start states so the corpora were not all the
+same starter.
+
+Cold boot, N=150, sampled, the whole sixteen-link chain: **145/150 = 96.67%**
+[92.4–98.6%]. Per starter — the standing rule now — **Bulbasaur 87/90, Charmander 13/13,
+Squirtle 45/47**, no starter anywhere near zero and all three intervals overlapping
+heavily.
+
+One more result belongs here because it is the most useful kind. Running the same
+command *without* the already-shipped interrupt adapters gives a much worse 13/26 — and
+every one of those twelve extra failures is a known trap six links earlier, nothing to
+do with the return leg at all. A chain-level number only means what it claims once every
+already-fixed piece is actually wired in.
+
+</section>

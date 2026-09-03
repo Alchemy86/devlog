@@ -1,0 +1,55 @@
+# The devlog is a plain Jekyll site: GitHub Pages builds it on push, so writing
+# a post is dropping a markdown file into _posts/ and nothing else.
+
+title: devlog
+description: The captain's engineering log.
+repository: Alchemy86/devlog
+url: https://alchemy86.github.io
+baseurl: /devlog
+title_suffix: " — devlog"
+
+# Colour palette. One of the names in _data/palettes.yml:
+# devlog (the default), midnight, terminal, press.
+palette: devlog
+timezone: Etc/UTC
+
+# A post you committed is a post you meant to publish. Without this, a file dated
+# even a day ahead is silently dropped from the build with no error.
+future: true
+
+# Keeps every URL the hand-written site already published: /posts/<slug>.html
+permalink: /posts/:title.html
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+
+# The pages carry their own hand-set typography and entities. Leave both alone:
+# no generated heading ids, no curled quotes, no dashes rewritten under us.
+kramdown:
+  auto_ids: false
+  # No Rouge: it stamps language-plaintext/highlighter-rouge classes onto every
+  # code span and re-wraps fenced blocks in two extra divs.
+  syntax_highlighter: ~
+  smart_quotes: ["apos", "apos", "quot", "quot"]
+  typographic_symbols:
+    ndash: "--"
+    mdash: "---"
+    hellip: "..."
+
+# No theme: the design system is assets/css/main.css and nothing else. Without this
+# the default Pages theme ships an unused 2,900-line stylesheet into the output.
+theme:
+
+exclude:
+  - README.md
+  # A build note that lives next to the footage it describes, not a page.
+  - assets/video/asciiworldengine/lift-ride.assets.md
+  - AGENTS.md
+  - CLAUDE.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor

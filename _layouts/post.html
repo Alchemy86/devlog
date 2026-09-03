@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page.title }}{{ site.title_suffix }}</title>
+  <meta name="description" content="{{ page.description }}">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{% if page.og_title %}{{ page.og_title }}{% else %}{{ page.title }}{{ site.title_suffix }}{% endif %}">
+  <meta property="og:description" content="{% if page.og_description %}{{ page.og_description }}{% else %}{{ page.description }}{% endif %}">
+  <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}{{ page.url }}">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <article>
+
+      <header class="post-header">
+        <p class="eyebrow">{{ page.eyebrow }}</p>
+        <h1>{{ page.title }}</h1>
+        <p class="lead">
+          {{ page.lead }}
+        </p>
+        <div class="post-meta">
+          <span class="tag">{{ page.tag }}</span>
+          <span>{{ page.kicker }}</span>
+          <span>{{ page.date | date: "%-d %b %Y" }}</span>
+        </div>
+      </header>
+{% if page.metrics %}
+      <section>
+        <div class="metrics">{% for m in page.metrics %}
+          <div class="metric">
+            <div class="num">{% if m.accent %}<span class="accent">{{ m.num }}</span>{% else %}{{ m.num }}{% endif %}</div>
+            <div class="label">{{ m.label }}</div>
+          </div>{% endfor %}
+        </div>
+      </section>
+{% endif %}
+{% comment %}
+  A post that already marks its own prose sections is used as written. One that
+  does not - a plain markdown post - gets a section per h2, which is the shape
+  every page on this site has.
+{% endcomment %}{% if content contains '<section class="prose"' %}
+      {{ content }}
+{% else %}{% assign chunks = content | split: '<h2' %}{% for c in chunks %}{% if forloop.first %}{% assign lead_in = c | strip %}{% if lead_in != '' %}
+      <section class="prose">
+        {{ c }}
+      </section>
+{% endif %}{% else %}
+      <section class="prose">
+        <h2{{ c }}
+      </section>
+{% endif %}{% endfor %}{% endif %}
+      <hr>
+
+      <p class="note">
+        {{ page.note }}
+      </p>
+
+      <a class="backlink" href="../">← Back to devlog</a>
+
+    </article>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

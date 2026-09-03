@@ -11,29 +11,57 @@ AsciiWorldEngine (the walkable ASCII city) — the site is **not defined as a Ga
 the opener and the site-level meta description must stay true as other work is added. Page-scoped
 copy naming Game Boy is fine; site-scoped copy that does is not.
 
-Plain HTML + CSS, no build step, no framework, no JS dependencies. The only external
-resource is Google Fonts. It must still work untouched in two years — keep it that way.
+Markdown posts + plain HTML + CSS, built by GitHub's own Jekyll. No framework, no JS
+dependencies, nothing to run locally. The only external resource is Google Fonts. It must
+still work untouched in two years — keep it that way.
 
 ## Build / test / deploy
 
-- **Build:** none. There is nothing to compile.
+- **Build:** none locally. **GitHub Pages runs Jekyll** (converted 2026-09-03; `.nojekyll`
+  is gone). No generated HTML is committed, so nothing can go stale against its source.
 - **Test:** none automated. Validate structurally (well-formed HTML, asset paths) and,
-  where possible, visually. Preview locally with `python3 -m http.server` from the repo
-  root.
+  where possible, visually. To render the real thing without a Ruby install:
+  `podman run --rm -v "$PWD":/srv:z -w /srv docker.io/library/ruby:3.3 bash -c 'gem install
+  bundler -N -q && bundle install --quiet && bundle exec jekyll build -d /srv/_site'`, then
+  `python3 -m http.server` from `_site/`. `bundle exec jekyll serve` works if Ruby is local.
 - **Deploy:** GitHub Pages serves `main` from the repository root (`source: main /`).
-  A merge to `main` publishes; Pages rebuilds within ~a minute. `.nojekyll` is present
-  so files are served as-is. Nothing goes live until content is on `main`.
+  A push to `main` publishes; Pages rebuilds within ~a minute. Nothing goes live until
+  content is on `main`.
 
 ## Structure
 
 - `index.html` — landing page: hero, project grid, standing-page cards, post list.
 - `finds.html` · `agentgb-progress.html` · `terminalgb-performance.html` — the standing
   pages (see **Standing pages**). Root-level, same self-contained shape as a post.
-- `posts/*.html` — one self-contained file per post (each wires its own fonts, CSS,
-  masthead, footer). Add a new post's `<li>` to the list in `index.html`.
+- `_posts/YYYY-MM-DD-<slug>.md` — one markdown file per post: YAML front matter plus a
+  body. Published at `/posts/<slug>.html` (unchanged URLs) by the `permalink` in
+  `_config.yml`. **Adding a post is dropping a file in — the index list is generated from
+  `_posts`, never hand-edited.** Front-matter fields and the section rule are documented in
+  `README.md`; don't duplicate that list here.
+- `_layouts/post.html` — the post shell (head, og tags, masthead, post header, metric
+  band, closing note, footer). The only place that chrome lives now.
+- `_config.yml` — site settings, the `/posts/:title.html` permalink, and kramdown options
+  set so it does **not** generate heading ids, curl quotes, or rewrite `--` / `...`. The
+  pages carry their own typography and entities; those options are what keep the rendered
+  text byte-faithful to the hand-written originals. Don't relax them casually.
+- A post body wraps its prose in `<section class="prose" markdown="1">`. Blocks placed
+  *outside* a section run the full container width; inside one they are capped to the
+  reading measure — `.prose > *` in `main.css` is what makes that distinction visible, so
+  placement is a layout decision, not a formatting whim. A plain markdown post with no
+  section markers gets one section per `##` from the layout.
 - `projects/*.html` — one page per project, same self-contained shape as a post.
   **A project page is a spec sheet, not an essay** — see **Voice and page shape**.
-- `assets/css/main.css` — the entire design system, documented inline.
+- `assets/css/main.css` — the entire design system, documented inline. It is now
+  Liquid-processed (front matter at the top): the ten colour tokens in `:root` and in the
+  `prefers-color-scheme: dark` block are filled from `_data/palettes.yml`, selected by
+  `palette:` in `_config.yml`. **`devlog` is the default and renders byte-identical to the
+  hand-written original** — verify that with `cmp` after any change here. The key is
+  `palette:`, not `theme:`; Jekyll reserves `theme:` for gem themes and a colour name there
+  fails the build. Everything below the token blocks is ordinary CSS — keep it that way,
+  since `{{` or `{%` anywhere in this file would now be parsed as Liquid.
+- `_data/palettes.yml` — four named palettes (`devlog`, `midnight`, `terminal`, `press`),
+  each with a full light and dark set. All clear WCAG AA (lowest measured 5.48:1) in both
+  modes; keep any new one to that bar.
 - `assets/img/<project>/` — real captures copied out of the source repos. See **Images**.
 
 ## Voice and page shape (non-negotiable, set 2026-08-27)
@@ -517,6 +545,10 @@ transcription slip and not published; `projects/agentgb.html` and `index.html` u
 google-chrome --headless --disable-gpu --no-sandbox --hide-scrollbars \
   --window-size=1280,16000 --virtual-time-budget=8000 --screenshot=out.png <url>
 ```
+
+**Dark mode in headless Chrome is `--blink-settings=preferredColorScheme=0`** (0 = dark,
+1 = light). `2` is not an error and not dark — it silently renders light, so a "dark mode"
+check written with `2` is really a second light-mode check.
 
 **`chrome-devtools-axi` does not work here** — every `snapshot`/`eval`/`screenshot` fails
 with `Invalid arguments ... Required at pageId`, in both the default and a named session.
