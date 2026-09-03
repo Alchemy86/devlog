@@ -46,6 +46,9 @@ theme:
 
 exclude:
   - README.md
+  # The brand generator and its previews are how the mark is made, not a page
+  # on the site. The site serves its own copies out of assets/img/brand/.
+  - docs
   # A build note that lives next to the footage it describes, not a page.
   - assets/video/asciiworldengine/lift-ride.assets.md
   - AGENTS.md

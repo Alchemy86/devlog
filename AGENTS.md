@@ -504,6 +504,56 @@ precedent by keeping its own hero plain-text `<h1>` and showing its wordmark lat
 explained `<figure>` with a caption, not as hero furniture; the hero is prose-and-metrics only
 per **Voice and page shape**, so a logo image there would be shoehorned.
 
+## The devlog's own mark (added 2026-09-03)
+
+`docs/brand/generate.py` is the **single source of truth** and follows the family
+convention set by `docs/brand/generate.py` in the gameboy, atlasgb, gbselftest and agentgb
+repos: hand-drawn stroked-skeleton letterforms, no font embedded or traced, the same
+`#0d1117` panel and `#30363d` edge. **Never edit the SVGs by hand** — edit the generator
+and re-render, then refresh the site's copies in `assets/img/brand/`. Both steps are in
+`docs/brand/README.md`; that file also records why the accent is the devlog's own amber
+`#E6935F` (the *dark*-mode value from `_data/palettes.yml` — the light one is 3.14:1 on
+that panel and fails AA) rather than the siblings' DMG green, and why the motif is the
+margin rule.
+
+Gotchas:
+
+- **`--` cannot appear inside an XML comment.** Every mark opens with a comment naming
+  what it is; two hyphens there produce an SVG no renderer will parse, and ImageMagick
+  reports it as `unable to read image data`, pointing at the image rather than the
+  comment. `svg()` now asserts against it. The siblings avoid it only by using em dashes.
+- **Round caps extend a half-stroke past the path.** The letter grid's paths run `13..87`
+  but the ink runs `0..100`, so vertical centring and any rule aligned to the cap line
+  must use the full 100. Measuring the paths puts the margin rule visibly inside the caps.
+- `docs` is in `_config.yml`'s `exclude`. Without it Jekyll renders `docs/brand/README.md`
+  as an unstyled page at `/docs/brand/`.
+
+The mark is wired into all 14 `<head>` blocks (four root pages, nine project pages,
+`_layouts/post.html`) as favicon plus `og:image`. The post layout builds its `og:image`
+URL from `{{ site.url }}{{ site.baseurl }}`, deliberately — that is what makes link
+previews rebase correctly for anyone who takes the template. The hand-written pages have
+no front matter, so theirs is the literal URL, matching how they already hardcode `og:url`.
+
+**The masthead was deliberately not changed.** It renders the wordmark as text
+(`devlog<span class="dot">.</span>`) and already matches the mark; swapping in an image
+across every page would be a restyle, which is out of bounds. The mark's visible home on
+the site is the `#start` card on `index.html`.
+
+## Taking this site as a template (added 2026-09-03)
+
+`README.md` § *Start your own copy* is the tested path, and `index.html`'s `#start`
+section is its front-end. The repo must be a **template repository** for the "Use this
+template" button and `/generate` URL to work — that is a repo setting, not a file.
+
+Step 4 of that README ("Make it yours") was written from an actual run-through, not from
+reading the tree, and the run-through is what caught the parts that are easy to miss: the
+site keeps building and looking correct with the masthead brand, the nav links, the hero,
+the footer and `_layouts/post.html`'s `← Back to devlog` all still saying the captain's
+name. **If you change any of those, update that table.** To re-verify, copy the tracked
+tree to a scratch dir, follow the README literally, build, then
+`grep -ril 'captain\|alchemy86\|Game Boy\|workbench' _site --include='*.html'` — only
+the sample post should match, because the README's own example is about TerminalGB.
+
 ## Two source-repo docs that disagree with themselves — trust these
 
 Verified 2026-08-26 while writing the project pages; re-check before requoting:

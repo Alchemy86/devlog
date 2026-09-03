@@ -14,6 +14,16 @@
   <meta property="og:description" content="An ongoing engineering log — what gets built here, what it currently scores, and the stories worth telling from building it. Mostly Game Boy work — TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal — plus Glyphsmith, ShowReel and AsciiWorldEngine, which aren't.">
   <meta property="og:url" content="https://alchemy86.github.io/devlog/index.html">
 
+  <meta property="og:image" content="https://alchemy86.github.io/devlog/assets/img/brand/devlog-og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The devlog mark: the wordmark set against an amber margin rule.">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="assets/img/brand/devlog-icon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/img/brand/devlog-icon-128.png" sizes="128x128" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/brand/devlog-icon-180.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -212,6 +222,53 @@
 
         {% endfor %}
       </ul>
+    </section>
+
+    <section id="start">
+      <div class="sec-head">
+        <h2>Start your own</h2>
+        <p class="sub">
+          This site is a small, complete blog, and it is a GitHub template. Take a copy and
+          the writing is the only part left.
+        </p>
+      </div>
+
+      <div class="cards">
+        <a class="card" href="https://github.com/Alchemy86/devlog/generate">
+          <div class="card-hd">
+            <img src="assets/img/brand/devlog-logo.svg" alt="devlog"
+                 style="display:block;width:100%;max-width:340px;height:auto;margin-bottom:18px;">
+            <p class="kicker">One click</p>
+            <h3>Use this template</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              GitHub makes you your own copy of this repository, and Pages builds it. Change
+              seven values in <code>_config.yml</code>, drop a markdown file into
+              <code>_posts/</code>, and it is live. There is no build step, no framework and
+              no dependency to keep alive — the only thing this site loads from anywhere else
+              is a font.
+            </p>
+          </div>
+          <div class="card-ft">Your own copy, building on Pages →</div>
+        </a>
+
+        <a class="card" href="https://github.com/Alchemy86/devlog#readme">
+          <div class="card-hd">
+            <p class="kicker">Five minutes</p>
+            <h3>How it fits together</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              What each front-matter field does, how a post becomes a page, and where the
+              four colour palettes live. Every page here is either a markdown post or a
+              hand-written HTML file that Jekyll copies through untouched, so there is very
+              little to learn before you can change something.
+            </p>
+          </div>
+          <div class="card-ft">Read the README →</div>
+        </a>
+      </div>
     </section>
 
   </main>
