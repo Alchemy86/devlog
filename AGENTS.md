@@ -195,6 +195,22 @@ Project pages live in `projects/` and draw their facts from private repos under
   `models/pixel-student.npz`) — re-derive from a fresh JSON, don't requote. **Save-state
   size is `~142 KB`, not the `170 KB` figure in `docs/no-pixels.md`** — the agentgb
   repo's own `AGENTS.md` style guide flags that file as the stale one; use 142 KB.
+  **The 21-link `600/600` above is the last whole-chain certification this site has
+  verified; it is not the chain the repo now runs.** `data/student-config.json`'s
+  `current` is the twelve-goal, twenty-five-link
+  `25-link-2026-09-03-screen-triggers-namefree-poisonsafe` (read the file, don't quote a
+  link count from a doc). `posts/the-trap-was-always-on-the-map.html` covers the
+  2026-09-04 single-artefact collapse (agentgb commit `e577fc0`, `docs/single-artifact.md`,
+  `src/agentgb/artifact_driver.py`): compiling the control flow into one `.onnx` did not
+  change the weights (`pixel-student.npz` sha256 `b2bb7908…` before and after) and picks
+  identical buttons over 1,000 paired synthetic decisions, yet finished 0/10 live cold
+  boots against the flexible driver's 8/10. Cause is a **pre-existing** defect in the
+  shared control flow, not the artefact: `battle-on-screen-recognizer` reads `0.608` on a
+  shop confirmation box, which cannot clear the `0.999` entry gate but does clear the
+  `0.5` release check, so it resets a stale battle hold's 24-decision patience forever.
+  **A recogniser figure here is meaningless without which of its two thresholds is meant**
+  — same lesson as the false-alarm gotcha above. `--use-artifact` is opt-in and unfixed as
+  of 2026-09-04; do not write it up as resolved without re-reading that repo.
   The recogniser write-up published as `posts/teaching-a-network-to-notice.html` was
   authored in the agentgb repo (`docs/writing/teaching-a-network-to-notice.md`, commit
   `4d9c5fe`) and republished here; that in-repo copy stays as the record. Its six montages
