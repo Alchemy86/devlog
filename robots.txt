@@ -1,0 +1,18 @@
+# Crawling is open. Nothing here is private and nothing here is generated per-visitor.
+User-agent: *
+Allow: /
+
+# NOTE, so nobody mistakes this for working discovery: robots.txt is an ORIGIN-root
+# file. Crawlers read https://alchemy86.github.io/robots.txt and nothing else. This
+# site is published under a subpath, so this file is served at
+# https://alchemy86.github.io/devlog/robots.txt and no crawler will fetch it.
+#
+# It is here for two reasons. jekyll-sitemap writes its own robots.txt when the source
+# has none, so the choice was never "file or no file" - only whose. And if the devlog
+# ever moves to its own domain or to the root of Alchemy86/alchemy86.github.io, this
+# file starts being read on the day of the move with no further work.
+#
+# The Sitemap line below only reaches a crawler if it is added to the robots.txt of
+# Alchemy86/alchemy86.github.io, which is a different repository. Until then, submit
+# the sitemap directly in Google Search Console / Bing Webmaster Tools.
+Sitemap: https://alchemy86.github.io/devlog/sitemap.xml

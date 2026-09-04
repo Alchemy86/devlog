@@ -25,8 +25,14 @@ still work untouched in two years — keep it that way.
   bundler -N -q && bundle install --quiet && bundle exec jekyll build -d /srv/_site'`, then
   `python3 -m http.server` from `_site/`. `bundle exec jekyll serve` works if Ruby is local.
 - **Deploy:** GitHub Pages serves `main` from the repository root (`source: main /`).
-  A push to `main` publishes; Pages rebuilds within ~a minute. Nothing goes live until
-  content is on `main`.
+  A push to `main` publishes; nothing else runs and there is no Actions workflow.
+  Confirmed 2026-09-04 from the API, not from belief: `gh api repos/Alchemy86/devlog/pages`
+  returns `"build_type": "legacy"` — GitHub's own Jekyll builder — and
+  `gh api repos/Alchemy86/devlog/pages/builds` lists one `"status": "built"` per commit
+  pushed, ~42-47 s each. Re-run those two calls rather than requoting this. Nothing goes
+  live until content is on `main`.
+- Add `-e BUNDLE_PATH=/srv/vendor/bundle` to the podman line and the gems persist in the
+  gitignored `vendor/`, so the second build skips the ~2 min `bundle install`.
 
 ## Structure
 
@@ -572,8 +578,12 @@ site keeps building and looking correct with the masthead brand, the nav links, 
 the footer and `_layouts/post.html`'s `← Back to devlog` all still saying the captain's
 name. **If you change any of those, update that table.** To re-verify, copy the tracked
 tree to a scratch dir, follow the README literally, build, then
-`grep -ril 'captain\|alchemy86\|Game Boy\|workbench' _site --include='*.html'` — only
-the sample post should match, because the README's own example is about TerminalGB.
+`grep -ril 'captain\|alchemy86\|Game Boy\|workbench' _site --include='*.html'`.
+**Two files match, not one** (re-run 2026-09-04): the sample post, whose footer still
+carries the captain's line from `_layouts/post.html`, and `index.html`, whose `og:image`
+is a literal `https://alchemy86.github.io/…` URL. Both are named in the README's own
+table, so this is the table being right rather than a leak — but do not expect a single
+match.
 
 ## Two source-repo docs that disagree with themselves — trust these
 
@@ -627,6 +637,50 @@ Use the Chrome command above instead. There is also a structural check worth re-
 after any edit: parse every `.html` with `html.parser` for unclosed/mismatched tags,
 resolve every relative `src`/`href` against the filesystem, and assert every `<img>` has
 an `alt`.
+
+## Discoverability wiring (added 2026-09-04)
+
+`README.md` § *Being found* is the reference; what an agent needs on top of it:
+
+- **`jekyll-sitemap` and `jekyll-feed` only.** Confirm any further plugin against the
+  allowlist in the pinned gem itself, not from memory:
+  `bundle exec ruby -e 'require "github-pages"; puts GitHubPages::Plugins::PLUGIN_WHITELIST'`.
+- **`jekyll-seo-tag` is allowlisted but deliberately unused**, for two independent
+  reasons. It re-emits ten tags every page already hand-sets, and the only way to avoid
+  duplicates is to delete the hand-set ones — which rewrites every `<title>`, because the
+  plugin cannot honour `title_suffix` and does not see the per-post `og_title` /
+  `og_description` overrides. And it is a Liquid tag, so it could never reach the twelve
+  pages that have no front matter. Canonical, feed discovery and JSON-LD — the parts it
+  would actually have added — are hand-written instead. Do not "finish the job" by adding it.
+- **Twelve of the thirteen hand-written pages are static files, not Jekyll pages.** Only
+  `index.html` (front matter) and the posts (`_layouts/post.html`) are Liquid-processed;
+  `finds.html`, `agentgb-progress.html`, `terminalgb-performance.html` and all nine
+  `projects/*.html` are copied through byte-for-byte, so Liquid's `{{ }}` and `{% %}`
+  do nothing in them. Their canonical and feed links are
+  written out in full and must be hand-edited if `url` or `baseurl` ever changes. They are
+  still in the sitemap: `jekyll-sitemap` walks `site.static_files` for `.html` as well as
+  `site.html_pages`, so all 38 URLs are covered.
+- **`robots.txt` at `/devlog/robots.txt` is not read by anything.** robots.txt is an
+  origin-root file and this site lives under a subpath; the origin root is
+  `Alchemy86/alchemy86.github.io`, a different repository (it exists, `has_pages: true`,
+  and currently 404s on `/robots.txt`). The file is kept because `jekyll-sitemap` writes
+  its own when the source has none. The file itself explains this — read it before
+  "fixing" it. Submit `sitemap.xml` in Search Console instead.
+- **Sitemap `lastmod` for the twelve static pages is the build machine's file mtime**, so
+  on Pages it is the build time, not an edit time. That is `jekyll-sitemap`'s behaviour
+  for static files and cannot be changed without shipping a custom sitemap template.
+  Posts get their real front-matter date.
+- **The gate on any head change is a before/after build diff**, and the bar it has to
+  clear is: every changed page byte-identical from `</head>` onward, every added line
+  inside `<head>`, and only new files at the site root. Build to `_site_before`, change,
+  build to `_site_after`, then compare `content.split('</head>')[1]` per page — that is
+  stronger evidence than reading a diff. The 2026-09-04 pass moved 38 pages with one
+  altered line in total (`index.html`'s `og:url`, `/devlog/index.html` → `/devlog/`, so
+  that canonical, `og:url` and the sitemap all name one homepage URL).
+- **Every post already carries a hand-written `description`** in its front matter, and
+  several carry `og_title` / `og_description` too. A new post without one publishes an
+  empty `<meta name="description">` and an empty JSON-LD `description` — the layout does
+  not fall back to the site description.
 
 ## Git / accounts
 

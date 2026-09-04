@@ -16,6 +16,36 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The devlog mark: the wordmark set against an amber margin rule.">
   <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:site_name" content="{{ site.title }}">
+  <meta property="og:locale" content="en_GB">
+  <meta property="article:published_time" content="{{ page.date | date_to_xmlschema }}">
+
+  <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}{{ page.url }}">
+  {%- comment -%}
+    jekyll-feed writes /feed.xml; this is the link that lets a reader's feed app find it
+    from any post. absolute_url in the tag already carries the baseurl.
+  {%- endcomment %}
+  {% feed_meta %}
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": {{ page.title | jsonify }},
+    "description": {{ page.description | strip_newlines | strip | jsonify }},
+    "datePublished": "{{ page.date | date_to_xmlschema }}",
+    "url": "{{ site.url }}{{ site.baseurl }}{{ page.url }}",
+    "mainEntityOfPage": {"@type": "WebPage", "@id": "{{ site.url }}{{ site.baseurl }}{{ page.url }}"},
+    "image": "{{ site.url }}{{ site.baseurl }}/assets/img/brand/devlog-og.png",
+    "inLanguage": "en-GB",
+    "isPartOf": {"@type": "Blog", "@id": "{{ site.url }}{{ site.baseurl }}/", "name": {{ site.title | jsonify }}},
+    "publisher": {
+      "@type": "Organization",
+      "name": {{ site.title | jsonify }},
+      "logo": {"@type": "ImageObject", "url": "{{ site.url }}{{ site.baseurl }}/assets/img/brand/devlog-icon-180.png"}
+    }
+  }
+  </script>
 
   <link rel="icon" href="../assets/img/brand/devlog-icon.svg" type="image/svg+xml">
   <link rel="icon" href="../assets/img/brand/devlog-icon-128.png" sizes="128x128" type="image/png">

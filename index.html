@@ -12,13 +12,34 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="devlog — engineering notes">
   <meta property="og:description" content="An ongoing engineering log — what gets built here, what it currently scores, and the stories worth telling from building it. Mostly Game Boy work — TerminalGB, AgentGB, AtlasGB, PixelGB, GBSelfTest, the Portal — plus Glyphsmith, ShowReel and AsciiWorldEngine, which aren't.">
-  <meta property="og:url" content="https://alchemy86.github.io/devlog/index.html">
+  <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}/">
 
   <meta property="og:image" content="https://alchemy86.github.io/devlog/assets/img/brand/devlog-og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="The devlog mark: the wordmark set against an amber margin rule.">
   <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:site_name" content="{{ site.title }}">
+  <meta property="og:locale" content="en_GB">
+
+  <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}/">
+  {% feed_meta %}
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": "{{ site.url }}{{ site.baseurl }}/",
+    "name": {{ site.title | jsonify }},
+    "url": "{{ site.url }}{{ site.baseurl }}/",
+    "description": "An ongoing engineering log - what gets built here, what it currently scores, and the stories worth telling from building it.",
+    "image": "{{ site.url }}{{ site.baseurl }}/assets/img/brand/devlog-og.png",
+    "inLanguage": "en-GB",
+    "blogPost": [{% for post in site.posts %}
+      {"@type": "BlogPosting", "headline": {{ post.title | jsonify }}, "url": "{{ site.url }}{{ site.baseurl }}{{ post.url }}", "datePublished": "{{ post.date | date_to_xmlschema }}"}{% unless forloop.last %},{% endunless %}{% endfor %}
+    ]
+  }
+  </script>
 
   <link rel="icon" href="assets/img/brand/devlog-icon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/img/brand/devlog-icon-128.png" sizes="128x128" type="image/png">

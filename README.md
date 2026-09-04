@@ -80,12 +80,16 @@ keeps building and looking right while it does. **`index.html`:**
 
 | Where | What is still his |
 | --- | --- |
-| `<head>` | `<title>`, `description`, and the three `og:` tags — including a `https://alchemy86.github.io/…` URL |
+| `<head>` | `<title>`, `description`, `og:title`, `og:description`, `og:image:alt` — and `og:image`, which is a literal `https://alchemy86.github.io/…` URL. Canonical, `og:url`, the feed link and the JSON-LD block rebase themselves from `url` and `baseurl` |
 | `.masthead` | the brand text `devlog.`, and nav links to `#projects` and `#pages` |
 | the hero `<section>` | "Notes from the workbench" and a paragraph about Game Boy emulators |
 | `.feature-banner`, `#projects`, `#pages` | whole sections pointing at the files you just deleted — delete these too |
 | `#start` | this "Start your own" section, pointing at *this* repository |
 | `.site-footer` | "devlog — the captain's engineering log" |
+
+**`robots.txt`** hardcodes the sitemap URL and explains a caveat specific to this site
+being published under `/devlog` — rewrite it for wherever yours lives, and see
+[Being found](#being-found).
 
 **`_layouts/post.html`** carries the same masthead, the same footer and a
 `← Back to devlog` link, and it is the shell every post is rendered into, so a leftover
@@ -229,6 +233,7 @@ finds.html                     # standing page: Gen 1 cartridge discoveries
 agentgb-progress.html          # standing page: the neural player's arc
 terminalgb-performance.html    # standing page: throughput and what exactness costs
 projects/                      # one HTML file per project: what it is, what it does, its scores
+robots.txt                     # crawling rules and the sitemap pointer (read the caveat in Being found)
 assets/css/main.css            # the whole design system
 assets/img/                    # real captures from the source repos (SVG diagrams are inlined)
 ```
@@ -249,8 +254,48 @@ posts. Narrative belongs in `_posts/`, one story per file.
 
 ## Publishing
 
-GitHub Pages builds the `main` branch. Push to `main` and Pages rebuilds within about a
-minute.
+GitHub Pages builds the `main` branch itself. Push to `main` and the site rebuilds; nothing
+else has to run. There is no Actions workflow in this repository and none is needed — Pages
+is configured with `build_type: legacy`, which is GitHub's own Jekyll builder reading
+`_config.yml` and the allowlisted plugins straight from the branch. The Pages build API
+lists one build per commit pushed, each finishing in around 45 seconds.
+
+## Being found
+
+Two GitHub Pages plugins and a handful of head tags, all of it additive — nothing here
+changes how a page renders.
+
+| What | Where it comes from | Where it lands |
+| --- | --- | --- |
+| `sitemap.xml` | `jekyll-sitemap` | every post, every project page, every standing page, the landing page — 38 URLs |
+| `feed.xml` | `jekyll-feed` | Atom, full post bodies, `feed.posts_limit` in `_config.yml` |
+| canonical, `og:site_name`, `og:locale`, feed link | `_layouts/post.html` for posts, hand-written in the head of every other page | all of them |
+| JSON-LD | `_layouts/post.html` (`BlogPosting`) and `index.html` (`Blog`) | posts and the landing page |
+
+Both plugins are on [GitHub Pages' own
+allowlist](https://pages.github.com/versions/), so they load without a workflow. The
+project pages and standing pages have no front matter, which means Jekyll copies them
+through and Liquid never runs in them — that is why their tags are written out in full
+rather than templated. Change `url` or `baseurl` and those pages need editing by hand.
+
+**`jekyll-seo-tag` is deliberately not used**, though it is allowlisted too. It emits its
+own `<title>`, `description`, `og:title`, `og:description`, `og:url`, `og:image`,
+`og:type` and `twitter:card` — every one of which this site already sets by hand, with
+per-post `og_title` / `og_description` overrides and a `title_suffix` the plugin has no
+way to honour. Adding it duplicates ten tags on every page; removing the hand-set ones to
+make room rewrites every page's `<title>`. And being a Liquid tag it could never reach the
+twelve pages that have no front matter, which are the ones most worth finding. What it
+would have added that was actually missing — canonical, feed discovery, structured data —
+is in the table above.
+
+**`robots.txt` is served at `/devlog/robots.txt` and no crawler will read it.** robots.txt
+is an origin-root file: crawlers fetch `https://alchemy86.github.io/robots.txt` and
+nothing else. A site published under a subpath cannot ship one from its own repository.
+The file is kept because `jekyll-sitemap` writes its own when the source has none, so the
+choice was whose file rather than whether — and because it starts being read the day the
+site moves to a domain of its own. Until then, submit `sitemap.xml` directly in Google
+Search Console. If you fork this to a `<user>.github.io` repository with an empty
+`baseurl`, `robots.txt` lands at the origin root and works as written.
 
 ## Design language
 

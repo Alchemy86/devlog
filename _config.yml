@@ -20,6 +20,20 @@ future: true
 # Keeps every URL the hand-written site already published: /posts/<slug>.html
 permalink: /posts/:title.html
 
+# Discoverability. Both are on GitHub Pages' own plugin allowlist (github-pages 232,
+# GitHubPages::Plugins::PLUGIN_WHITELIST), so Pages loads them without a workflow.
+# Each only adds files - sitemap.xml and feed.xml - and neither touches a page's markup.
+# jekyll-seo-tag is allowlisted too but is deliberately not here: see README.md.
+plugins:
+  - jekyll-sitemap
+  - jekyll-feed
+
+# jekyll-feed ships ten entries by default. Eighteen of the posts here share a single
+# date, so ten would hand a new subscriber the last two days and hide the rest of the
+# log. Carry all of it: the whole feed is a few hundred KB, fetched once.
+feed:
+  posts_limit: 100
+
 defaults:
   - scope:
       path: ""
