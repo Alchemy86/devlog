@@ -112,6 +112,16 @@ style and using only the existing tokens: `figure.pixel` / `figure.narrow` (real
 caption), `.pullquote`, and `.provenance` (the "where these numbers come from" strip every
 project page ends with). Extend that list rather than inventing a parallel system.
 
+`.wide-table` (added 2026-09-07, bottom of `main.css`) is the table equivalent of
+`figure.scrollfig`: `.prose > *` caps a table to the reading measure, and a table cannot
+shrink below its own text, so inside the existing `table { overflow: hidden }` the far
+columns are silently **clipped** rather than scrolled. Wrap any table wider than about four
+columns in `<div class="wide-table">` — full container width on desktop, sideways scroll
+inside its own box under 700px. Verify a layout change the way the discoverability pass is
+verified: build, then read `documentElement.scrollWidth` against `clientWidth` at 390 / 700 /
+1280 via headless Chrome `--dump-dom` with a small injected script, rather than judging a
+screenshot, which cannot tell a clipped table from a scrolling one.
+
 ## Editorial rule (non-negotiable)
 
 Every number on the site must be verifiable against the source project. If a claim
@@ -226,6 +236,20 @@ Project pages live in `projects/` and draw their facts from private repos under
   parameters is a *different network* from the student's 118,806 inference core and is not
   a variant of the `118,291` transcription slip below: it is the same trunk with a 2-class
   head instead of the 6-way one (118,806 - 774 + 258 = 118,290).
+
+  **Seed `4200126`'s failure is a cartridge fault, not a policy failure** (measured
+  2026-09-07, written up in `posts/the-trainer-who-saw-him-black-out.html` and as entry 06 of
+  `finds.html`). It is the Gen 1 *trainer escape* / trainer-Fly glitch by the death-warp
+  route: the run faints to a wild encounter beside a Bug Catcher in Viridian Forest, and the
+  blackout leaves `wViridianForestCurScript` (`$D618`) and `wCurMapScript` (`$DA39`) at 1
+  with `wSpriteIndex` (`$CF13`) and `wTrainerHeaderPtr` (`$DA30`) still naming that trainer,
+  so re-entering the map forces his battle on the doorway tile `(17,47)`. Across all 40 GiB
+  of recorded episodes under `~/pokemon-run-*` — 44,706 records, 11,927 of them carrying a
+  `battle-hold-trainer*` goal, over 625 seeds — 32 runs start a Viridian Forest trainer
+  battle on a south-gate exit tile and **every one is seed 4200126, and none finished**. The
+  cheap fleet-wide detector is a grep of the recorded `goal_events` for a `battle-hold-trainer*`
+  `fired` event with `"map": 51` and `"y": 47`; it needs no emulation and takes ~30 s over the
+  whole corpus. Do not report that seed as one more run that got lost in the forest.
 
   The engine-drift story (a TerminalGB commit silently flipping the default render
   engine, costing the chain 41/50=82% against the pinned 50/50=100%, at the prior

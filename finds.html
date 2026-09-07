@@ -60,8 +60,8 @@
         <span>Cartridge <b>Pokémon Blue</b>, USA/Europe</span>
         <span>SHA-1 <b class="lc">d7037c83…d4c48ce2</b></span>
         <span><b>1,048,576</b> bytes</span>
-        <span><b>5</b> entries</span>
-        <span>Updated <b>27 Aug 2026</b></span>
+        <span><b>6</b> entries</span>
+        <span>Updated <b>7 Sep 2026</b></span>
       </div>
     </section>
 
@@ -74,6 +74,7 @@
           <li><a href="#nidoran">Two species share one printable name</a></li>
           <li><a href="#sightline">A trainer sees through walls</a></li>
           <li><a href="#two-levels">Crossing two levels loses the move between them</a></li>
+          <li><a href="#trainer-escape">Blacking out leaves the trainer's fight armed</a></li>
         </ol>
       </div>
     </section>
@@ -544,13 +545,78 @@
       </dl>
     </section>
 
+    <!-- ==================== 6 ==================== -->
+    <section id="trainer-escape">
+      <div class="sec-head">
+        <h2>06 — Blacking out leaves the trainer's fight armed</h2>
+        <p class="sub">
+          A trainer who spots you on the frame you faint advances the map's own script and
+          then the game warps you away. The map keeps the fight, and hands it to you the
+          moment you walk back in — wherever the trainer is standing.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-bd">
+          <p>
+            Measured on our own cartridge, in a run nobody set up for it. The player fainted
+            to a wild CATERPIE at <code>(1,18)</code> in Viridian Forest and blacked out to
+            the Viridian City Pokémon Center. On the blackout frame — the one where
+            <code>wIsInBattle</code> reads <code>$FF</code> — the cartridge wrote a Bug
+            Catcher into <code>wEngagedTrainerClass</code>, put his sprite slot in
+            <code>wSpriteIndex</code>, moved <code>wTrainerHeaderPtr</code> from
+            <code>$6651</code> to <code>$5A51</code>, and two decisions later advanced
+            <code>wViridianForestCurScript</code> from 0 to 1.
+          </p>
+          <p>
+            The spotted flag at <code>$CD60</code> bit 0 is cleared by the time the player
+            wakes up. The script index is not. It survives the warp, the heal, a walk back
+            across Route 2 and the gate, and is still 1 when the player steps onto the
+            forest's own doorway tile <code>(17,47)</code> — 45 tiles from where he fainted.
+            Nine decisions later he is in a trainer battle he never walked into.
+          </p>
+          <p>
+            The control is in the same run. The visit before this one crossed the same
+            boundary, stood on the same tile, and nothing happened: that visit had its own
+            blackout, at <code>(2,22)</code>, and it left every one of those bytes at zero.
+          </p>
+        </div>
+        <div class="card-ft">
+          Prior work, not ours: the community calls this the <em>trainer escape</em> or
+          <em>trainer-Fly</em> glitch, and the
+          <a href="https://glitchcity.wiki/wiki/Trainer_escape_glitch">Glitch City Wiki</a>
+          documents the death-warp method and names <code>$CD60</code> bit 0. Escaping the
+          battle rather than blacking out is the dangerous variant, and is a component of
+          the Mew glitch and of arbitrary-code-execution routes in Red and Blue. Ours is the
+          tame end: a real Bug Catcher, in the wrong place.
+          <a href="posts/the-trainer-who-saw-him-black-out.html">The run it happened to →</a>
+        </div>
+      </div>
+      <dl class="spec" style="margin-top:26px;">
+        <dt>Lives at</dt>
+        <dd>
+          <code>wViridianForestCurScript</code> <code>$D618</code> and
+          <code>wCurMapScript</code> <code>$DA39</code> — the per-map script index, which is
+          in the saved block · <code>wSpriteIndex</code> <code>$CF13</code> ·
+          <code>wTrainerHeaderFlagBit</code> <code>$CC55</code> ·
+          <code>wTrainerHeaderPtr</code> <code>$DA30</code> ·
+          <code>wMiscFlags</code> <code>$CD60</code> bit 0
+        </dd>
+        <dt>How it was verified</dt>
+        <dd>Every byte read out of saved states of one replayed cold boot (seed 4200126), at eight points from before the wild battle to inside the forced one, with the same run's earlier re-entry on the identical tile as the control</dd>
+        <dt>Kind</dt>
+        <dd>Cartridge fault — known to the community, measured here</dd>
+      </dl>
+    </section>
+
     <section>
       <div class="provenance">
         <p>
-          <strong>Where these come from.</strong> Every entry is drawn from the discovery
+          <strong>Where these come from.</strong> Most entries are drawn from the discovery
           log of <a href="projects/atlasgb.html">AtlasGB</a>'s Gen 1 memory atlas, which
           records each finding with its addresses, the symptom that produced it, the wrong
-          turns, and the run that settled it.
+          turns, and the run that settled it. Entry 06 came the other way round — out of an
+          <a href="projects/agentgb.html">AgentGB</a> run that failed, read back byte by byte
+          against the same atlas.
         </p>
         <p>
           <strong>The cartridge.</strong> Pokémon Blue, USA/Europe, SHA-1

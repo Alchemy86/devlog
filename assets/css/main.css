@@ -987,3 +987,15 @@ a.card:hover .card-ft { color: var(--accent); }
   .feature-banner .fb-media { min-height: 200px; order: -1; }
   .feature-banner .fb-copy { padding: 26px 22px; }
 }
+
+/* ----- Wide data tables on a narrow screen --------------------------------- */
+/* A byte-by-byte table has more columns than a phone has room for, and a table
+   cannot shrink below the width of its own text — inside `table { overflow:
+   hidden }` the far columns are simply cut off. Wrapping one in this lets the
+   table scroll sideways inside its own box, the same bargain figure.scrollfig
+   makes for a wide SVG, and keeps the page body from scrolling. */
+.wide-table { max-width: none; }
+@media (max-width: 700px) {
+  .wide-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .wide-table table { min-width: 620px; }
+}
