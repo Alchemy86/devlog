@@ -139,6 +139,13 @@ repos:
   publish them as current. Current, from the baselines (27 Aug 2026): Mooneye acceptance
   **67/75 `standard`, 75/75 `identical`** (all eight fast-engine failures are
   `acceptance/ppu`), SameSuite audio **66/69** in both engines.
+- **Mealybug has two denominators and they are not interchangeable.** The whole suite is 79
+  rows (26 ROMs × three hardware reference sets): `identical` takes **29**, `standard` **3**.
+  The GB Emulator Shootout publishes only its **24 DMG rows**, and that is the denominator
+  SameBoy's 15, bgb's 2 and PyBoy's 0 belong to — ours there is **11**, counted from
+  `testharness/mealybug_accurate_baseline.txt` (`grep -c '@DMG = PASS'`). The gameboy repo's
+  own `docs/measured/against-the-field.md` §8c pairs "26" with SameBoy's 15, which is
+  arithmetically impossible on a 24-row board; do not republish it. Count the baseline.
 - AgentGB: brief said `29/30` cold boots with "one Squirtle run fails on Route 1". The
   repo inverts this — the failing line is **Bulbasaur** (`177/300`, and all `123`
   failures end in a battle on Route 1), while Squirtle and Charmander are `300/300`.
