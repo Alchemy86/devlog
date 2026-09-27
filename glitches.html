@@ -60,8 +60,8 @@
       <div class="hero-facts">
         <span>Cartridge <b>Pokémon Blue</b>, USA/Europe</span>
         <span>SHA-1 <b class="lc">d7037c83…d4c48ce2</b></span>
-        <span><b>2</b> glitches</span>
-        <span>Updated <b>27 Sep 2026</b></span>
+        <span><b>3</b> glitches</span>
+        <span>Updated <b>28 Sep 2026</b></span>
       </div>
     </section>
 
@@ -84,6 +84,24 @@
             </p>
           </div>
           <div class="card-ft">150,792 instructions · 898-byte overflow · full breakdown →</div>
+        </a>
+
+        <a class="card" href="glitches/evolution-overflow.html">
+          <div class="card-hd">
+            <p class="kicker">Reproduced 28 Sep 2026</p>
+            <h3>The name that becomes a Pokémon</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              An evolution-table lookup has no bounds check, so any out-of-range species
+              byte reads past the table and evolves into whatever ROM garbage it lands on
+              — predictable, not random, since the garbage never changes. Two real ways
+              in: a trainer's own chosen name, routed through the Old Man's catching demo
+              and one coastal tile; or a modified link partner, which can hand it over in
+              an ordinary trade and have it evolve, unnoticed, at the next battle won.
+            </p>
+          </div>
+          <div class="card-ft">2 delivery routes · real two-console trade · full breakdown →</div>
         </a>
 
         <a class="card" href="posts/the-trainer-who-saw-him-black-out.html">

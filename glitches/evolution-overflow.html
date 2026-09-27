@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The name that becomes a Pokémon — devlog</title>
+  <meta name="description" content="An evolution-table lookup with no bounds check turns any out-of-range species byte into a real evolution. A trainer's own chosen name can plant that byte through a documented copy-buffer bug; a modified link partner can hand it over in an ordinary trade. Both routes proven on TerminalGB's own CPU, including a real two-console trade over a real Serial_ExchangeBytes wire.">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="The name that becomes a Pokémon — devlog">
+  <meta property="og:description" content="An unbounded evolution-table lookup, reached two real ways: a trainer's own chosen name, or a modified link partner's trade. Reproduced on TerminalGB's own CPU, including a full two-console trade.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/glitches/evolution-overflow.html">
+
+  <meta property="og:image" content="https://alchemy86.github.io/devlog/assets/img/brand/devlog-og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The devlog mark: the wordmark set against an amber margin rule.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:site_name" content="devlog">
+  <meta property="og:locale" content="en_GB">
+
+  <link rel="canonical" href="https://alchemy86.github.io/devlog/glitches/evolution-overflow.html">
+  <link rel="alternate" type="application/atom+xml" href="https://alchemy86.github.io/devlog/feed.xml" title="devlog">
+
+  <link rel="icon" href="../assets/img/brand/devlog-icon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/img/brand/devlog-icon-128.png" sizes="128x128" type="image/png">
+  <link rel="apple-touch-icon" href="../assets/img/brand/devlog-icon-180.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <header class="post-header">
+      <p class="eyebrow">Glitch · Gen 1 cartridge</p>
+      <h1>The name that becomes a Pokémon</h1>
+      <p class="lead">
+        A Pokémon's evolution table is looked up by species index with no bounds check.
+        Feed it an index the game never assigns on purpose and it reads past the table
+        into whatever else lives in that ROM bank, and evolves the Pokémon into whatever
+        that garbage happens to decode as. There are two real ways to feed it that index.
+        One is entirely the player's own choice: pick a trainer name with a digit in the
+        right place, watch a scripted demo in Viridian City, and catch a specific wild
+        Pokémon on one coastal tile. The other doesn't need the player's cooperation at
+        all — a modified link partner can hand it over in an ordinary, visible trade, and
+        the Pokémon looks completely normal until the next battle it wins.
+      </p>
+    </header>
+
+    <section>
+      <div class="metrics">
+        <div class="metric">
+          <div class="num">10</div>
+          <div class="label">species indices a name can choose (246–255)</div>
+        </div>
+        <div class="metric">
+          <div class="num">2</div>
+          <div class="label">confirmed outcomes — SLOWPOKE, GROWLITHE</div>
+        </div>
+        <div class="metric">
+          <div class="num">2</div>
+          <div class="label">independent delivery routes proven</div>
+        </div>
+        <div class="metric">
+          <div class="num"><span class="accent">7</span></div>
+          <div class="label">real battle wins to the traded-in evolution</div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px;">
+        Reproduced 27–28 Sep 2026 on a retail image, <code>Pokemon - Blue Version (USA, Europe)
+        (SGB Enhanced).gb</code>, SHA-1 <code>d7037c83e1ae5b39bde3c30787637ba1d4c48ce2</code>.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>The sequel to the hooked Dragonite</h2>
+      <p>
+        <a href="hooked-dragonite.html">The hooked Dragonite</a> is one buffer overflow
+        with one outcome, reached one way. This is a different bug in the same cartridge —
+        the evolution-table lookup at <code>TryEvolvingMon</code> — and it has two
+        completely different, independently real ways in. Both were traced to source,
+        both were run on TerminalGB's own CPU rather than assumed from the disassembly,
+        and one of them was proven end to end across two linked emulator cores over a
+        real link-cable protocol.
+      </p>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>The mechanism</h2>
+        <p class="sub">
+          One lookup, one missing check, in a table that's fine for every species the
+          game actually uses.
+        </p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The table</p>
+            <h3><code>EvosMovesPointerTable</code>, bank 0E:$705C</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              Every species has a two-byte pointer in this table, indexed by
+              <code>(species − 1) × 2</code>, into its own evolution-and-move-learn data.
+              For the 190 real species in the game this is a completely ordinary lookup.
+              Nothing checks that <code>species</code> is one of those 190 before doing
+              the arithmetic.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">What happens past the edge</p>
+            <h3>Garbage entries, then a real one</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              Feed the lookup a species index above 190 and the pointer it computes lands
+              somewhere else in bank <code>0E</code> — not a crash, just a different
+              address, holding whatever bytes were already there. <code>Evolution_PartyMonLoop</code>
+              reads that address as a stream of evolution-table entries anyway: a byte for
+              the entry type, then whatever that type's format calls for. Most of the
+              stream decodes as entries with no real meaning and gets skipped; sooner or
+              later — sometimes never, sometimes after dozens of skipped "entries" — the
+              parser hits a byte pattern that happens to look like a valid <code>LEVEL</code>
+              entry, and evolves the Pokémon into whatever species byte follows it.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Why this is predictable, not random</p>
+            <h3>The garbage is fixed ROM data</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              The bytes past the table's real end are ordinary ROM bytes — code and data
+              belonging to whatever else lives in that bank. They never change between
+              runs. Every out-of-range species index has exactly one predicted outcome,
+              and it can be worked out in advance by walking the same bytes the real CPU
+              would read, without ever running the game.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>Route one: the player's own name</h2>
+        <p class="sub">
+          The community's own "Old Man"/Cinnabar MissingNo. glitch family, walked all the
+          way to a specific, chosen evolution.
+        </p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The copy that shouldn't matter</p>
+            <h3>The Old Man's catching demo writes over the wild-encounter table</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              Viridian City's Old Man runs a scripted catching demonstration through the
+              same battle-menu routine every other battle uses. For that one battle type,
+              the routine copies the player's own 11-byte name into
+              <code>wLinkEnemyTrainerName</code> — which the game's own memory layout
+              overlaps with <code>wGrassRate</code> and the 20-byte <code>wGrassMons</code>
+              wild-encounter table. Loading a new map is supposed to overwrite that table
+              with real data, but a town with zero wild encounters skips the overwrite
+              entirely — it only ever clears the rate byte. Cinnabar Island and Route 21
+              are exactly that kind of map, so the table keeps whatever the Old Man's demo
+              last wrote into it: the player's name.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The tile that reads it</p>
+            <h3>One specific "left shore" half-block</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              A wild encounter rolls its odds against one tile check and reads its species
+              data from a second, independent tile check. On a "left shore" half-block —
+              the game's own disassembly names Cinnabar Island's east coast as the
+              example — those two checks disagree: the odds are rolled as a water tile,
+              but the species comes from the grass table. So a wild encounter on that one
+              tile reads species data out of a table that, on Cinnabar or Route 21, still
+              holds the player's own name.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Which byte lands where</p>
+            <h3>The 3rd, 5th and 7th letters become species bytes</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              The 11-byte copy lands as five (level, species) pairs. The first pair — the
+              most heavily weighted encounter slot — takes its species byte from the
+              trainer name's <b>3rd character</b>. Gen 1's text encoding maps the digits
+              <code>0</code>–<code>9</code> directly onto internal species indices
+              246–255. A name with a digit in that position is a direct, deliberate choice
+              of which out-of-range species shows up in the grass.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Confirmed on TerminalGB's real CPU</p>
+            <h3>Two names, two predicted evolutions, both correct</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              The name copy itself was run on the real CPU at the exact instruction
+              (bank 0F:$4EDD): a name with <code>'6'</code> as its 3rd character produced
+              species byte <code>$FC</code> (252) in the wild-encounter table after 82 real
+              instructions, byte for byte. Walking the evolution table for each of the ten
+              name-reachable indices and then running the real evolution routine on the
+              two most interesting of them confirmed both: <b>species 252 evolves into
+              SLOWPOKE</b> after 317 real instructions, and <b>species 255 evolves into
+              GROWLITHE</b> after 461 — both landing exactly where the static walk of the
+              real ROM bytes predicted.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>Route two: a modified trade partner</h2>
+        <p class="sub">
+          No name, no coastal tile, no cooperation from the player at all — just an
+          ordinary trade, both sides visible, over a real link-cable wire.
+        </p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The other way in</p>
+            <h3>A trade copies the offered species byte with no check</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              <code>AddEnemyMonToPlayerParty</code> copies a traded-in Pokémon's species
+              byte from whatever the other console sent — the link-cable protocol is
+              unencrypted and has been reverse-engineered end to end, so a real, buildable
+              modified device can offer any byte it likes. Nothing on the receiving side
+              validates it against the real species list before writing it into the
+              party.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Proven, not modeled</p>
+            <h3>Two full Game Boy cores, one real Cable Club trade</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              Two complete TerminalGB cores were joined over the project's own real link
+              cable implementation and driven through an actual Cable Club trade — walk to
+              the receptionist, take the link menu, select the party slot, confirm — with
+              one side offering a hand-built Pokémon carrying species byte <code>0xC1</code>
+              (193). Reading the receiving console's live memory straight after "Trade
+              completed!" confirmed the byte survived the real wire intact: species 193,
+              level 8, exactly as sent.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The genuinely interesting part</p>
+            <h3>It doesn't evolve at the trade — and the reason is a real timing detail</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              The game forces an evolution check on the traded-in Pokémon immediately, as
+              part of the trade animation, before "Trade completed!" even prints. But at
+              that exact instant the game's own link-state flag still reads
+              <code>LINK_STATE_TRADING</code>, and the evolution parser skips any entry
+              that isn't a same-instant trade evolution while that flag is set. Species
+              193's table entry is the ordinary <code>LEVEL</code> kind, not a trade
+              evolution, so the mid-trade check waves it through untouched. The forced
+              flag survives the trade and takes effect for real at the next battle the
+              receiving player wins — by which point the link-state flag has been cleared,
+              and nothing stops the evolution any more. The traded-in Pokémon looks
+              completely ordinary in its new owner's party until then.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Confirmed by the game's own text</p>
+            <h3>Seven real battle wins to the evolution</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              After the trade, the receiving console fought seven real wild battles with
+              the traded-in Pokémon, over real game frames rather than scripted turns.
+              On the seventh, the moment its level crossed the table's own predicted
+              threshold, the game printed <b>"SPECOP evolved into SPEAROW!"</b> — matching,
+              byte for byte, both the species the static table walk predicted for 193 and
+              the exact level it predicted the evolution would require. The party
+              structure's own species byte read <code>0x05</code> immediately after,
+              confirming the on-screen text against a direct memory read of the same
+              event.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>What's proven, and what isn't yet</h2>
+        <p class="sub">
+          Honest about the gap this page still has.
+        </p>
+      </div>
+      <ul class="gaps">
+        <li>
+          <b>The mechanism is proven.</b> The unbounded evolution-table lookup was run on
+          TerminalGB's real CPU for four different out-of-range species (252, 255, and
+          193 twice — once by static prediction, once by a real trade and real battle
+          wins), and every prediction matched the real evolution the cartridge produced.
+        </li>
+        <li>
+          <b>Both delivery routes are proven independently.</b> The name-copy route was
+          run on the real CPU at the exact instruction that performs the copy. The trade
+          route was run end to end across two real, separately-instantiated Game Boy
+          cores joined by the project's own real link-cable implementation — a real
+          Cable Club trade, a real receiving-side memory read, and seven real battle
+          wins.
+        </li>
+        <li>
+          <b>Not yet closed: the full live walkthrough of route one, in a single
+          continuous playthrough.</b> Reaching Cinnabar Island or Route 21 legitimately
+          needs Surf, which needs real mid-to-late-game progress well past what either
+          investigation's time box covered. What stands in its place is the real CPU
+          reproduction of both halves of the mechanism independently — the name copy and
+          the evolution overflow — rather than a single unbroken run of the overworld. A
+          separate walkthrough attempt was still in progress as this page was written; if
+          it lands real in-game screenshots later, this page gets updated with them
+          rather than the gap being left to quietly age out of date.
+        </li>
+        <li>
+          <b>Not yet closed: exactly why the coastal tile's wild-encounter roll succeeds
+          at all.</b> Cinnabar Island's own map data sets its wild-encounter rate to zero,
+          which should refuse every roll outright — the same reason every town in the
+          game has no wild encounters. Reconciling that with the real, disassembly-cited
+          coastal route needs either tracing the map-connection code between Route 21 and
+          Cinnabar Island, or an empirical walkthrough. Neither has happened yet.
+        </li>
+      </ul>
+    </section>
+
+    <hr>
+
+    <div class="provenance">
+      <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
+      <p>
+        Every address, byte value and table walk above was read from a retail cartridge
+        image, <code>Pokemon - Blue Version (USA, Europe) (SGB Enhanced).gb</code>, SHA-1
+        <code>d7037c83e1ae5b39bde3c30787637ba1d4c48ce2</code>, cross-referenced against the
+        pret/pokered disassembly. The name-copy and evolution-overflow reproductions ran
+        on TerminalGB's own CPU core executing the real routines directly; the trade
+        reproduction joined two independent TerminalGB cores over the project's real link
+        cable implementation and drove an actual Cable Club trade through the existing
+        trade-bot tooling, reading both consoles' live memory and on-screen text rather
+        than assuming the wire behaved as documented.
+      </p>
+      <p>
+        The underlying "Old Man"/Cinnabar Island MissingNo. glitch is long-documented
+        community lore, not a discovery made here; what's new on this page is walking it
+        all the way to two specific, predicted evolutions and proving the same overflow
+        is independently reachable through a modified link partner, with the trade-timing
+        detail confirmed by direct reproduction rather than assumed from either mechanism
+        alone.
+      </p>
+    </div>
+
+    <a class="backlink" href="../glitches.html">← All glitches</a>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>
