@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The hooked Dragonite — devlog</title>
+  <meta name="description" content="A two-loop overflow in a Pewter City NPC's pathing routine wraps the whole address space and reads 898 bytes of ROM graphics data as a movement script — landing on a wild battle against a level-0 Dragonite. Reproduced byte for byte on TerminalGB's own core, with two corrections to the commonly repeated description.">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="The hooked Dragonite — devlog">
+  <meta property="og:description" content="A two-loop overflow wraps the address space and reads 898 bytes of ROM graphics data as a movement script — a wild battle against a level-0 Dragonite, reproduced byte for byte.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/glitches/hooked-dragonite.html">
+
+  <meta property="og:image" content="https://alchemy86.github.io/devlog/assets/img/brand/devlog-og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The devlog mark: the wordmark set against an amber margin rule.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:site_name" content="devlog">
+  <meta property="og:locale" content="en_GB">
+
+  <link rel="canonical" href="https://alchemy86.github.io/devlog/glitches/hooked-dragonite.html">
+  <link rel="alternate" type="application/atom+xml" href="https://alchemy86.github.io/devlog/feed.xml" title="devlog">
+
+  <link rel="icon" href="../assets/img/brand/devlog-icon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/img/brand/devlog-icon-128.png" sizes="128x128" type="image/png">
+  <link rel="apple-touch-icon" href="../assets/img/brand/devlog-icon-180.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <header class="post-header">
+      <p class="eyebrow">Glitch · Gen 1 cartridge</p>
+      <h1>The hooked Dragonite</h1>
+      <p class="lead">
+        Stand on one specific tile near Pewter City's museum guide and the game's own
+        pathing routine walks off the end of a four-entry table, wraps the entire 64K
+        address space, and starts reading ROM graphics data as a list of button presses. It
+        does not crash. It starts a wild battle against a level-0 Dragonite, using a battle
+        type byte the game never assigns on purpose. Seventeen years of documentation say
+        this is real. We put TerminalGB's own CPU at the routine's first instruction and
+        watched it happen.
+      </p>
+    </header>
+
+    <section>
+      <div class="metrics">
+        <div class="metric">
+          <div class="num">150,792</div>
+          <div class="label">instructions to overflow</div>
+        </div>
+        <div class="metric">
+          <div class="num">898</div>
+          <div class="label">bytes written past the buffer</div>
+        </div>
+        <div class="metric">
+          <div class="num">$42</div>
+          <div class="label">species byte — Dragonite</div>
+        </div>
+        <div class="metric">
+          <div class="num"><span class="accent">2</span></div>
+          <div class="label">corrections to the briefed description</div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:14px;">
+        Reproduced 27 Sep 2026 on a retail image, <code>Pokemon - Blue Version (USA, Europe)
+        (SGB Enhanced).gb</code>, SHA-1 <code>d7037c83e1ae5b39bde3c30787637ba1d4c48ce2</code>.
+      </p>
+    </section>
+
+    <section class="prose">
+      <h2>Not a new discovery</h2>
+      <p>
+        This is not ours to claim. The glitch was found by <b>Paco81 in 2009</b>, analysed
+        by <b>TheZZAZZGlitch in 2019</b>, and made catchable — the one genuinely new part —
+        by a video from <b>GlitchmonRBY</b> in 2026, who credits the chain on the
+        <a href="https://glitchcity.wiki/wiki/The_Hooked_Dragonite">Glitch City Wiki</a>
+        page and adds their own catching method with the prior author's permission. The
+        video runs on an emulator, uses the long-documented item-underflow glitch to set up
+        the encounter, and is a re-enactment of a known route rather than a new find. The
+        only question worth answering ourselves was whether the mechanism is what everyone
+        says it is. It is — and reading the routine directly settled two details that every
+        secondhand description of it gets wrong.
+      </p>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>The mechanism</h2>
+        <p class="sub">
+          Two loops, forty bytes, no bound on either one.
+        </p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">What the routine is for</p>
+            <h3>Looking up a canned walk</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              When a Pewter City guide NPC offers to walk the player somewhere, the game
+              queues a sequence of fake button presses. It finds that sequence by searching
+              a small coordinate table — four tiles for the museum guide, five for the
+              other — for an entry matching the player's position, then copies the path
+              that entry points to into a buffer.
+            </p>
+            <p>
+              The whole thing lives at <code>0D:7CA1</code>. The search loop reads two
+              bytes at a time and compares them against <code>wYCoord</code>
+              (<code>$D361</code>) and <code>wXCoord</code> (<code>$D362</code>). The copy
+              loop reads from wherever the search loop stopped, and writes to
+              <code>wSimulatedJoypadStatesEnd</code> (<code>$CCD3</code> onward) until it
+              hits a <code>$FF</code> byte.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Where the bound should be and isn't</p>
+            <h3>Neither loop can tell "not found" from "not yet"</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              The museum guide's table has exactly four entries. The search loop has no
+              entry count and no end-of-table marker — it just keeps stepping forward four
+              bytes at a time until two bytes happen to equal the player's coordinates,
+              wherever in the address space that happens to be.
+            </p>
+            <p>
+              The copy loop is just as unbounded: it copies until it meets a
+              <code>$FF</code>, with no length limit and no check that the address it
+              started from was ever a real table entry. Either loop alone would be
+              survivable. Together, the search loop's "match" becomes the copy loop's
+              source pointer, and nothing between them checks that the match is real.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The one tile that breaks it</p>
+            <h3><code>wYCoord = $1A, wXCoord = $0C</code></h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              The museum guide's table starts at <code>0D:7CEA</code>. Walking off the end
+              of it at four bytes a step runs past the end of the ROM bank, wraps
+              <code>$FFFF → $0000</code>, sweeps through VRAM, cartridge RAM, work RAM, OAM
+              and high RAM, wraps into ROM bank 0, and continues into bank <code>$0D</code>
+              — until it happens to hit two bytes that read <code>$1A $0C</code>.
+            </p>
+            <p>
+              There is exactly one such match in the whole ROM on that stride, at
+              <code>0D:6084</code>, sitting in the middle of compressed graphics data. The
+              two bytes immediately after it, read as a little-endian pointer, are
+              <code>$73B4</code> — so the copy loop starts reading at <code>0D:73B4</code>
+              and looks for a <code>$FF</code>. The first one is <b>898 bytes away</b>.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">What 898 bytes of graphics data does to work RAM</p>
+            <h3>A battle, started by the game itself</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              The write lands at <code>$CCE9</code> — one past the end of the player's real
+              queued path — and runs to <code>$D06B</code>. Everything in between gets
+              overwritten with compressed graphics bytes, read as movement data:
+            </p>
+            <ul>
+              <li><code>$CD6B</code> <code>wJoyIgnore</code> → <code>$0E</code> — B, Select
+                and Start stop responding</li>
+              <li><code>$CFC5</code> <code>wWalkCounter</code> → <code>$F9</code> — the
+                engine thinks a walk animation is 249 units from finishing, and freezes the
+                player until it counts down</li>
+              <li><code>$CFC7</code> <code>wAudioFadeOutControl</code> → <code>$F6</code> —
+                the "follow me" music fades out slowly</li>
+              <li><code>$D059</code> <code>wCurOpponent</code> → <b><code>$42</code></b> —
+                species index 66, Dragonite, confirmed from the ROM's own name table at
+                <code>07:421E</code></li>
+              <li><code>$D05A</code> <code>wBattleType</code> → <code>$22</code> — not a
+                normal, tutorial or Safari battle: a glitch battle</li>
+              <li><code>$D05F</code> → <code>$C4</code> — non-zero, which is what makes the
+                encounter print as "hooked"</li>
+            </ul>
+            <p>
+              <code>wCurOpponent</code> is the byte the overworld loop polls every frame at
+              bank 0 <code>$043C</code>; non-zero starts a fight. Nobody presses a button to
+              start this battle — the cartridge starts it on its own, once
+              <code>wWalkCounter</code> finishes counting down.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>What it looked like</h2>
+        <p class="sub">
+          Captured from TerminalGB's own framebuffer during the reproduction below — the
+          overworld before the routine runs, the freeze while the walk counter drains, the
+          battle the cartridge starts by itself, and the menu that follows it.
+        </p>
+      </div>
+
+      <div class="fig-pair">
+        <figure class="pixel">
+          <p class="cap">01 · Before</p>
+          <img src="../assets/img/glitches/hooked-dragonite/01-overworld-before.png" width="480" height="432"
+               alt="A Game Boy overworld screen near Pewter City's museum, reached with button presses only, before the routine runs.">
+          <figcaption>The overworld, reached by walking there — nothing set up by hand.</figcaption>
+        </figure>
+        <figure class="pixel">
+          <p class="cap">02 · Frozen</p>
+          <img src="../assets/img/glitches/hooked-dragonite/02-frozen-walkcounter.png" width="480" height="432"
+               alt="The same overworld screen, now frozen: wWalkCounter has been set to 249 by the overflow and the player cannot move.">
+          <figcaption>Same frame, after the overflow. <code>wWalkCounter = $F9</code> — the player is locked out for about eight seconds before anything else happens.</figcaption>
+        </figure>
+      </div>
+
+      <div class="fig-pair" style="margin-top:14px;">
+        <figure class="pixel">
+          <p class="cap">03 · Triggers</p>
+          <img src="../assets/img/glitches/hooked-dragonite/03-battle-starts.png" width="480" height="432"
+               alt="The overworld at the moment the walk counter reaches zero and the overworld loop polls wCurOpponent, starting the battle.">
+          <figcaption>The walk counter reaches zero, the overworld loop reaches its <code>wCurOpponent</code> poll, and the battle starts with no further input.</figcaption>
+        </figure>
+        <figure class="pixel">
+          <p class="cap">04 · The hooked Dragonite</p>
+          <img src="../assets/img/glitches/hooked-dragonite/04-the-hooked-dragonite.png" width="480" height="432"
+               alt="A wild battle screen showing a Dragonite sprite opposite the player, with an empty text box below.">
+          <figcaption><code>wCurOpponent = $42</code> — species 66. Not a scripted encounter; the byte the overflow wrote.</figcaption>
+        </figure>
+      </div>
+
+      <div class="fig-pair" style="margin-top:14px;">
+        <figure class="pixel">
+          <p class="cap">05 · The name</p>
+          <img src="../assets/img/glitches/hooked-dragonite/05-menu.png" width="480" height="432"
+               alt="The battle intro text box reading 'The hooked DRAGONITE', with the Dragonite sprite above and a row of six party-status balls, three filled, where a wild battle would normally show none."
+               style="background:var(--code-bg);">
+          <figcaption>"The hooked DRAGONITE" — the game's own string, reached because <code>$D05F</code> is non-zero. Same mechanism behind the Hooked Metapod and the Hooked MissingNo. The party-ball row is normally a trainer-battle element; a wild encounter doesn't show one.</figcaption>
+        </figure>
+        <figure class="pixel">
+          <p class="cap">06 · After A</p>
+          <img src="../assets/img/glitches/hooked-dragonite/06-after-a.png" width="480" height="432"
+               alt="A dialogue box reading 'DRAGONITE attacked!' with the Dragonite sprite above.">
+          <figcaption>Dragonite gets a turn — a real move, in a battle no scripted trigger ever fired.</figcaption>
+        </figure>
+      </div>
+
+      <figure class="pixel narrow" style="margin:14px auto 0;">
+        <p class="cap">07 · The menu</p>
+        <img src="../assets/img/glitches/hooked-dragonite/07-after-a2.png" width="480" height="432"
+             alt="The battle menu: a level-0 Dragonite with a full HP bar, above an otherwise ordinary-looking FIGHT / PKMN / ITEM / RUN menu.">
+        <figcaption>Dragonite reads level 0 with a full HP bar — the readout the overflow wrote, not a scripted stat block. The menu itself renders normally; <code>wBattleType = $22</code> is what let a battle exist here at all, not a visible glitch in the menu's own text.</figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>Two corrections</h2>
+        <p class="sub">
+          Reading the routine directly, rather than trusting the secondhand description, changed two things.
+        </p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Correction 1</p>
+            <h3>The coordinates are (y, x), not (x, y)</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              The briefed description read "X=26, Y=12". It is the other way round: the
+              routine reads <code>wYCoord</code> first, at <code>0D:7CBF</code>, and the
+              matching ROM pair is <code>1A 0C</code> — so <code>wYCoord = $1A</code> (26)
+              and <code>wXCoord = $0C</code> (12).
+            </p>
+            <p>
+              It is not a pedantic distinction. Swap the two and the search loop finds a
+              different pair entirely, whose "path" begins with <code>$FF</code>: the copy
+              loop returns immediately, zero bytes are copied, and nothing happens at all.
+              Reading a coordinate pair backwards is the difference between a battle and a
+              no-op.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Correction 2</p>
+            <h3><code>$D05F</code> and <code>$D05A</code> have undocumented second roles</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              AtlasGB's atlas lists <code>$D05F</code> as <code>wMoveMissed</code> — its
+              role during a battle — and nothing else. It has a second role the atlas
+              doesn't record: <code>16:4DB3</code> reads the same byte <em>before</em> the
+              battle to choose between "Wild " and "The hooked", and a shared reset routine
+              at <code>04:781D-$7826</code> clears it alongside <code>$D05A</code> and
+              <code>$D059</code> as one battle-state reset. It's a unioned byte, and the
+              atlas records only half of it — confirmed by experiment, not just by reading,
+              by setting <code>$D059=$42</code> and <code>$D05F=$01</code> on a clean
+              machine and watching the hooked text print.
+            </p>
+            <p>
+              The commonly repeated description has its own gap: it names
+              <code>$D059</code> and <code>$D05F</code> and stops there, missing
+              <code>$D05A</code>. <code>wBattleType</code> only ever holds 0 (normal), 1
+              (the old man's tutorial) or 2 (Safari Zone) in a real battle; the overflow
+              leaves it at <code>$22</code>, a value the battle code never assigns on
+              purpose. Two bytes cannot account for a battle whose own type byte reads as
+              none of the three the game recognises. <code>$D05A</code> does.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>The reproduction</h2>
+        <p class="sub">
+          The overflow was executed by the cartridge's own code, not simulated. The battle
+          that follows was replayed from the bytes that overflow actually wrote, then left
+          alone.
+        </p>
+      </div>
+      <ul class="gaps">
+        <li>
+          <b>The overflow: run by TerminalGB's real CPU.</b> With <code>wYCoord</code> and
+          <code>wXCoord</code> set to the glitch tile, the PC placed at bank <code>0D</code>
+          <code>$7CA1</code>, and the routine let run, it executed
+          <b>150,792 instructions over 1,313,060 cycles</b> — 0.31 seconds of Game Boy time,
+          18.7 frames, walking 14,568 phantom table entries — and returned with
+          <code>de = $D06B</code>, the exact address the mechanism predicts. Every one of
+          the seven bytes above matched, first try.
+        </li>
+        <li>
+          <b>The battle: reproduced with no further input.</b> The 899 overflow bytes were
+          captured, written back onto a clean machine, and nothing else was done. 500
+          frames later the walk counter reached zero, the overworld loop hit its
+          <code>wCurOpponent</code> poll, and the game started the wild battle on its own.
+        </li>
+        <li>
+          <b>What was not reproduced: the in-game route.</b> The documented route into this
+          tile goes through the Safari Zone, which needs Fuchsia City — well past where any
+          save on this machine has reached. The glitch coordinate and the guide's setup
+          state were written by hand to place the CPU where the desynced in-game route
+          would have put it; the 899-byte overflow itself was not — it is exactly what the
+          CPU had just written, replayed rather than authored. This proves the mechanism,
+          not the route, and the route is documented independently by three researchers
+          across seventeen years.
+        </li>
+        <li>
+          <b>One thing nobody else mentions:</b> after the overflow the player cannot move
+          at all, because <code>wWalkCounter</code> is non-zero — the community's own
+          write-ups attribute the freeze entirely to <code>wJoyIgnore</code>, but that byte
+          only blocks three buttons. The walk counter freezes the player completely, on its
+          own, for roughly eight seconds before the battle even starts.
+        </li>
+      </ul>
+    </section>
+
+    <hr>
+
+    <div class="provenance">
+      <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
+      <p>
+        Every address and byte value above was read from a retail cartridge image,
+        <code>Pokemon - Blue Version (USA, Europe) (SGB Enhanced).gb</code>, SHA-1
+        <code>d7037c83e1ae5b39bde3c30787637ba1d4c48ce2</code>, 1,048,576 bytes, and
+        cross-checked against <a href="../projects/atlasgb.html">AtlasGB</a>'s vendored
+        Gen 1 memory atlas (2,891 addresses). The reproduction ran on TerminalGB's own CPU
+        core, executing the real routine rather than a model of it; every screenshot above
+        is a real frame from that run's framebuffer, not a mockup.
+      </p>
+      <p>
+        The glitch itself is not this project's discovery. It was found by Paco81 in 2009
+        and analysed by TheZZAZZGlitch in 2019; the catchable variant was demonstrated by
+        GlitchmonRBY in 2026. The
+        <a href="https://glitchcity.wiki/wiki/The_Hooked_Dragonite">Glitch City Wiki</a>
+        page credits the full chain. What's here is our own independent reproduction and
+        the two corrections it turned up.
+      </p>
+    </div>
+
+    <a class="backlink" href="../glitches.html">← All glitches</a>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>

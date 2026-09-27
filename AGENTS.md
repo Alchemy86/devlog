@@ -407,17 +407,32 @@ Project pages live in `projects/` and draw their facts from private repos under
   `volumedetect` (a sensible level, no clip) and a `showspectrumpic` spectrogram (real rhythm, not
   noise), and say so plainly rather than claiming you listened.
 
-## Standing pages (added 2026-08-27)
+## Standing pages (added 2026-08-27, `glitches.html` added 2026-09-27)
 
-Three pages at the repository root accumulate rather than being published once. Each is
-linked from `index.html`'s own `#pages` section and follows the same shape: `.page-hero`
-with a `.hero-facts` strip, a `.toc` card, sections built from `.tiles` / `.card` /
-`dl.spec`, and a closing `.gaps` list plus `.provenance`.
+Root-level pages that accumulate rather than being published once. Each is linked from
+`index.html`'s own `#pages` section and follows the same shape: `.page-hero` with a
+`.hero-facts` strip, sections built from `.tiles` / `.card` / `dl.spec`, and a closing
+`.provenance`.
 
 - `finds.html` — Gen 1 cartridge discoveries, one `<section>` per entry, each ending in a
   `dl.spec` with *lives at* / *how it was verified* / *kind*. Source is atlasgb's
   `atlases/pokemon-rb/docs/discoveries.md`. **Append entries; do not renumber existing ones**
-  (the `#id` anchors are linked from elsewhere).
+  (the `#id` anchors are linked from elsewhere). **Cartridge faults (real glitches) do not
+  go here** — they go on `glitches.html` instead. `finds.html` is for things that look odd
+  but turn out to be the cartridge working as designed (a mechanic, not a bug); the page
+  used to also carry the trainer-escape glitch as entry 06, moved out on 2026-09-27.
+- `glitches.html` — the index of real, reproduced cartridge glitches, `.cards` linking out
+  to one full-breakdown page each. A glitch's breakdown is either a page under `glitches/`
+  (e.g. `glitches/hooked-dragonite.html`, project-page shape: hero, metrics, `.cards` for
+  the mechanism, `figure.pixel`/`.fig-pair` for real screenshots, `.provenance`) or an
+  existing post when one already covers it in full (the trainer-escape glitch links
+  straight to `posts/the-trainer-who-saw-him-black-out.html` rather than duplicating it).
+  Only real bugs go here — see the `finds.html` note above for the dividing line, and
+  don't add an entry from a description alone: verify every claim against the source
+  investigation, screenshots included, before publishing (the hooked-Dragonite page
+  originally repeated the source report's "corrupted PKMN slot / empty HP bar" claim for
+  the battle menu screenshot; the actual captured frame shows an ordinary-looking menu and
+  a full HP bar, so the page was corrected to describe only what the screenshot shows).
 - `agentgb-progress.html` — the arc as a `.timeline`, the current standing, and the honest
   gaps. Source is agentgb's `docs/progress.md` (stages 0-8, dated) plus `docs/return-leg-adapter.md`
   and `AGENTS.md` for everything after 24 Aug 2026; `docs/results.md` is **stale** (3 links).

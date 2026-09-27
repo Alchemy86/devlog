@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glitches — devlog</title>
+  <meta name="description" content="A standing index of real, reproduced Game Boy cartridge glitches — what breaks, the exact bytes it breaks, and a link to the full mechanism behind each one.">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Glitches">
+  <meta property="og:description" content="Real, reproduced Game Boy cartridge glitches, each with its own full breakdown: the mechanism, the addresses, and how it was verified.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/glitches.html">
+
+  <meta property="og:image" content="https://alchemy86.github.io/devlog/assets/img/brand/devlog-og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The devlog mark: the wordmark set against an amber margin rule.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:site_name" content="devlog">
+  <meta property="og:locale" content="en_GB">
+
+  <link rel="canonical" href="https://alchemy86.github.io/devlog/glitches.html">
+  <link rel="alternate" type="application/atom+xml" href="https://alchemy86.github.io/devlog/feed.xml" title="devlog">
+
+  <link rel="icon" href="assets/img/brand/devlog-icon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/img/brand/devlog-icon-128.png" sizes="128x128" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/brand/devlog-icon-180.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="./">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="./#projects">Projects</a>
+        <a href="./#pages">Pages</a>
+        <a href="./#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="page-hero">
+      <p class="eyebrow">Standing page · Gen 1 cartridge</p>
+      <h1>Glitches.</h1>
+      <p class="lead">
+        Real cartridge faults, reproduced on our own hardware or on our own emulator core,
+        each with the mechanism traced to an address rather than left as a rumour. A
+        behaviour that looks broken but turns out to be the cartridge working as designed
+        does not belong here — it belongs on <a href="finds.html">cartridge finds</a>
+        instead. This page is only for the ones that are actually bugs.
+      </p>
+      <div class="hero-facts">
+        <span>Cartridge <b>Pokémon Blue</b>, USA/Europe</span>
+        <span>SHA-1 <b class="lc">d7037c83…d4c48ce2</b></span>
+        <span><b>2</b> glitches</span>
+        <span>Updated <b>27 Sep 2026</b></span>
+      </div>
+    </section>
+
+    <section>
+      <div class="cards">
+        <a class="card" href="glitches/hooked-dragonite.html">
+          <div class="card-hd">
+            <p class="kicker">Reproduced 27 Sep 2026</p>
+            <h3>The hooked Dragonite</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              An NPC's pathing routine has two loops with no bound between them. Stand on
+              one specific unreachable tile and the search loop walks off the end of a
+              four-entry table, wraps the whole 64K address space, and the copy loop starts
+              reading 898 bytes of ROM graphics data as a movement script — landing on a
+              wild battle against a level-0 Dragonite with no scripted trigger behind it.
+              Seventeen years documented by others; this is our own reproduction, byte for
+              byte, on TerminalGB's core.
+            </p>
+          </div>
+          <div class="card-ft">150,792 instructions · 898-byte overflow · full breakdown →</div>
+        </a>
+
+        <a class="card" href="posts/the-trainer-who-saw-him-black-out.html">
+          <div class="card-hd">
+            <p class="kicker">Measured 7 Sep 2026</p>
+            <h3>The trainer who saw him black out</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              A trainer who spots the player on the frame they faint advances the map's own
+              script before the blackout warp fires. The script index survives the warp and
+              the heal, and hands the player a trainer battle the moment they walk back onto
+              the tile it happened on — the community's <em>trainer escape</em> glitch,
+              caught here in a run nobody set up for it.
+            </p>
+          </div>
+          <div class="card-ft">Seed 4200126 · Viridian Forest · full breakdown →</div>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <div class="provenance">
+        <p>
+          <strong>Where these come from.</strong> Each glitch here has been reproduced on
+          this project's own tooling, not only read about — a step-by-step ROM trace for
+          the hooked Dragonite, a replayed cold boot for the trainer escape. Both are
+          cross-checked against <a href="projects/atlasgb.html">AtlasGB</a>'s Gen 1 memory
+          atlas, and where the atlas itself turned out to be incomplete, that is said
+          plainly rather than smoothed over.
+        </p>
+        <p>
+          <strong>The cartridge.</strong> Pokémon Blue, USA/Europe, SHA-1
+          <code>d7037c83e1ae5b39bde3c30787637ba1d4c48ce2</code>, 1,048,576 bytes.
+        </p>
+        <p>
+          <strong>This page grows.</strong> A glitch is added here only once it has been
+          reproduced against a real ROM, not quoted from someone else's write-up.
+        </p>
+      </div>
+
+      <a class="backlink" href="./">← Back to devlog</a>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>
