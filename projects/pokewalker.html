@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pokewalker — devlog</title>
+  <meta name="description" content="Pokewalker: a real pedometer toy that trades over an actual Game Boy link cable instead of the original's infrared, on a round 412×412 touchscreen. The trade protocol is checked byte-for-byte against a cartridge-verified reference, 900,000 bytes across 300 sessions, before it ever reaches a wire.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Pokewalker — devlog">
+  <meta property="og:description" content="Pokewalker: a real pedometer toy that trades over an actual Game Boy link cable instead of the original's infrared, on a round 412×412 touchscreen. The trade protocol is checked byte-for-byte against a cartridge-verified reference, 900,000 bytes across 300 sessions, before it ever reaches a wire.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/projects/pokewalker.html">
+
+  <meta property="og:image" content="https://alchemy86.github.io/devlog/assets/img/brand/devlog-og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The devlog mark: the wordmark set against an amber margin rule.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:site_name" content="devlog">
+  <meta property="og:locale" content="en_GB">
+
+  <link rel="canonical" href="https://alchemy86.github.io/devlog/projects/pokewalker.html">
+  <link rel="alternate" type="application/atom+xml" href="https://alchemy86.github.io/devlog/feed.xml" title="devlog">
+
+  <link rel="icon" href="../assets/img/brand/devlog-icon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/img/brand/devlog-icon-128.png" sizes="128x128" type="image/png">
+  <link rel="apple-touch-icon" href="../assets/img/brand/devlog-icon-180.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="../">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="../#projects">Projects</a>
+        <a href="../#pages">Pages</a>
+        <a href="../#writing">Writing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <header class="post-header">
+      <p class="eyebrow">Project · Wearable</p>
+      <h1>Pokewalker</h1>
+      <p class="lead">
+        A real version of the pedometer toy that shipped with <em>HeartGold</em> and
+        <em>SoulSilver</em> — except this one trades with a Game Boy over an actual link
+        cable, not infrared to a DS. It runs on a round 412×412 touchscreen, walks a
+        team of up to six Pokémon on a real step count, and puts one of them on the
+        table for a genuine Generation 1 trade: SEND hands over the device's own
+        stand-in token, TAKE BACK gives up a real team member and takes back whatever
+        the game offers for it. The wire protocol is checked byte-for-byte against a
+        cartridge-verified reference before it ever gets near a cable — 900,000 bytes
+        across 300 independent sessions, all agreeing.
+      </p>
+    </header>
+
+    <section>
+      <div class="metrics">
+        <div class="metric">
+          <div class="num">64,296</div>
+          <div class="label">Lines of Rust across the workspace</div>
+        </div>
+        <div class="metric">
+          <div class="num">760</div>
+          <div class="label">Tests passing, host-run</div>
+        </div>
+        <div class="metric">
+          <div class="num">900,000</div>
+          <div class="label">Fuzzed protocol bytes, byte-for-byte against a cartridge-verified reference</div>
+        </div>
+        <div class="metric">
+          <div class="num"><span class="accent">412&times;412</span></div>
+          <div class="label">Round touch IPS — the board's real screen</div>
+        </div>
+      </div>
+    </section>
+
+    <figure class="pixel">
+      <img src="../assets/img/pokewalker/real-cartridge-trade.png" width="1035" height="884"
+           alt="A real Pokémon Blue's Cable Club trade table: BLUE offering MEWTWO, WALKER offering PIKACHU, and the confirmation line 'PIKACHU will be traded.'">
+      <figcaption>
+        A real Pokémon Blue, on the Cable Club trade table, agreeing to take the device's
+        own token. The bytes that got it there are the same ones <code>pw-link</code>'s
+        own fuzzer checks itself against — a cartridge-verified Generation 1 partner,
+        not an approximation of one.
+      </figcaption>
+    </figure>
+
+    <section>
+      <div class="sec-head">
+        <h2>What it does</h2>
+        <p class="sub">Everything here is built and running on the device.</p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The trade</p>
+            <h3>SEND and TAKE BACK, over a real link cable</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>SEND: the device offers a hand-built level 5 Pikachu token; the Game
+                Boy hands over whichever of its own Pokémon it likes at the trade
+                table</li>
+              <li>TAKE BACK: choose any of the walker's own team to give away; it
+                leaves the team for good, and whatever the Game Boy player gives up
+                for it is released rather than kept</li>
+              <li>A team member has no cartridge-format bytes of its own to send, so
+                <code>trade::giveaway_mon</code> builds one fresh from its species and
+                level, wearing the token's own stats and moves as a stand-in — a
+                plausible Pokémon on the wire, not a numerically exact one</li>
+              <li>The Trade Room's own rim breathes through the ball's four-tone blue
+                while a game is on the cable, dithered rather than a flat fill — the
+                same technique the closed ball's own centre-button glow already used</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The protocol</p>
+            <h3>Checked against a real cartridge before it ever ships</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li><code>pw-link</code> is the device's own Generation 1 trade partner,
+                a clean-room implementation of the exchange a real cartridge runs</li>
+              <li>An oracle test feeds identical bytes to it and to a plugin verified
+                against a real Pokémon Blue, and every single answer has to match —
+                whole scripted sessions, then 300 runs of 3,000 fuzzed bytes each</li>
+              <li>All 900,000 fuzzed bytes agree, byte for byte, including the phase
+                each side ends up in and the party each side is shown</li>
+              <li><code>pw_link::wire::unpatch</code> bounds-checks the patch-list
+                offset a trade's <code>$FE</code> bytes travel through against the
+                whole party block; a companion probe sends a protocol-legal stream
+                with two out-of-range entries to check whether a real cartridge does
+                the same</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The pet</p>
+            <h3>A team, a step count, three minigames</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>A closed ball that turns like one in your hand, an open face that
+                walks a leading Pokémon on the real step count, and a team of up to
+                six with its own carousel</li>
+              <li>Poké Radar and the Dowsing Machine, ported from the original
+                device's own <code>picowalker-core</code> reference with the source
+                lines cited; a Slots minigame this project added itself, and says so</li>
+              <li>A 3-slot inventory for what the Dowsing Machine finds, and a dex
+                store that loads any of the 251 species from flash with its own
+                animation and cry</li>
+              <li>Settings, the Watt purse and the step counter all cross a power
+                cycle by being handed back at boot — there is no EEPROM model, only a
+                host that remembers</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">Sound and radio</p>
+            <h3>A real sound chip, not sampled audio</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>A <code>no_std</code> sound chip and track player in <code>pw-pet</code>
+                itself — chip notes, not recordings, so a minute of music costs
+                kilobytes rather than megabytes</li>
+              <li>All 44 tracks the original device's radio carries, every looping
+                Blue song and Yellow's own extras, played from the chip</li>
+              <li>The Surfing Pikachu theme and the Game Corner music are chip notes
+                too, transcribed from the cartridge's own sound engine</li>
+              <li>Favourites star a track to the front of the radio list and survive a
+                reboot in the same settings record everything else does</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <p class="kicker">The board</p>
+            <h3>One real target, chosen on purpose</h3>
+          </div>
+          <div class="card-bd">
+            <ul>
+              <li>Waveshare ESP32-S3-Touch-LCD-1.46B: a round 412×412 touch IPS panel,
+                two side keys, an onboard IMU for the step count</li>
+              <li>Firmware is <code>no_std</code>, <code>forbid(unsafe_code)</code>,
+                zero dependencies in the pet logic itself — everything hardware-facing
+                stays in its own driver crate</li>
+              <li>The device's own Poké Ball is drawn on the round glass rather than
+                moulded — a lit sphere in the enclosure's own paint, shaded rather
+                than photographed</li>
+              <li>A desktop simulator (<code>pw-pet-window</code>) runs the same
+                <code>App</code> the device does, live in a window, for every screen
+                shown on this page</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <figure class="pixel">
+      <img src="../assets/img/pokewalker/traderoom-send.png" width="412" height="412"
+           alt="The Trade Room's main screen: a round watch-face UI reading TRADE ROOM at the top, a SEND plate and a TAKE BACK plate below it, and OFFER TOKEN along the bottom.">
+      <figcaption>
+        The Trade Room, open on the walker's own screen — a tap on the lit ball's
+        centre button gets here. The ring round the rim is grey while nothing is on
+        the cable; it lights and breathes blue the moment a game connects.
+      </figcaption>
+    </figure>
+
+    <div class="fig-pair">
+      <figure class="pixel" style="max-width:none;">
+        <img src="../assets/img/pokewalker/traderoom-takeback.png" width="412" height="412"
+             alt="TAKE BACK's list: CHARMANDER, BULBASAUR and PIKACHU, each with its level, and a BACK arrow at the bottom.">
+        <p class="cap">TAKE BACK lists the whole team</p>
+      </figure>
+      <figure class="pixel" style="max-width:none;">
+        <img src="../assets/img/pokewalker/traderoom-offer.png" width="412" height="412"
+             alt="The Trade Room's confirmation screen: OFFERING CHARMANDER LEVEL 5, NOW TRADE ON YOUR GAME BOY."
+             >
+        <p class="cap">A choice made, ready for the cable</p>
+      </figure>
+    </div>
+    <p class="note" style="margin-top:6px; text-align:center;">
+      Choosing CHARMANDER here commits it to the wire and removes it from the team the
+      moment the trade completes — the same finality a real trade has.
+    </p>
+
+    <section>
+      <div class="sec-head">
+        <h2>What it's built of</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Crate</th>
+              <th class="num">Lines</th>
+              <th>What it is</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>pw-pet</code></td><td class="num">42,126</td><td>The pet itself — <code>no_std</code>, every screen, the walk, the trade room, the minigames, the sound chip</td></tr>
+            <tr><td><code>pw-pet-window</code></td><td class="num">7,656</td><td>Desktop simulator: the same <code>App</code>, live in a window, with recording and scripting</td></tr>
+            <tr><td><code>pw-pet-firmware</code></td><td class="num">4,271</td><td>The device build — <code>xtensa-esp32s3-none-elf</code>, its own toolchain and linker script</td></tr>
+            <tr><td><code>pw-link</code></td><td class="num">1,581</td><td>The Generation 1 trade partner, checked against the real one</td></tr>
+            <tr><td><code>pw-spd2010</code> / <code>pw-sh8601</code></td><td class="num">3,134</td><td>Two panel drivers — a real QSPI driver plus a software model, on the same terms, one crate each</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h2>Where it stands</h2>
+      </div>
+      <ul class="gaps">
+        <li>
+          <b>The physical link port has no driver yet.</b> Four GPIOs are wired and
+          named for the Game Boy's clock, in, out and cable-present sense, but nothing
+          bit-bangs the real serial protocol against them — every trade checked so far
+          is software talking to software, over TCP, not yet over an actual cable to
+          an actual console.
+        </li>
+        <li>
+          <b>A given-away Pokémon is a stand-in, not an exact one.</b>
+          <code>giveaway_mon</code> has no per-species base-stat table, so the species
+          and level are real but the combat stats, DVs and moves are the token's own —
+          a deliberate simplification, not a bug.
+        </li>
+        <li>
+          <b>The Xtensa Rust backend is fragile at this code's current size.</b> A
+          handful of arithmetic patterns — a signed value that lands on exactly
+          <code>-4096</code>, or a plain <code>.abs()</code> — have made the compiler's
+          own instruction selector give up outright. Both known instances are worked
+          around; a large enough further addition could find another.
+        </li>
+      </ul>
+    </section>
+
+    <section class="prose">
+      <h2>Milestones</h2>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-date">30 Sep 2026</div>
+          <p class="tl-title">TAKE BACK offers any team member, and the ring breathes</p>
+          <p>
+            TAKE BACK's list used to need a Pokémon specifically tracked as
+            link-received, which a real team of ordinary Pokémon never has — it always
+            read "nothing kept". It now lists the whole team and builds a wire Pokémon
+            fresh for whichever one is chosen. The trade ring stopped being a flat
+            fill at the same time: it breathes through the ball's own four tones,
+            dithered rather than stepped.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">29 Sep 2026</div>
+          <p class="tl-title">A Generation 1 trade partner, checked against the real one</p>
+          <p>
+            <code>pw-link</code> landed with an oracle test beside it: the same bytes,
+            in the same order, fed to this implementation and to a plugin verified
+            against a real Pokémon Blue cartridge, with every answer required to
+            match. It still does, all 900,000 fuzzed bytes of it.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">25 Sep 2026</div>
+          <p class="tl-title">The build target becomes the Waveshare board</p>
+          <p>
+            The active hardware target moved to the Waveshare ESP32-S3-Touch-LCD-1.46B
+            — a round 412×412 touch panel bought in rather than machined, with the
+            Poké Ball drawn on the glass instead of moulded round it.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">24 Sep 2026</div>
+          <p class="tl-title">The pet software becomes this project's own, in Rust</p>
+          <p>
+            The earlier C reference core was a licence-encumbered dependency to check
+            against, not a foundation. The software this project ships from here is
+            its own, written from nothing, in Rust.
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">16 Sep 2026</div>
+          <p class="tl-title">The infrared had to go</p>
+          <p>
+            The original hardware line: deleting the Pokéwalker's IrDA transceiver for
+            a six-pin Game Boy link interface, and machining a steel Poké Ball to put
+            it in. Superseded by the Waveshare pivot above, but the interface work —
+            a 74LVC2G17 and five resistors doing the whole job — carries over in spirit.
+            <a href="../posts/the-infrared-had-to-go.html">Read it →</a>
+          </p>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">28 Jun 2026</div>
+          <p class="tl-title">The first commit</p>
+          <p>
+            KiCad hardware for a real Pokéwalker, on a forked RP2350 board.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="writing" class="prose">
+      <h2>Writing</h2>
+      <ul class="post-list">
+        <li>
+          <a class="post-card" href="../posts/the-infrared-had-to-go.html">
+            <div class="post-meta"><span class="tag">Pokewalker</span><span>Hardware · The link cable</span><span>16 Sep 2026</span></div>
+            <p class="post-title">The infrared had to go</p>
+            <p class="post-dek">A 74LVC2G17 where the infrared transceiver was, and a ⌀70 steel ball to put it in. The shell weighs 86.1 g, the Poké Ball look turns out to be paint, and the USB-C plug cannot reach its socket.</p>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <hr>
+
+    <div class="provenance">
+      <p class="eyebrow" style="margin-bottom:8px;">Where these numbers come from</p>
+      <p>
+        Line counts are <code>find src -name '*.rs' | xargs wc -l</code> per crate, in
+        the repository. The test count is every host-runnable suite in the workspace
+        passing together. The 900,000-byte figure is <code>pw-link-oracle</code>'s own
+        fuzz test, 300 runs of 3,000 bytes each, checked against
+        <code>terminalgb-plugin-gen1-link</code> — TerminalGB's own Generation 1 link
+        plugin, independently verified against a real Pokémon Blue cartridge. The
+        Trade Room screens are real captures, rendered by the desktop simulator's own
+        renderer — the same code the device runs — not mocked or drawn separately. The
+        Cable Club screenshot is a real Pokémon Blue ROM and save, run in TerminalGB,
+        trading over the same wire protocol this project's own oracle test checks
+        itself against.
+      </p>
+      <p>
+        Pokewalker is a personal reimplementation of a Nintendo accessory; the source
+        repository is private. The current build targets a bought-in Waveshare module;
+        the earlier custom RP2350 board this project also carries was forked from
+        mamba2410's picowalker.
+      </p>
+    </div>
+
+    <a class="backlink" href="../#projects">← All projects</a>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>
