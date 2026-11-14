@@ -44,6 +44,16 @@
     <label class="ui">Load sprite folder<input type="file" id="folder" webkitdirectory multiple></label>
     <button class="ui" id="reset" title="Switch the walker off and on: it comes back from its save">Restart</button>
   </div>
+  <div class="row" id="liverace" title="A live rally through the portal: one walker hosts, up to three join with the room's code, the host starts">
+    <select class="ui" id="racecourse" aria-label="Course">
+      <option value="0">Mosswood Route</option><option value="1">Rockfall Pass</option><option value="2">Gull Coast</option>
+    </select>
+    <button class="ui" id="racehost">Host a race</button>
+    <input class="ui" id="racecode" size="18" placeholder="room code" aria-label="Room code">
+    <button class="ui" id="racejoin">Join</button>
+    <button class="ui" id="racestart" disabled>Start</button>
+    <span id="racesay" role="status"></span>
+  </div>
   <div class="row">
     <button class="ui" id="sound" aria-pressed="true" title="Sound on or off (M)">Sound on</button>
     <button class="ui" id="erase" title="Forget the save and start a fresh walker">Erase save</button>
@@ -80,7 +90,7 @@ team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
 <script type="module">
-import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=cf5d33f4-1794688842';
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=c13d91a4-1794699174';
 
 const screen = document.getElementById('screen');
 const g = screen.getContext('2d');
@@ -112,7 +122,7 @@ function lastError() {
 
 async function boot(folder, label) {
   if (!wasmBytes) {
-    const r = await fetch('pw_pet_wasm.wasm?v=cf5d33f4-1794688842');
+    const r = await fetch('pw_pet_wasm.wasm?v=c13d91a4-1794699174');
     if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
     wasmBytes = await r.arrayBuffer();
   }
@@ -147,6 +157,11 @@ async function boot(folder, label) {
   const cloud = store.get('cloud', null);
   if (cloud) {
     try { if (stage(unb64(cloud))) pw.pw_portal_load(); } catch (_) { }
+  }
+  // The rally's ghosts: this walker's best runs and the ones friends sent.
+  const ghosts = store.get('ghosts', null);
+  if (ghosts) {
+    try { if (stage(unb64(ghosts))) pw.pw_ghosts_load(); } catch (_) { }
   }
   showTrainer();
   lastSave = '';
@@ -205,6 +220,8 @@ function frame() {
   const t = nowUs();
   pw.pw_advance(t);
   if (pw.pw_portal_wanted()) portalSync();
+  // Staying online: the walker starts a sync of its own when one is due.
+  else if (!syncing && portalUsable && pw.pw_portal_auto(clockS(), document.hidden ? 1 : 0)) portalSync(true);
   pumpAudio();
   if (pw.pw_render(t) !== 0) return;
   img.data.set(new Uint8Array(pw.memory.buffer, pw.pw_frame_ptr(), pw.pw_frame_bytes()));
@@ -222,9 +239,12 @@ function saveNow() {
   const text = b64(new Uint8Array(pw.memory.buffer, pw.pw_save_ptr(), n));
   // The clock stamp is inside the record, so compare without re-saving every
   // second for that alone: a minute is plenty for pet mode's time away.
-  if (text === lastSave) return;
-  lastSave = text;
-  store.set('save', text);
+  if (text !== lastSave) {
+    lastSave = text;
+    store.set('save', text);
+  }
+  const g = pw.pw_ghosts_record();
+  if (g) store.set('ghosts', b64(new Uint8Array(pw.memory.buffer, pw.pw_portal_ptr(), g)));
 }
 setInterval(saveNow, 2000);
 addEventListener('pagehide', saveNow);
@@ -250,12 +270,12 @@ function keepPortal() {
   if (n) store.set('cloud', b64(new Uint8Array(pw.memory.buffer, pw.pw_portal_ptr(), n)));
 }
 
-async function portalSync() {
+async function portalSync(begun = false) {
   if (syncing || !pw) return;
   syncing = true;
   const device = pw;
   try {
-    if (!device.pw_portal_begin(clockS())) return;
+    if (!begun && !device.pw_portal_begin(clockS())) return;
     for (let i = 0; i < PORTAL_MAX_REQUESTS; i++) {
       const n = device.pw_portal_request(clockS());
       if (!n) break;
@@ -430,6 +450,88 @@ addEventListener('keydown', e => {
   if (e.key === 'p' || e.key === 'P') press(0);
   if (e.key === 'b' || e.key === 'B') press(1);
   if (e.key === 'm' || e.key === 'M') soundBtn.click();
+});
+
+// -- a live rally: the portal's room runs the race, this follows its ticks ----
+// The walker signs for its seat (`pw_race_room_request`), the room sends
+// every tick with every racer's input in it, and the walker's own rules run
+// them (`pw_race_live_step`): the same race on every glass in the room.
+const raceSay = t => { document.getElementById('racesay').textContent = t; };
+const unhex = h => Uint8Array.from(h.match(/../g) || [], x => parseInt(x, 16));
+let raceWs = null, raceTimer = 0;
+async function raceRoom(room) {
+  if (!pw || !portalUsable) return raceSay('No portal to race through.');
+  const course = room ? -1 : Number(document.getElementById('racecourse').value);
+  const n = pw.pw_race_room_request(course, clockS());
+  if (!n) return raceSay('Sync with the portal first (CONNECT, then BOOT), with a Pokemon in the team.');
+  const raw = new Uint8Array(pw.memory.buffer, pw.pw_portal_ptr(), n).slice();
+  const text = new TextDecoder().decode(raw).split('\n');
+  let seat;
+  try {
+    const res = await fetch(`${portalBase}/v1/races/rooms${room ? `/${room}/join` : ''}`, {
+      method: 'POST', body: text.slice(3).join('\n'), signal: AbortSignal.timeout(PORTAL_TIMEOUT_MS),
+      headers: { 'content-type': 'application/json', 'x-pw-walker': text[1], 'x-pw-signature': text[2] },
+    });
+    seat = await res.json();
+    if (!res.ok) return raceSay(`The room said no: ${seat.message || res.status}`);
+  } catch (_) { return raceSay('The portal did not answer.'); }
+  document.getElementById('racecode').value = seat.room;
+  if (raceWs) raceWs.close();
+  const ws = raceWs = new WebSocket(`${portalBase.replace(/^http/, 'ws')}/v1/races/rooms/${seat.room}/live?ticket=${seat.ticket}`);
+  ws.onmessage = ev => {
+    if (ev.data === 'pong' || ws !== raceWs) return;
+    const m = JSON.parse(ev.data);
+    if (m.type === 'room') {
+      const names = m.seats.filter(Boolean).map(s => s.name).join(', ');
+      raceSay(`Room ${m.room}: ${names}. ${m.status === 'open' ? (seat.seat === 0 ? 'Press Start when everyone is in.' : 'Waiting for the host.') : m.status}`);
+      document.getElementById('racestart').disabled = !(seat.seat === 0 && m.status === 'open');
+    } else if (m.type === 'go') {
+      const seats = new Uint8Array(20);
+      m.seats.forEach((s, i) => { if (s) seats.set([s[0] & 255, s[0] >> 8, s[1], s[2], s[3]], i * 5); });
+      const seed = BigInt(`0x${m.seed}`);
+      stage(seats);
+      if (pw.pw_race_live_start(Number(seed & 0xffffffffn), Number(seed >> 32n), m.course, seat.seat, nowUs()) !== 0) return raceSay(`Could not join: ${lastError()}`);
+      raceSay('Racing.');
+      document.getElementById('racestart').disabled = true;
+    } else if (m.type === 'ticks') {
+      if (stage(unhex(m.inputs))) pw.pw_race_live_step(nowUs());
+      if (pw.pw_race_tick() === m.from + m.n && pw.pw_race_hash() !== (m.hash >>> 0)) raceSay('This walker has parted from the room.');
+    } else if (m.type === 'done') {
+      const mine = m.result.find(r => r.seat === seat.seat);
+      raceSay(mine && mine.ticks ? `Finished ${['1st', '2nd', '3rd', '4th'][mine.place - 1]}.` : 'The race is over.');
+    } else if (m.type === 'void') raceSay('The room closed.');
+  };
+  ws.onclose = () => { if (ws === raceWs) { raceWs = null; clearInterval(raceTimer); } };
+  clearInterval(raceTimer);
+  raceTimer = setInterval(() => {
+    if (!pw || ws.readyState !== 1) return;
+    const f = pw.pw_race_live_input();
+    if (f) ws.send(JSON.stringify({ type: 'in', f: f & 0xff, s: (f >> 8 & 0xff) << 24 >> 24 }));
+  }, 50);
+}
+document.getElementById('racehost').addEventListener('click', () => raceRoom(null));
+document.getElementById('racejoin').addEventListener('click', () => {
+  const code = document.getElementById('racecode').value.trim();
+  if (/^r_[0-9a-z]{16}$/.test(code)) raceRoom(code); else raceSay('A room code looks like r_ and sixteen letters and digits.');
+});
+document.getElementById('racestart').addEventListener('click', () => raceWs && raceWs.send(JSON.stringify({ type: 'start' })));
+document.getElementById('racecode').addEventListener('keydown', e => e.stopPropagation());
+
+// The rally's tilt: a phone's own lean, or the left and right arrow keys.
+let keyTilt = 0, leanTilt = 0;
+const tilt = () => pw && pw.pw_race_tilt(Math.max(-100, Math.min(100, keyTilt || leanTilt)));
+addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') { keyTilt = -70; tilt(); }
+  if (e.key === 'ArrowRight') { keyTilt = 70; tilt(); }
+});
+addEventListener('keyup', e => {
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { keyTilt = 0; tilt(); }
+});
+addEventListener('deviceorientation', e => {
+  if (typeof e.gamma !== 'number') return;
+  // Thirty degrees either way is full lock.
+  leanTilt = Math.round(e.gamma / 30 * 100);
+  tilt();
 });
 
 const tname = document.getElementById('tname'), tid = document.getElementById('tid');
