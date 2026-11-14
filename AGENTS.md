@@ -757,6 +757,15 @@ an `alt`.
   empty `<meta name="description">` and an empty JSON-LD `description` — the layout does
   not fall back to the site description.
 
+## The Pokewalker demo (`demo/pokewalker/`, added 2026-11-14)
+
+A copy of the pokewalker repo's `software/pw-pet-web/dist/` (`make` there), linked from
+`projects/pokewalker.html`: the walker's software as WebAssembly, served as static files
+(no front matter, so Jekyll copies them as they are). Its creatures are the repo's own
+stand-ins (`preview/tools/standin_sprites.py`). **Never copy a sprite folder written from a
+cartridge here**; the page's folder button reads a visitor's own folder locally instead.
+To update: rebuild there and copy `dist/` over this folder whole.
+
 ## Git / accounts
 
 Pushes to this repo need the **Alchemy86** GitHub account, not RT-Aaron. No AI

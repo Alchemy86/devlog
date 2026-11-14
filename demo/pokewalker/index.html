@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pokewalker demo</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --bg: #14161c; --fg: #e8e8ea; --dim: #9aa0aa; --rim: #2a2d36; --key: #3a3e4a; --accent: #e8483c; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 560px; margin: 0 auto; padding: 24px 16px 40px; text-align: center; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p { color: var(--dim); margin: 6px 0; }
+  .device { position: relative; width: min(calc(100vw - 104px), 412px); aspect-ratio: 1; margin: 22px auto 18px; }
+  .device::before { content: ""; position: absolute; inset: -14px; border-radius: 50%; background: var(--rim); box-shadow: 0 10px 30px #0008; }
+  canvas { position: relative; width: 100%; height: 100%; border-radius: 50%; display: block; touch-action: none; image-rendering: pixelated; background: #000; }
+  .key { position: absolute; right: -38px; width: 22px; height: 56px; border-radius: 6px; border: 0; background: var(--key); color: var(--fg); font-size: 10px; writing-mode: vertical-rl; cursor: pointer; }
+  .key:active { background: var(--accent); }
+  #pwr { top: 22%; } #boot { top: 52%; }
+  .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 8px 0; }
+  button.ui, label.ui { background: var(--key); color: var(--fg); border: 0; border-radius: 8px; padding: 8px 14px; font: inherit; cursor: pointer; }
+  button.ui[aria-pressed="true"] { background: var(--accent); }
+  #status { min-height: 1.5em; font-size: 13px; }
+  details { text-align: left; margin-top: 18px; color: var(--dim); }
+  code { color: var(--fg); }
+  input[type=file] { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pokewalker</h1>
+  <p>The walker's own software, compiled to WebAssembly: the same Rust that runs on the device.</p>
+  <div class="device">
+    <canvas id="screen" width="412" height="412" aria-label="The walker's round screen"></canvas>
+    <button class="key" id="pwr" title="PWR (P)">PWR</button>
+    <button class="key" id="boot" title="BOOT (B)">BOOT</button>
+  </div>
+  <div class="row">
+    <button class="ui" id="walk" aria-pressed="false">Walk</button>
+    <label class="ui">Load sprite folder<input type="file" id="folder" webkitdirectory multiple></label>
+    <button class="ui" id="reset">Restart</button>
+  </div>
+  <p id="status">Loading…</p>
+  <details>
+    <summary>How to use it</summary>
+    <p>Double tap the closed ball to open it. Swipe sideways for the games, up or down to change who walks with you. Tap the egg at the top for pet mode: drag to look round, double tap to zoom, stroke the Pokémon, flick the ball, tap the radio, the PC or the console. PWR goes back; BOOT is the other key. <b>Walk</b> pretends you are walking, for steps and Watts.</p>
+    <p>The creatures here are the demo's own. <b>Load sprite folder</b> takes any folder in this layout, read in your browser and never uploaded:</p>
+    <pre><code>pokemon/0001-NAME/front.png      battle picture (≤96×96)
+pokemon/0001-NAME/front-2.png    second frame (optional)
+pokemon/0001-NAME/walk.png       8 walking frames in a row:
+                                 back, front, left, right ×2
+pokemon/0001-NAME/walk-shiny.png shiny colours (optional)
+room/room.bin                    pet mode's room (optional)
+team.txt                         dex numbers to walk with</code></pre>
+  </details>
+</main>
+<script type="module">
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js';
+
+const screen = document.getElementById('screen');
+const g = screen.getContext('2d');
+const status = document.getElementById('status');
+let pw = null, wasmBytes = null, startedAt = 0, img = null, dim = 412, logical = 103;
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('pw.' + k); return v === null ? d : Number(v); } catch (_) { return d; } },
+  set(k, v) { try { localStorage.setItem('pw.' + k, String(v)); } catch (_) { } },
+};
+const nowUs = () => (performance.now() - startedAt) * 1000;
+const say = t => { status.textContent = t; };
+
+function stage(bytes) {
+  const ptr = pw.pw_pet_pack(bytes.length);
+  if (!ptr) return false;
+  new Uint8Array(pw.memory.buffer, ptr, bytes.length).set(bytes);
+  return true;
+}
+
+function lastError() {
+  const n = pw.pw_error_len();
+  return n ? new TextDecoder().decode(new Uint8Array(pw.memory.buffer, pw.pw_last_error(), n)) : '';
+}
+
+async function boot(folder, label) {
+  if (!wasmBytes) {
+    const r = await fetch('pw_pet_wasm.wasm');
+    if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
+    wasmBytes = await r.arrayBuffer();
+  }
+  const { instance } = await WebAssembly.instantiate(wasmBytes, {});
+  pw = instance.exports;
+  const d = new Date();
+  pw.pw_boot(d.getHours() * 60 + d.getMinutes(), 110, store.get('watts', 500), 0, store.get('settings', 0), 0);
+  startedAt = performance.now();
+  dim = pw.pw_frame_dim();
+  logical = pw.pw_canvas_dim();
+  screen.width = screen.height = dim;
+  img = g.createImageData(dim, dim);
+  if (!folder) { say('Running with no sprites.'); return; }
+  const list = species(folder);
+  let team = [];
+  if (folder.has('team.txt')) {
+    const txt = await (await folder.get('team.txt')()).text();
+    team = txt.split(/[\s,]+/).map(Number).filter(n => list.has(n));
+  }
+  if (!team.length) team = [...list.keys()].sort((a, b) => a - b);
+  for (const dex of team.slice(0, 6)) {
+    const name = list.get(dex).name;
+    if (name) stage(new TextEncoder().encode(name));
+    pw.pw_team_add(dex);
+  }
+  say(`Packing ${list.size} sprites…`);
+  const blob = await buildStore(list, (n, of) => { if (n % 20 === 0) say(`Packing sprites ${n}/${of}…`); });
+  if (blob && stage(blob) && pw.pw_load_store() !== 0) say(`Those sprites would not load: ${lastError()}`);
+  if (folder.has('room/room.bin')) {
+    const room = new Uint8Array(await (await folder.get('room/room.bin')()).arrayBuffer());
+    if (stage(room) && pw.pw_load_room() !== 0) say(`That room would not load: ${lastError()}`);
+  }
+  say(`${label}: ${list.size} creature${list.size === 1 ? '' : 's'}, ${Math.min(team.length, 6)} walking with you. Double tap the ball to open it.`);
+}
+
+function frame() {
+  requestAnimationFrame(frame);
+  if (!pw) return;
+  const t = nowUs();
+  pw.pw_advance(t);
+  if (pw.pw_render(t) !== 0) return;
+  img.data.set(new Uint8Array(pw.memory.buffer, pw.pw_frame_ptr(), pw.pw_frame_bytes()));
+  g.putImageData(img, 0, 0);
+}
+
+let saveAt = 0;
+setInterval(() => {
+  if (!pw || performance.now() < saveAt) return;
+  store.set('watts', pw.pw_watts());
+  store.set('settings', pw.pw_settings());
+}, 3000);
+
+function at(e) {
+  const r = screen.getBoundingClientRect();
+  return [Math.floor((e.clientX - r.left) * logical / r.width), Math.floor((e.clientY - r.top) * logical / r.height)];
+}
+screen.addEventListener('pointerdown', e => { if (!pw) return; screen.setPointerCapture(e.pointerId); const [x, y] = at(e); pw.pw_touch_down(x, y, nowUs()); });
+screen.addEventListener('pointermove', e => { if (!pw || !(e.buttons & 1) && e.pointerType === 'mouse') return; const [x, y] = at(e); pw.pw_touch_move(x, y, nowUs()); });
+screen.addEventListener('pointerup', e => { if (!pw) return; const [x, y] = at(e); pw.pw_touch_up(x, y, nowUs()); });
+screen.addEventListener('pointercancel', e => { if (!pw) return; const [x, y] = at(e); pw.pw_touch_up(x, y, nowUs()); });
+
+const press = b => pw && pw.pw_press(b, nowUs());
+document.getElementById('pwr').addEventListener('click', () => press(0));
+document.getElementById('boot').addEventListener('click', () => press(1));
+addEventListener('keydown', e => { if (e.key === 'p' || e.key === 'P') press(0); if (e.key === 'b' || e.key === 'B') press(1); });
+
+const walkBtn = document.getElementById('walk');
+walkBtn.addEventListener('click', () => {
+  const on = walkBtn.getAttribute('aria-pressed') !== 'true';
+  walkBtn.setAttribute('aria-pressed', String(on));
+  if (pw) pw.pw_set_walking(on ? 1 : 0);
+});
+
+let current = null, currentLabel = '';
+document.getElementById('folder').addEventListener('change', async e => {
+  const files = [...(e.target.files || [])];
+  if (!files.length) return;
+  current = await folderFromFiles(files);
+  currentLabel = 'Your folder';
+  await boot(current, currentLabel).catch(err => say(`That folder would not load: ${err.message}`));
+  walkBtn.setAttribute('aria-pressed', 'false');
+});
+document.getElementById('reset').addEventListener('click', () => {
+  boot(current, currentLabel).catch(err => say(err.message));
+  walkBtn.setAttribute('aria-pressed', 'false');
+});
+
+(async () => {
+  try {
+    current = await folderFromUrl(new URL('sprites', location.href).href.replace(/\/$/, ''));
+    currentLabel = 'Demo creatures';
+  } catch (_) {
+    current = null;
+  }
+  await boot(current, currentLabel).catch(err => say(`Could not start: ${err.message}`));
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

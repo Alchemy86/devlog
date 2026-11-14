@@ -1,0 +1,26 @@
+{
+ "pokemon": [
+  {
+   "dir": "0252-WALKIE",
+   "files": [
+    "front-2.png",
+    "front.png",
+    "walk-shiny.png",
+    "walk.png"
+   ]
+  },
+  {
+   "dir": "0253-SPROUT",
+   "files": [
+    "front-2.png",
+    "front.png",
+    "walk-shiny.png",
+    "walk.png"
+   ]
+  }
+ ],
+ "team": [
+  252,
+  253
+ ]
+}
