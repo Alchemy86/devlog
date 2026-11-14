@@ -6,17 +6,17 @@ card_kicker: 'Software'
 eyebrow: 'Pokewalker · Gym leaders'
 description: >-
   Sixteen gym leaders on the Pokewalker, each in a stadium built in their own style. You
-  earn a challenge by walking, the leader sizes up the team you bring and picks theirs to
-  stay just ahead of you, and the badge you win is worth looking at.
+  earn a challenge by walking, Kanto first and then Johto, the leader sizes up the team you
+  bring and builds theirs to stay just ahead of you, and the badge you win is worth looking at.
 lead: >-
-  A gym leader on the walker doesn't have one fixed team. Like Brock in the anime, they look
-  at who you've brought, say what they make of you, and choose their Pokémon to stay one
-  step ahead. You still have to walk to get there.
+  A gym leader on the walker doesn't have one fixed team or one fixed level. Like Brock in
+  the anime, they look at who you've brought, say what they make of you, and choose their
+  Pokémon and their strength to stay one step ahead. You still have to walk to get there.
 metrics:
   - num: '16'
     label: 'Leaders, each with an arena of their own'
   - num: '72,000'
-    label: 'Steps from Falkner to Blue'
+    label: 'Steps from Brock to Clair'
   - num: '~40%'
     label: 'Your chance against a fresh leader, at every level'
     accent: true
@@ -30,7 +30,7 @@ note: >-
 
 ## Sixteen leaders, sixteen arenas
 
-Every leader from Johto and Kanto, Falkner to Blue, fights in a stadium built in their own
+Every leader from Kanto and Johto, Brock to Clair, fights in a stadium built in their own
 style. The field, the lines and the three lanes are the same everywhere, so a battle plays
 the same; what changes is everything around it.
 
@@ -52,28 +52,40 @@ the same; what changes is everything around it.
 
 <section class="prose" markdown="1">
 
-Falkner fights on a wooden deck high above the mountains, with birds overhead. Bugsy's
-field is a forest floor under falling leaves. Morty's shrine is dark boards and red gates
-with fog drifting across it. Jasmine's lighthouse turns its beam over the sea at dusk,
-Pryce's floor is an ice rink in falling snow, and Surge's steel plate has circuits running
-through it and a barrier that arcs. Misty fights over a pool, Erika in a garden of blossom,
-Sabrina in a violet hall where the rings pulse. Blaine fights in a volcano: the floor is
-cracked basalt with lava moving underneath, and embers drift up the crater wall.
+Brock fights on a rocky floor. Misty fights over a pool, Surge on a steel plate with
+circuits running through it and a barrier that arcs, Erika in a garden of blossom, Sabrina
+in a violet hall where the rings pulse. Blaine fights in a volcano: the floor is cracked
+basalt with lava moving underneath, and embers drift up the crater wall. In Johto, Falkner
+fights on a wooden deck high above the mountains, with birds overhead. Bugsy's field is a
+forest floor under falling leaves. Morty's shrine is dark boards and red gates with fog
+drifting across it. Jasmine's lighthouse turns its beam over the sea at dusk, and Pryce's
+floor is an ice rink in falling snow.
 
 ## Getting there
 
-You don't get to walk into a gym. Leaders come in order, and each one asks for something
-before you can challenge them: steps walked since your last badge, a big enough team, and
-a strong enough lead Pokémon.
+You don't get to walk into a gym. Leaders come region by region, in the games' own order:
+Kanto first, starting with Brock, then Johto. Each one asks for two things before you can
+challenge them: steps walked since your last badge, and enough Pokémon on your team. There
+is no level requirement. How strong you are is the leader's problem, not the gate's.
 
-| Leader | Steps since last badge | Team | Strongest |
+| Region | Leader | Steps since last badge | Team |
 | --- | --- | --- | --- |
-| Falkner | 500 | 1 | level 5 |
-| Morty | 2,000 | 2 | level 11 |
-| Clair | 4,000 | 3 | level 19 |
-| Brock | 5,000 | 3 | level 21 |
-| Sabrina | 7,000 | 5 | level 31 |
-| Blue | 10,000 | 6 | level 35 |
+| Kanto | Brock | 500 | 1 |
+| | Misty | 1,000 | 1 |
+| | Surge | 1,500 | 2 |
+| | Erika | 2,000 | 2 |
+| | Janine | 2,500 | 2 |
+| | Sabrina | 3,000 | 3 |
+| | Blaine | 3,500 | 3 |
+| | Blue | 4,000 | 3 |
+| Johto | Falkner | 5,000 | 3 |
+| | Bugsy | 5,000 | 4 |
+| | Whitney | 6,000 | 4 |
+| | Morty | 6,000 | 4 |
+| | Chuck | 7,000 | 4 |
+| | Jasmine | 7,000 | 5 |
+| | Pryce | 8,000 | 5 |
+| | Clair | 10,000 | 6 |
 
 That's 72,000 steps from the first badge to the last. The battle menu tells you what's
 still missing ("WALK 2,000 MORE", "NEED 3 POKEMON") and the walking screen announces it
@@ -88,10 +100,12 @@ best one is, whether any of them can hit the gym's type hard, how many badges yo
 hold and how you've been doing in battle. From that they decide what kind of trainer you
 are: **rookie, trainer, ace, veteran or champion-class**.
 
-Then they choose their team to suit. Every leader has a roster built from the Pokémon
-they've used across the series, not just one game's party, and they pick from it: fewer,
-weaker Pokémon for a newcomer, their best for a veteran. Their ace is always a little
-stronger than yours, and they never bring fewer Pokémon than you do.
+Then they build their team to suit, members and power both. Every leader has a roster
+built from the Pokémon they've used across the series, not just one game's party, and they
+pick from it: a rookie meets a couple of their lighter Pokémon, a veteran meets their best.
+Their levels aren't fixed either. They're set from yours, so their ace is always a little
+stronger than your strongest, and they never bring fewer Pokémon than you do. Turn up at Brock
+with a strong team and Brock is strong too.
 
 It's a challenge, not a wall. Across thousands of simulated battles at every tier, a
 challenger wins about four times in ten, with good tactics doing the rest. Come back the
@@ -157,7 +171,7 @@ card, where the ones you haven't earned wait as grey shapes.
 
 Gyms are data, so they can change without rewriting anything:
 
-- **The ladder** is one table: steps, team size and level for each leader. Retuning it is
+- **The ladder** is one table: steps and team size for each place in the order. Retuning it is
   editing a row.
 - **Each leader** is a roster, a set of tiers, some lines and a stage. Adding a leader, or a
   rematch with a stronger roster, is a new entry rather than new code.

@@ -148,17 +148,16 @@ local, online and ranked battles, along with your best winning streak.
 
 ## Gym leaders
 
-The gym challenge runs through all sixteen leaders in order: the eight from Johto,
-Falkner to Clair, then the eight from Kanto, Brock to Blue. Each brings their real team from
-Pokémon Gold and their own portrait on the match card. The battles run on Generation 1's
+The gym challenge runs through all sixteen leaders region by region: the eight from Kanto,
+Brock to Blue, then the eight from Johto, Falkner to Clair. Each brings Pokémon from their
+own roster and their own portrait on the match card. The battles run on Generation 1's
 rules, so a Johto Pokémon fights with the stats of a close Kanto stand-in (Steelix as Onix,
 Miltank as Tauros) while still looking and sounding like itself, and moves that only exist
 in Gold are left out.
 
-The real levels would make every gym after the second one hopeless for a walker's team at
-level 12, so a leader's strongest Pokémon is capped a little above yours: the same as your
-strongest for Falkner, a few levels more for each gym after. The leader's team keeps its
-own shape; only the numbers come down.
+A leader's team isn't fixed. They size up the team you've brought and pick their Pokémon
+and levels to stay a little stronger than you, whatever your level. There's a [whole post
+on how they do it](the-leader-reads-your-team.html).
 
 Beat one and the badge is yours. It grows in on a burst of light ("FALKNER GAVE YOU THE
 ZEPHYR BADGE, 1/16"), lands on a badges page of your trainer card, and the menu offers the
