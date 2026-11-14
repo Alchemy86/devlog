@@ -251,6 +251,7 @@
   {"dir": "0250-HO-OH", "files": ["anim.txt", "cry.wav", "front-2.png", "front.png", "walk-shiny.png", "walk.png"]},
   {"dir": "0251-CELEBI", "files": ["anim.txt", "cry.wav", "front-2.png", "front.png", "walk-shiny.png", "walk.png"]}
  ],
+ "store": true,
  "room": true,
  "team": [1, 6, 183]
 }

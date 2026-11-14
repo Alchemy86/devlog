@@ -50,6 +50,7 @@ export async function folderFromUrl(base) {
       });
     }
   }
+  if (index.store) map.set('dex.store', async () => (await fetch(`${base}/dex.store`)).blob());
   if (index.room) map.set('room/room.bin', async () => (await fetch(`${base}/room/room.bin`)).blob());
   if (index.team) map.set('team.txt', async () => new Blob([index.team.join('\n')]));
   return map;

@@ -142,8 +142,14 @@ async function boot(folder, label) {
     if (name) stage(new TextEncoder().encode(name));
     pw.pw_team_add(dex);
   }
-  say(`Packing ${list.size} sprites…`);
-  const blob = await buildStore(list, (n, of) => { if (n % 20 === 0) say(`Packing sprites ${n}/${of}…`); });
+  let blob;
+  if (folder.has('dex.store')) {
+    say('Loading sprites…');
+    blob = new Uint8Array(await (await folder.get('dex.store')()).arrayBuffer());
+  } else {
+    say(`Packing ${list.size} sprites…`);
+    blob = await buildStore(list, (n, of) => { if (n % 20 === 0) say(`Packing sprites ${n}/${of}…`); });
+  }
   if (blob && stage(blob) && pw.pw_load_store() !== 0) say(`Those sprites would not load: ${lastError()}`);
   if (folder.has('room/room.bin')) {
     const room = new Uint8Array(await (await folder.get('room/room.bin')()).arrayBuffer());
@@ -357,8 +363,8 @@ document.getElementById('erase').addEventListener('click', () => {
   } catch (_) {
     current = null;
   }
-  await boot(current, currentLabel).catch(err => say(`Could not start: ${err.message}`));
   requestAnimationFrame(frame);
+  await boot(current, currentLabel).catch(err => say(`Could not start: ${err.message}`));
 })();
 // For a test driving the page: the module's exports and the audio state.
 window.pwPage = { get pw() { return pw; }, nowUs, saveNow, audio };
