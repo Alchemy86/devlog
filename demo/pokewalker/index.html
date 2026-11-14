@@ -64,7 +64,7 @@
   <p id="status">Loading…</p>
   <details>
     <summary>How to use it</summary>
-    <p>Double tap the closed ball to open it. Swipe sideways for the games, up or down to change who walks with you. Tap the egg at the top for pet mode: drag to look round, double tap to zoom, stroke the Pokémon, flick the ball, tap the radio, the PC or the console. PWR goes back; BOOT is the other key. <b>Walk</b> pretends you are walking, for steps and Watts.</p>
+    <p>Double tap the closed ball to open it. Swipe sideways for the games, up or down to change who walks with you. The crossed swords on the games ring are <b>BATTLE</b>: QUICK BATTLE against a rival matched to your team, or GYM CHALLENGE against the sixteen Gold Gym Leaders in order, each beaten one a badge for the trainer card. Tap the egg at the top for pet mode: drag to look round, double tap to zoom, stroke the Pokémon, flick the ball, tap the radio, the PC or the console. PWR goes back; BOOT is the other key. <b>Walk</b> pretends you are walking, for steps and Watts.</p>
     <p>Sound starts with your first tap or key press (browsers keep pages quiet until then). The walker saves itself in this browser as the device saves to its flash: the team, Watts, steps, the bag, pet mode, the Radio's stars and the settings all come back next time.</p>
     <p>Every walker is a trainer, as in the games: an ID No. drawn at its first start, a name (set it above, as the phone setup page does on the device), and the walker's name and ID on every Pokémon it catches. The settings list's <b>TRAINER</b> row shows the trainer card.</p>
     <p>Two things are hardware and are not here: <b>WiFi</b> (the walker's own hotspot and the phone setup page need its radio) and the <b>link cable</b> to a Game Boy, which the Trade Room needs to actually trade. Their screens open, and say there is nothing connected.</p>
@@ -80,7 +80,7 @@ team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
 <script type="module">
-import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=5d8bb2f-1794672994';
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=cf5d33f4-1794688842';
 
 const screen = document.getElementById('screen');
 const g = screen.getContext('2d');
@@ -112,7 +112,7 @@ function lastError() {
 
 async function boot(folder, label) {
   if (!wasmBytes) {
-    const r = await fetch('pw_pet_wasm.wasm?v=5d8bb2f-1794672994');
+    const r = await fetch('pw_pet_wasm.wasm?v=cf5d33f4-1794688842');
     if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
     wasmBytes = await r.arrayBuffer();
   }
@@ -140,6 +140,13 @@ async function boot(folder, label) {
     const seed = new Uint8Array(20);
     crypto.getRandomValues(seed);
     if (!stage(seed) || pw.pw_trainer_new(clockS()) !== 0) say(`No trainer: ${lastError()}`);
+  }
+  // The portal: where the site is (for the CONNECT screen) and the record
+  // of this walker's link to it, kept beside the save.
+  if (stage(new TextEncoder().encode(portalSite))) pw.pw_portal_site();
+  const cloud = store.get('cloud', null);
+  if (cloud) {
+    try { if (stage(unb64(cloud))) pw.pw_portal_load(); } catch (_) { }
   }
   showTrainer();
   lastSave = '';
@@ -197,6 +204,7 @@ function frame() {
   if (!pw) return;
   const t = nowUs();
   pw.pw_advance(t);
+  if (pw.pw_portal_wanted()) portalSync();
   pumpAudio();
   if (pw.pw_render(t) !== 0) return;
   img.data.set(new Uint8Array(pw.memory.buffer, pw.pw_frame_ptr(), pw.pw_frame_bytes()));
@@ -221,6 +229,72 @@ function saveNow() {
 setInterval(saveNow, 2000);
 addEventListener('pagehide', saveNow);
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveNow(); });
+
+// -- the portal: the walker decides, the page only carries the bytes ----------
+// `?portal=URL` (remembered) names the portal's API. With none given, a page
+// opened on this machine uses the local development API and a page hosted
+// anywhere else has no portal: BOOT on the CONNECT screen then gets no answer.
+const query = new URLSearchParams(location.search);
+if (query.get('portal')) store.set('portal', query.get('portal'));
+if (query.get('site')) store.set('site', query.get('site'));
+const portalBase = (store.get('portal', null)
+  || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://127.0.0.1:8787' : '')).replace(/\/$/, '');
+const portalSite = store.get('site', 'localhost:3000');
+// Registration carries the walker's key: in the clear only to this machine.
+const portalUsable = /^https:\/\//.test(portalBase) || /^http:\/\/(localhost|127\.[0-9.]+)(:\d+)?$/.test(portalBase);
+const PORTAL_TIMEOUT_MS = 8000, PORTAL_MAX_BYTES = 16384, PORTAL_MAX_REQUESTS = 16;
+let syncing = false;
+
+function keepPortal() {
+  const n = pw.pw_portal_record();
+  if (n) store.set('cloud', b64(new Uint8Array(pw.memory.buffer, pw.pw_portal_ptr(), n)));
+}
+
+async function portalSync() {
+  if (syncing || !pw) return;
+  syncing = true;
+  const device = pw;
+  try {
+    if (!device.pw_portal_begin(clockS())) return;
+    for (let i = 0; i < PORTAL_MAX_REQUESTS; i++) {
+      const n = device.pw_portal_request(clockS());
+      if (!n) break;
+      const raw = new Uint8Array(device.memory.buffer, device.pw_portal_ptr(), n).slice();
+      // The record is kept before the request is sent, so a retry after the
+      // tab closes is the same bytes.
+      keepPortal();
+      const lines = [];
+      let at = 0;
+      for (let k = 0; k < 3; k++) {
+        const end = raw.indexOf(10, at);
+        lines.push(new TextDecoder().decode(raw.subarray(at, end)));
+        at = end + 1;
+      }
+      const [path, walker, signature] = lines;
+      try {
+        if (!portalUsable) throw new Error('no portal');
+        const headers = { 'content-type': 'application/json' };
+        if (walker) { headers['x-pw-walker'] = walker; headers['x-pw-signature'] = signature; }
+        const res = await fetch(portalBase + path, {
+          method: 'POST', headers, body: raw.subarray(at), signal: AbortSignal.timeout(PORTAL_TIMEOUT_MS),
+        });
+        const bytes = new Uint8Array(await res.arrayBuffer());
+        if (bytes.length > PORTAL_MAX_BYTES) throw new Error('answer too large');
+        if (device !== pw) return;
+        if (bytes.length && !stage(bytes)) throw new Error('could not stage the answer');
+        device.pw_portal_response(res.status, clockS(), nowUs());
+      } catch (_) {
+        if (device !== pw) return;
+        device.pw_portal_failed();
+      }
+    }
+    keepPortal();
+    showTrainer();
+    saveNow();
+  } finally {
+    syncing = false;
+  }
+}
 
 // -- sound: the device's speaker, mixed in WebAssembly ------------------------
 // `pw_audio_render` mixes the walker's own speaker (16 kHz stereo, the board's
@@ -365,9 +439,15 @@ function showTrainer() {
   tname.value = new TextDecoder().decode(new Uint8Array(pw.memory.buffer, pw.pw_trainer_name_ptr(), n));
   tid.textContent = `ID No. ${String(pw.pw_trainer_id()).padStart(5, '0')}`;
   showLook();
-  const rec = f => pw.pw_battle_record(3, f);
-  document.getElementById('record').textContent = `Battles ${rec(0)}-${rec(1)}-${rec(2)}, best streak ${rec(4)}`;
+  showRecord();
 }
+function showRecord() {
+  if (!pw) return;
+  const rec = f => pw.pw_battle_record(3, f);
+  const badges = pw.pw_badges().toString(2).split('').filter(b => b === '1').length;
+  document.getElementById('record').textContent = `Battles ${rec(0)}-${rec(1)}-${rec(2)}, best streak ${rec(4)}, badges ${badges}/16`;
+}
+setInterval(showRecord, 1000);
 document.getElementById('practice').addEventListener('click', () => {
   if (!pw) return;
   if (pw.pw_battle_demo() < 0) { say(lastError()); return; }
