@@ -27,6 +27,7 @@
   #trainer input { background: var(--bg); color: var(--fg); border: 2px solid var(--key); border-radius: 8px; padding: 7px 10px; font: inherit; width: 9ch; text-transform: uppercase; }
   #trainer label { color: var(--dim); align-self: center; }
   #tid, #record { color: var(--dim); align-self: center; font-size: 13px; }
+  #tlook { background: var(--bg); color: var(--fg); border: 2px solid var(--key); border-radius: 8px; padding: 7px 6px; font: inherit; max-width: 16ch; }
 </style>
 </head>
 <body>
@@ -52,6 +53,8 @@
     <input id="tname" name="name" maxlength="7" autocomplete="off" autocapitalize="characters" spellcheck="false"
       pattern="[A-Za-z0-9 :\-\/._?!]{1,7}" title="Up to 7 letters, digits, spaces or : - / . _ ? !" required>
     <button class="ui" type="submit">Save name</button>
+    <label for="tlook">Look</label>
+    <select id="tlook" title="Which HeartGold trainer your walker's trainer looks like, as the card's picker and the phone setup page choose"></select>
     <span id="tid"></span>
   </form>
   <div class="row">
@@ -77,7 +80,7 @@ team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
 <script type="module">
-import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=a317c97-1794669653';
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=5d8bb2f-1794672994';
 
 const screen = document.getElementById('screen');
 const g = screen.getContext('2d');
@@ -109,7 +112,7 @@ function lastError() {
 
 async function boot(folder, label) {
   if (!wasmBytes) {
-    const r = await fetch('pw_pet_wasm.wasm?v=a317c97-1794669653');
+    const r = await fetch('pw_pet_wasm.wasm?v=5d8bb2f-1794672994');
     if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
     wasmBytes = await r.arrayBuffer();
   }
@@ -361,6 +364,7 @@ function showTrainer() {
   const n = pw.pw_trainer_name();
   tname.value = new TextDecoder().decode(new Uint8Array(pw.memory.buffer, pw.pw_trainer_name_ptr(), n));
   tid.textContent = `ID No. ${String(pw.pw_trainer_id()).padStart(5, '0')}`;
+  showLook();
   const rec = f => pw.pw_battle_record(3, f);
   document.getElementById('record').textContent = `Battles ${rec(0)}-${rec(1)}-${rec(2)}, best streak ${rec(4)}`;
 }
@@ -381,6 +385,29 @@ document.getElementById('trainer').addEventListener('submit', e => {
   say(`Trainer name saved: ${tname.value}`);
 });
 tname.addEventListener('keydown', e => e.stopPropagation());
+
+// The trainer's look: the device's own list in the device's own order, the
+// same classes the card's picker steps and the phone setup page offers.
+const tlook = document.getElementById('tlook');
+function showLook() {
+  if (!pw) return;
+  if (tlook.options.length !== pw.pw_look_count()) {
+    tlook.textContent = '';
+    for (let i = 0; i < pw.pw_look_count(); i++) {
+      const c = pw.pw_look_at(i), n = pw.pw_look_name(c);
+      tlook.add(new Option(new TextDecoder().decode(new Uint8Array(pw.memory.buffer, pw.pw_trainer_name_ptr(), n)), String(c)));
+    }
+  }
+  if (document.activeElement !== tlook) tlook.value = String(pw.pw_trainer_look());
+}
+tlook.addEventListener('change', () => {
+  if (!pw) return;
+  if (pw.pw_trainer_set_look(Number(tlook.value)) !== 0) { say(lastError()); showLook(); return; }
+  saveNow();
+  say(`Trainer look saved: ${tlook.selectedOptions[0].text} (the trainer card shows it)`);
+});
+tlook.addEventListener('keydown', e => e.stopPropagation());
+setInterval(showLook, 1000);
 
 const walkBtn = document.getElementById('walk');
 walkBtn.addEventListener('click', () => {
