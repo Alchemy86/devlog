@@ -41,13 +41,13 @@ the same; what changes is everything around it.
          width="480" height="480">
     <source src="../assets/video/pokewalker/gym-tour.mp4" type="video/mp4">
   </video>
-  <figcaption>Every leader's entrance, Morty and Surge into battle, then Blaine's whole fight in the volcano and all sixteen badges.</figcaption>
+  <figcaption>Every leader's entrance from Brock to Clair, Morty's and Surge's in full, then Blaine's whole fight in the volcano and all sixteen badges.</figcaption>
 </figure>
 
 <figure class="pixel" style="margin-inline:auto;max-width:620px;">
   <img src="../assets/img/pokewalker/gym-arenas.png" width="1236" height="1344"
-       alt="Sixteen round screens in a grid, one per gym: Falkner's wooden deck under mountains, Bugsy's forest, Whitney's pink arena, Morty's dark shrine, Chuck's dojo by a waterfall, Jasmine's steel deck by the sea, Pryce's ice rink, Clair's flooded cave, Brock's rocky floor, Misty's pool, Surge's steel plate with circuits, Erika's garden, Janine's dojo, Sabrina's violet hall, Blaine's lava crater and Blue's green court.">
-  <figcaption>The sixteen arenas, from the battle camera.</figcaption>
+       alt="Sixteen round screens in a grid, one per gym, each with the leader's ace facing Bulbasaur: Kanto's two rows first, Brock's rocky floor, Misty's pool, Surge's steel plate, Erika's garden, Janine's dojo, Sabrina's violet hall, Blaine's lava crater and Blue's green court, then Johto's, Falkner's wooden deck, Bugsy's forest, Whitney's pink arena, Morty's dark shrine, Chuck's dojo, Jasmine's deck by the sea, Pryce's ice rink and Clair's flooded cave.">
+  <figcaption>The sixteen arenas from the battle camera, in challenge order.</figcaption>
 </figure>
 
 <section class="prose" markdown="1">
@@ -123,7 +123,7 @@ with a reputation: *"So you're the one. No holding back!"*
 
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;max-width:760px;margin:0 auto;">
   <figure class="pixel" style="margin:0;"><img src="../assets/img/pokewalker/gym-brock-entrance.png" width="720" height="720" alt="Brock's entrance: his portrait over a rocky arena, his name on a ribbon with a ROOKIE tag, and the speech box reading I'M BROCK! A NEW TRAINER? EASY DOES IT FOR NOW."><figcaption>Brock has you down as a rookie.</figcaption></figure>
-  <figure class="pixel" style="margin:0;"><img src="../assets/img/pokewalker/gym-blaine-entrance.png" width="720" height="720" alt="Blaine's entrance over lava: his name with a ROOKIE tag and the speech box beginning NAH! I'M BLAINE! QUESTION ONE: NEW? A LOW FLAME FOR..."><figcaption>Blaine, in the volcano.</figcaption></figure>
+  <figure class="pixel" style="margin:0;"><img src="../assets/img/pokewalker/gym-blaine-entrance.png" width="720" height="720" alt="Blaine's entrance over lava: his name with a ROOKIE tag and the speech box beginning HAH! I'M BLAINE! QUESTION ONE: NEW? A LOW FLAME FOR..."><figcaption>Blaine, in the volcano.</figcaption></figure>
   <figure class="pixel" style="margin:0;"><img src="../assets/img/pokewalker/gym-morty-entrance.png" width="720" height="720" alt="Morty's entrance in a dark shrine: I SAW YOU COMING. A FAINT AURA. NEW? I'LL DIM THE..."><figcaption>Morty saw you coming.</figcaption></figure>
 </div>
 
@@ -144,7 +144,7 @@ a lighthouse rail, or a garden hedge.
 
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;max-width:760px;margin:0 auto;">
   <figure class="pixel" style="margin:0;"><img src="../assets/img/pokewalker/gym-blaine-title.png" width="720" height="720" alt="The title card over Blaine's arena: GYM LEADER and the gym's name in large orange letters over lava."><figcaption>The title card.</figcaption></figure>
-  <figure class="pixel" style="margin:0;"><img src="../assets/img/pokewalker/gym-volcano-battle.png" width="720" height="720" alt="A battle in Blaine's volcano arena: Parasect knocked back with -16, DOUBLE, CRITICAL HIT, SUPER EFFECTIVE, with lava behind."><figcaption>A critical hit in the crater.</figcaption></figure>
+  <figure class="pixel" style="margin:0;"><img src="../assets/img/pokewalker/gym-volcano-battle.png" width="720" height="720" alt="A battle in Blaine's volcano arena: Charizard hits Growlithe for -11, DOUBLE and CRITICAL HIT, with lava behind."><figcaption>A critical hit in the crater.</figcaption></figure>
   <figure class="pixel" style="margin:0;"><img src="../assets/img/pokewalker/gym-volcano-badge.png" width="720" height="720" alt="The badge screen: the Volcano Badge, a flame, on a blue burst of rays, with Blaine's closing line I'M BURNED OUT! CORRECT! THE VOLCANO..."><figcaption>The Volcano Badge.</figcaption></figure>
 </div>
 
@@ -161,7 +161,7 @@ card, where the ones you haven't earned wait as grey shapes.
 
 <figure class="pixel" style="margin-inline:auto;max-width:560px;">
   <img src="../assets/img/pokewalker/gym-badges.png" width="1024" height="1124"
-       alt="All sixteen badges drawn large on a dark background, four rows of four: the Zephyr wings, the ladybird Hive, the gold Plain, the ghost Fog, the fist Storm, the steel Mineral, the ice star Glacier, the dragon Rising, then the grey Boulder, the water-drop Cascade, the sun Thunder, the flower Rainbow, the pink heart Soul, the gold Marsh ring, the flame Volcano and the leaf Earth, with the sixteen small versions in a row beneath.">
+       alt="All sixteen badges drawn large on a dark background, four rows of four in challenge order: Kanto's grey Boulder, water-drop Cascade, sun Thunder, flower Rainbow, pink heart Soul, gold Marsh ring, flame Volcano and leaf Earth, then Johto's Zephyr wings, ladybird Hive, gold Plain, ghost Fog, fist Storm, steel Mineral, ice star Glacier and dragon Rising, with the sixteen small versions in a row beneath.">
   <figcaption>The sixteen badges, large and small. Original drawings.</figcaption>
 </figure>
 
