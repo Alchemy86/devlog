@@ -8,6 +8,7 @@
 //   pokemon/<dex>[-NAME]/walk.png       walking sprite: 8 frames in a row,
 //                                       back, front, left, right, two steps each
 //   pokemon/<dex>[-NAME]/walk-shiny.png the same in shiny colours (optional)
+//   pokemon/<dex>[-NAME]/cry.wav        the cry, 8-bit mono PCM WAV (optional)
 //   room/room.bin                       pet mode's room (optional)
 //   team.txt                            dex numbers to walk with, one a line
 //                                       (optional; else the first six)
@@ -37,7 +38,7 @@ export async function folderFromUrl(base) {
   if (!res.ok) throw new Error(`${base}/index.json: ${res.status}`);
   const index = await res.json();
   const map = new Map();
-  const names = ['front.png', 'front-2.png', 'anim.txt', 'walk.png', 'walk-shiny.png'];
+  const names = ['front.png', 'front-2.png', 'anim.txt', 'walk.png', 'walk-shiny.png', 'cry.wav'];
   for (const entry of index.pokemon || []) {
     const dir = typeof entry === 'string' ? entry : entry.dir;
     const have = typeof entry === 'string' ? names : entry.files;
@@ -219,17 +220,47 @@ export async function encodeFollower(s) {
   return concat(parts);
 }
 
+/// The largest cry taken: a few seconds at the cartridge's rate.
+const MAX_CRY_BYTES = 64 * 1024;
+
+/// A cry WAV as the dex store keeps it: 8-bit *signed* mono PCM and its rate
+/// (`pw_graphics::wav`). Anything but 8-bit mono PCM is not a cry.
+export async function encodeCry(s) {
+  const f = s.files.get('cry.wav');
+  if (!f) return null;
+  const b = new Uint8Array(await (await f()).arrayBuffer());
+  const dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+  const tag = at => String.fromCharCode(b[at], b[at + 1], b[at + 2], b[at + 3]);
+  if (b.length < 12 || tag(0) !== 'RIFF' || tag(8) !== 'WAVE') return null;
+  let at = 12, rate = 0;
+  while (at + 8 <= b.length) {
+    const id = tag(at), len = dv.getUint32(at + 4, true);
+    if (at + 8 + len > b.length) return null;
+    if (id === 'fmt ') {
+      if (dv.getUint16(at + 8, true) !== 1 || dv.getUint16(at + 10, true) !== 1 || dv.getUint16(at + 22, true) !== 8) return null;
+      rate = Math.min(65535, dv.getUint32(at + 12, true));
+    } else if (id === 'data') {
+      if (!rate) return null;
+      const pcm = b.slice(at + 8, at + 8 + Math.min(len, MAX_CRY_BYTES)).map(v => v ^ 0x80);
+      return { pcm, rate };
+    }
+    at += 8 + len + (len & 1);
+  }
+  return null;
+}
+
 /// Every species of a folder as one dex store (`PWDEX2`).
 export async function buildStore(list, onProgress) {
   const dexes = [...list.keys()].sort((a, b) => a - b);
   if (!dexes.length) return null;
   const first = dexes[0], count = dexes[dexes.length - 1] - first + 1;
-  const packs = new Array(count).fill(null), fols = new Array(count).fill(null);
+  const packs = new Array(count).fill(null), fols = new Array(count).fill(null), cries = new Array(count).fill(null);
   let done = 0;
   for (const dex of dexes) {
     const s = list.get(dex);
     packs[dex - first] = await encodePet(s).catch(() => null);
     fols[dex - first] = await encodeFollower(s).catch(() => null);
+    cries[dex - first] = await encodeCry(s).catch(() => null);
     if (onProgress) onProgress(++done, dexes.length);
   }
   const headLen = 16 + 16 * count;
@@ -246,7 +277,12 @@ export async function buildStore(list, onProgress) {
     dv.setUint32(20 + 16 * i, p ? p.length : 0, true);
     if (p) { body.push(p); at += p.length; }
   }
-  for (let i = 0; i < count; i++) dv.setUint32(24 + 16 * i, at, true);
+  for (let i = 0; i < count; i++) {
+    const c = cries[i];
+    dv.setUint32(24 + 16 * i, at, true);
+    dv.setUint16(28 + 16 * i, c ? c.rate : 0, true);
+    if (c) { body.push(c.pcm); at += c.pcm.length; }
+  }
   const folAt = at;
   dv.setUint32(12, folAt, true);
   const table = new Uint8Array(8 * count);

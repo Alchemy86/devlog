@@ -38,12 +38,18 @@
   <div class="row">
     <button class="ui" id="walk" aria-pressed="false">Walk</button>
     <label class="ui">Load sprite folder<input type="file" id="folder" webkitdirectory multiple></label>
-    <button class="ui" id="reset">Restart</button>
+    <button class="ui" id="reset" title="Switch the walker off and on: it comes back from its save">Restart</button>
+  </div>
+  <div class="row">
+    <button class="ui" id="sound" aria-pressed="true" title="Sound on or off (M)">Sound on</button>
+    <button class="ui" id="erase" title="Forget the save and start a fresh walker">Erase save</button>
   </div>
   <p id="status">Loading…</p>
   <details>
     <summary>How to use it</summary>
     <p>Double tap the closed ball to open it. Swipe sideways for the games, up or down to change who walks with you. Tap the egg at the top for pet mode: drag to look round, double tap to zoom, stroke the Pokémon, flick the ball, tap the radio, the PC or the console. PWR goes back; BOOT is the other key. <b>Walk</b> pretends you are walking, for steps and Watts.</p>
+    <p>Sound starts with your first tap or key press (browsers keep pages quiet until then). The walker saves itself in this browser as the device saves to its flash: the team, Watts, steps, the bag, pet mode, the Radio's stars and the settings all come back next time.</p>
+    <p>Two things are hardware and are not here: <b>WiFi</b> (the walker's own hotspot and the phone setup page need its radio) and the <b>link cable</b> to a Game Boy, which the Trade Room needs to actually trade. Their screens open, and say there is nothing connected.</p>
     <p>The creatures here are the demo's own. <b>Load sprite folder</b> takes any folder in this layout, read in your browser and never uploaded:</p>
     <pre><code>pokemon/0001-NAME/front.png      battle picture (≤96×96)
 pokemon/0001-NAME/front-2.png    second frame (optional)
@@ -51,6 +57,7 @@ pokemon/0001-NAME/walk.png       8 walking frames in a row:
                                  back, front, left, right ×2
 pokemon/0001-NAME/walk-shiny.png shiny colours (optional)
 room/room.bin                    pet mode's room (optional)
+pokemon/0001-NAME/cry.wav        the cry, 8-bit mono WAV (optional)
 team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
@@ -63,11 +70,15 @@ const status = document.getElementById('status');
 let pw = null, wasmBytes = null, startedAt = 0, img = null, dim = 412, logical = 103;
 
 const store = {
-  get(k, d) { try { const v = localStorage.getItem('pw.' + k); return v === null ? d : Number(v); } catch (_) { return d; } },
+  get(k, d) { try { const v = localStorage.getItem('pw.' + k); return v === null ? d : v; } catch (_) { return d; } },
   set(k, v) { try { localStorage.setItem('pw.' + k, String(v)); } catch (_) { } },
+  del(k) { try { localStorage.removeItem('pw.' + k); } catch (_) { } },
 };
 const nowUs = () => (performance.now() - startedAt) * 1000;
 const say = t => { status.textContent = t; };
+const clockS = () => Date.now() / 1000;
+const b64 = bytes => btoa(String.fromCharCode(...bytes));
+const unb64 = text => Uint8Array.from(atob(text), c => c.charCodeAt(0));
 
 function stage(bytes) {
   const ptr = pw.pw_pet_pack(bytes.length);
@@ -90,20 +101,42 @@ async function boot(folder, label) {
   const { instance } = await WebAssembly.instantiate(wasmBytes, {});
   pw = instance.exports;
   const d = new Date();
-  pw.pw_boot(d.getHours() * 60 + d.getMinutes(), 110, store.get('watts', 500), 0, store.get('settings', 0), 0);
+  // The device's own NVS record, kept here as base64, handed back exactly as
+  // the firmware restores its flash. The two numbers before it are what an
+  // older page kept, used only when there is no record yet.
+  pw.pw_boot(d.getHours() * 60 + d.getMinutes(), 110, Number(store.get('watts', 0)), 0, Number(store.get('settings', 0)), 0);
+  pw.pw_set_walking(0);
+  let restored = false;
+  const saved = store.get('save', null);
+  if (saved) {
+    try {
+      const bytes = unb64(saved);
+      restored = stage(bytes) && pw.pw_restore(clockS()) === 0;
+    } catch (_) { restored = false; }
+    if (!restored) say(`The saved walker would not load (${lastError() || 'not a save'}); starting fresh.`);
+  }
+  lastSave = '';
+  ready = false;
   startedAt = performance.now();
+  resetAudioClock();
   dim = pw.pw_frame_dim();
   logical = pw.pw_canvas_dim();
   screen.width = screen.height = dim;
   img = g.createImageData(dim, dim);
-  if (!folder) { say('Running with no sprites.'); return; }
+  if (!folder) { ready = true; say(restored ? 'Your saved walker, with no sprites.' : 'Running with no sprites.'); return; }
   const list = species(folder);
   let team = [];
   if (folder.has('team.txt')) {
     const txt = await (await folder.get('team.txt')()).text();
-    team = txt.split(/[\s,]+/).map(Number).filter(n => list.has(n));
+    // A member a line, `DEX [LEVEL ...]` as the device reads it; a single
+    // comma-separated line works too.
+    const lines = txt.split('\n').map(l => l.split('#')[0].trim()).filter(Boolean);
+    const dexes = lines.length === 1 && lines[0].includes(',') ? lines[0].split(',') : lines.map(l => l.split(/\s+/)[0]);
+    team = dexes.map(Number).filter(n => list.has(n));
   }
   if (!team.length) team = [...list.keys()].sort((a, b) => a - b);
+  // A restored walker brings its own team, as the device's does.
+  if (restored) team = [];
   for (const dex of team.slice(0, 6)) {
     const name = list.get(dex).name;
     if (name) stage(new TextEncoder().encode(name));
@@ -116,7 +149,10 @@ async function boot(folder, label) {
     const room = new Uint8Array(await (await folder.get('room/room.bin')()).arrayBuffer());
     if (stage(room) && pw.pw_load_room() !== 0) say(`That room would not load: ${lastError()}`);
   }
-  say(`${label}: ${list.size} creature${list.size === 1 ? '' : 's'}, ${Math.min(team.length, 6)} walking with you. Double tap the ball to open it.`);
+  const walking = pw.pw_team_len();
+  say(`${label}: ${list.size} creature${list.size === 1 ? '' : 's'}, ${walking} walking with you${restored ? ' (from your save)' : ''}. Double tap the ball to open it.`);
+  ready = true;
+  saveNow();
 }
 
 function frame() {
@@ -124,17 +160,148 @@ function frame() {
   if (!pw) return;
   const t = nowUs();
   pw.pw_advance(t);
+  pumpAudio();
   if (pw.pw_render(t) !== 0) return;
   img.data.set(new Uint8Array(pw.memory.buffer, pw.pw_frame_ptr(), pw.pw_frame_bytes()));
   g.putImageData(img, 0, 0);
 }
 
-let saveAt = 0;
-setInterval(() => {
-  if (!pw || performance.now() < saveAt) return;
-  store.set('watts', pw.pw_watts());
-  store.set('settings', pw.pw_settings());
-}, 3000);
+// -- saving: the device's own record, whenever it changes ---------------------
+let lastSave = '', ready = false;
+// Nothing is saved until a boot has finished setting the walker up: a save
+// taken half way (before the team is added) would come back as the walker.
+function saveNow() {
+  if (!pw || !ready) return;
+  const n = pw.pw_save(clockS());
+  if (!n) return;
+  const text = b64(new Uint8Array(pw.memory.buffer, pw.pw_save_ptr(), n));
+  // The clock stamp is inside the record, so compare without re-saving every
+  // second for that alone: a minute is plenty for pet mode's time away.
+  if (text === lastSave) return;
+  lastSave = text;
+  store.set('save', text);
+}
+setInterval(saveNow, 2000);
+addEventListener('pagehide', saveNow);
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveNow(); });
+
+// -- sound: the device's speaker, mixed in WebAssembly ------------------------
+// `pw_audio_render` mixes the walker's own speaker (16 kHz stereo, the board's
+// DAC format); this keeps an AudioWorklet's bounded queue a little ahead of
+// the audio clock. The first gesture unlocks the AudioContext.
+const AUDIO_LEAD_S = 0.12, AUDIO_MAX_QUEUE_S = 1.0;
+const WORKLET = `
+class Walker extends AudioWorkletProcessor {
+  constructor(o) {
+    super();
+    this.src = o.processorOptions.rate;
+    this.cap = Math.ceil(this.src * ${AUDIO_MAX_QUEUE_S}) * 2;
+    this.q = new Float32Array(this.cap); this.r = 0; this.n = 0; this.pos = 0;
+    this.peak = 0; this.sumsq = 0; this.count = 0; this.under = 0; this.since = 0; this.played = 0;
+    this.port.onmessage = e => this.push(e.data);
+  }
+  push(d) {
+    for (let i = 0; i < d.length; i += 2) {
+      if (this.n * 2 >= this.cap) { this.r = (this.r + 2) % this.cap; this.n--; }
+      const w = (this.r + this.n * 2) % this.cap;
+      this.q[w] = d[i]; this.q[w + 1] = d[i + 1]; this.n++;
+    }
+  }
+  process(_, outs) {
+    const out = outs[0], L = out[0], R = out[1] || out[0];
+    const step = this.src / sampleRate;
+    for (let i = 0; i < L.length; i++) {
+      if (this.n < 1) { L[i] = R[i] = 0; this.under++; continue; }
+      const l = this.q[this.r], r = this.q[this.r + 1];
+      L[i] = l; R[i] = r;
+      const a = Math.max(Math.abs(l), Math.abs(r));
+      if (a > this.peak) this.peak = a;
+      this.sumsq += l * l; this.count++;
+      this.pos += step;
+      while (this.pos >= 1 && this.n > 0) { this.pos -= 1; this.r = (this.r + 2) % this.cap; this.n--; this.played++; }
+    }
+    this.since += L.length;
+    if (this.since >= sampleRate / 4) {
+      this.port.postMessage({ peak: this.peak, rms: Math.sqrt(this.sumsq / Math.max(1, this.count)), queued: this.n, under: this.under, played: this.played });
+      this.peak = 0; this.sumsq = 0; this.count = 0; this.since = 0;
+    }
+    return true;
+  }
+}
+registerProcessor('walker', Walker);`;
+const audio = { ctx: null, sink: null, gain: null, t0: 0, made: 0, on: store.get('sound', '1') !== '0', stats: [], loudest: 0, kind: '' };
+window.pwAudio = audio;
+function resetAudioClock() { audio.made = 0; if (audio.ctx) audio.t0 = audio.ctx.currentTime; }
+async function unlockAudio() {
+  if (audio.ctx) { if (audio.ctx.state !== 'running') audio.ctx.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC || !pw) return;
+  const rate = pw.pw_audio_rate();
+  try { audio.ctx = new AC({ sampleRate: rate }); } catch (_) { audio.ctx = new AC(); }
+  audio.gain = audio.ctx.createGain();
+  audio.gain.gain.value = audio.on ? 1 : 0;
+  audio.gain.connect(audio.ctx.destination);
+  const report = s => { audio.stats.push(s); if (audio.stats.length > 40) audio.stats.shift(); audio.loudest = Math.max(audio.loudest, s.peak); };
+  try {
+    const url = URL.createObjectURL(new Blob([WORKLET], { type: 'text/javascript' }));
+    await audio.ctx.audioWorklet.addModule(url);
+    const node = new AudioWorkletNode(audio.ctx, 'walker', { numberOfInputs: 0, outputChannelCount: [2], processorOptions: { rate } });
+    node.port.onmessage = e => report(e.data);
+    node.connect(audio.gain);
+    audio.sink = d => node.port.postMessage(d, [d.buffer]);
+    audio.kind = 'worklet';
+  } catch (_) {
+    // No AudioWorklet (an old browser, or a file:// page): a ScriptProcessor
+    // pulling from the same kind of bounded queue.
+    const q = [], node = audio.ctx.createScriptProcessor(1024, 0, 2);
+    let qn = 0, pos = 0;
+    const step = rate / audio.ctx.sampleRate;
+    node.onaudioprocess = e => {
+      const L = e.outputBuffer.getChannelData(0), R = e.outputBuffer.getChannelData(1);
+      let peak = 0;
+      for (let i = 0; i < L.length; i++) {
+        while (q.length && q[0].at >= q[0].d.length) q.shift();
+        if (!q.length) { L[i] = R[i] = 0; continue; }
+        const c = q[0];
+        L[i] = c.d[c.at]; R[i] = c.d[c.at + 1];
+        peak = Math.max(peak, Math.abs(L[i]), Math.abs(R[i]));
+        pos += step;
+        while (pos >= 1 && q.length) { pos -= 1; c.at += 2; qn--; if (c.at >= c.d.length) break; }
+      }
+      report({ peak, rms: 0, queued: qn, under: 0, played: 0 });
+    };
+    node.connect(audio.gain);
+    audio.sink = d => { if (qn > rate * AUDIO_MAX_QUEUE_S) return; q.push({ d, at: 0 }); qn += d.length / 2; };
+    audio.kind = 'scriptprocessor';
+  }
+  resetAudioClock();
+}
+function pumpAudio() {
+  if (!pw || !audio.ctx || !audio.sink || audio.ctx.state !== 'running') return;
+  const rate = pw.pw_audio_rate();
+  const want = Math.floor((audio.ctx.currentTime - audio.t0 + AUDIO_LEAD_S) * rate);
+  let n = want - audio.made;
+  if (n <= 0) return;
+  // Fallen far behind (a hidden tab): start again from now rather than
+  // making a backlog the speaker would only throw away.
+  if (n > rate * AUDIO_MAX_QUEUE_S) { audio.made = want - Math.floor(AUDIO_LEAD_S * rate); n = want - audio.made; }
+  const got = pw.pw_audio_render(n);
+  const pcm = new Int16Array(pw.memory.buffer, pw.pw_audio_ptr(), got * 2);
+  const f = new Float32Array(got * 2);
+  for (let i = 0; i < f.length; i++) f[i] = pcm[i] / 32768;
+  audio.made += got;
+  audio.sink(f);
+}
+setInterval(pumpAudio, 40);
+const soundBtn = document.getElementById('sound');
+function showSound() {
+  soundBtn.setAttribute('aria-pressed', String(audio.on));
+  soundBtn.textContent = audio.on ? 'Sound on' : 'Sound off';
+  if (audio.gain) audio.gain.gain.value = audio.on ? 1 : 0;
+}
+showSound();
+soundBtn.addEventListener('click', () => { audio.on = !audio.on; store.set('sound', audio.on ? '1' : '0'); showSound(); });
+for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, unlockAudio, { capture: true });
 
 function at(e) {
   const r = screen.getBoundingClientRect();
@@ -148,7 +315,11 @@ screen.addEventListener('pointercancel', e => { if (!pw) return; const [x, y] = 
 const press = b => pw && pw.pw_press(b, nowUs());
 document.getElementById('pwr').addEventListener('click', () => press(0));
 document.getElementById('boot').addEventListener('click', () => press(1));
-addEventListener('keydown', e => { if (e.key === 'p' || e.key === 'P') press(0); if (e.key === 'b' || e.key === 'B') press(1); });
+addEventListener('keydown', e => {
+  if (e.key === 'p' || e.key === 'P') press(0);
+  if (e.key === 'b' || e.key === 'B') press(1);
+  if (e.key === 'm' || e.key === 'M') soundBtn.click();
+});
 
 const walkBtn = document.getElementById('walk');
 walkBtn.addEventListener('click', () => {
@@ -167,6 +338,14 @@ document.getElementById('folder').addEventListener('change', async e => {
   walkBtn.setAttribute('aria-pressed', 'false');
 });
 document.getElementById('reset').addEventListener('click', () => {
+  saveNow();
+  boot(current, currentLabel).catch(err => say(err.message));
+  walkBtn.setAttribute('aria-pressed', 'false');
+});
+document.getElementById('erase').addEventListener('click', () => {
+  if (!confirm('Forget this walker (team, Watts, steps, pet mode) and start fresh?')) return;
+  for (const k of ['save', 'watts', 'settings']) store.del(k);
+  pw = null;
   boot(current, currentLabel).catch(err => say(err.message));
   walkBtn.setAttribute('aria-pressed', 'false');
 });
@@ -181,6 +360,8 @@ document.getElementById('reset').addEventListener('click', () => {
   await boot(current, currentLabel).catch(err => say(`Could not start: ${err.message}`));
   requestAnimationFrame(frame);
 })();
+// For a test driving the page: the module's exports and the audio state.
+window.pwPage = { get pw() { return pw; }, nowUs, saveNow, audio };
 </script>
 </body>
 </html>
