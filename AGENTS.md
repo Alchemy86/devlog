@@ -420,9 +420,11 @@ Project pages live in `projects/` and draw their facts from private repos under
   upscaled `scale=720:720:flags=neighbor`; the promo, `battle-epic-ko.mp4` and `device-turn.mp4` are
   byte copies (`sha1sum`). **All walker footage shows the owner's own cartridge art** (Pokémon,
   trainers, rooms) from the gitignored `graphics.local/`; the pokewalker repo's `AGENTS.md` says never
-  to publish it, so get the captain's explicit go-ahead before adding more. Trade Room screenshots
-  (`traderoom-*.png`) are `pw-pet-window` `--script` captures at 103×103 upscaled 4×; the Cable Club
-  screenshot is protocol evidence, not the walker pictured trading.
+  to publish it, so get the captain's explicit go-ahead before adding more. The old Trade
+  Room screenshots were retired on 2026-11-15; the Cable Club screenshot stays as protocol evidence,
+  not the walker pictured trading. Shell views are copies of the pokewalker repo's
+  `esp32-s3-touch-lcd-1.46b/enclosure/out/shell-*.png` (never the RP2350 `picowalker-v0.4` renders);
+  `world-*.png` are world-engine renders, not on the device yet, and the page says so.
 
 ## Standing pages (added 2026-08-27, `glitches.html` added 2026-09-27)
 

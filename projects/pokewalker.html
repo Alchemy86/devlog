@@ -51,11 +51,12 @@
 <h1>Pokewalker</h1>
 <p class="lead">
 The Pokéwalker that came with <em>HeartGold</em> and <em>SoulSilver</em>, rebuilt and
-grown up. It runs on a round 412×412 touchscreen in a printed Poké Ball and turns your
-steps into Watts. Your team lives in it. One of them can move into a room as a pet. A ring
+grown up. It runs on a round 412×412 touchscreen, designed to sit in a printed Poké Ball, and
+turns your steps into Watts. Your team lives in it. One of them can move into a room as a pet. A ring
 of games, a 3D stadium for battles, sixteen gym leaders, wild areas to catch in, RALLY
-races, a park other walkers share, and a real Game Boy link-cable trade. All of it is
-Rust, written from nothing.
+races, a park other walkers share, a portal on the web, and a real Game Boy link-cable
+trade. A whole open region is being built round it. All of it is Rust, written from
+nothing.
 </p>
 <p><a href="../demo/pokewalker/">Try it in your browser</a>: the walker's own software,
 compiled to WebAssembly. <a href="../posts/a-minute-on-the-glass.html">Watch the one-minute film</a>.</p>
@@ -115,7 +116,8 @@ alt="The round Poké Ball walker standing on a dark reflective floor, its glass 
 </div>
 </section>
 
-<figure class="clip-auto" style="max-width:360px;margin-inline:auto;">
+<div class="clip-grid">
+<figure class="clip-auto">
 <video muted loop autoplay playsinline preload="metadata"
        poster="../assets/img/pokewalker/device-turn-poster.png" width="1080" height="1920">
 <source src="../assets/video/pokewalker/device-turn.mp4" type="video/mp4">
@@ -124,6 +126,237 @@ alt="The round Poké Ball walker standing on a dark reflective floor, its glass 
 alt="The walker on a dark reflective floor with its screen lit on Pikachu's walking face.">
 <figcaption>The shell turning, from the back and its clip round to the face.</figcaption>
 </figure>
+<figure><img src="../assets/img/pokewalker/shell-face.png" width="1600" height="1600"
+alt="CAD render of the shell face on: a round white cup with the black-rimmed glass filling the whole front.">
+<figcaption>Face on: the glass is the whole front.</figcaption></figure>
+</div>
+
+<div class="clip-grid">
+<figure><img src="../assets/img/pokewalker/shell-front.png" width="1400" height="1100"
+alt="CAD render of the shell from the front at an angle, the glass on top and the curved white body below.">
+<figcaption>The glass sits proud of a curved body.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/shell-back.png" width="1400" height="1100"
+alt="CAD render of the shell's back: a rounded dome with the belt clip and two screw pockets.">
+<figcaption>The back, with the clip shaped from the original's.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/shell-profile.png" width="1500" height="1100"
+alt="CAD render of the shell side on, the clip running under the back.">
+<figcaption>Side on.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/shell-exploded.png" width="1300" height="1300"
+alt="Exploded CAD render: the board and glass lifted out of the cup, the battery in the bay, a side key and screws beside it.">
+<figcaption>Exploded: board, battery, cup, keys, screws.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/shell-section.png" width="1500" height="1000"
+alt="CAD render of the shell cut in half to show the board seated inside the cup.">
+<figcaption>Cut through: the board seated in the cup.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/shell-keys.png" width="1400" height="1000"
+alt="CAD render of the shell's side with the two printed keys in their holes.">
+<figcaption>The two printed side keys.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/shell-usb.png" width="1300" height="900"
+alt="CAD render close-up of the USB-C opening in the shell's side.">
+<figcaption>The USB-C opening.</figcaption></figure>
+</div>
+</section>
+<section>
+<div class="sec-head">
+<h2>Battles and gym leaders</h2>
+<p class="sub">Generation 1's rules in a 3D stadium, with three lanes on top.</p>
+</div>
+<div class="cards">
+<div class="card">
+<div class="card-hd"><p class="kicker">The engine</p><h3>Gen 1 rules, one twist</h3></div>
+<div class="card-bd"><ul>
+<li>Damage, types and accuracy follow Pokémon Red and Blue, with no floating point, so the walker, the browser and the server get the same result to the byte</li>
+<li>The twist: three lanes and a secret stance every turn. Jump the wrong way and an attack lands for double</li>
+<li>One command screen: four moves, where to aim, where to stand. Leave it alone and it plays the AI's choice</li>
+</ul></div>
+</div>
+<div class="card">
+<div class="card-hd"><p class="kicker">The stadium</p><h3>A camera that moves</h3></div>
+<div class="card-bd"><ul>
+<li>A real 3D camera orbits the field and swings behind whoever is acting</li>
+<li>Surf, Earthquake, Thunderbolt and Thunder get their own effects painted into the stadium. Every other move plays the cartridge's own animation</li>
+<li>Critical hits become a beam clash in the middle of the field; knockouts crack the wall</li>
+<li>Pick a squad first: 1V1, 3V3 or 6V6, in the order you tap them</li>
+</ul></div>
+</div>
+<div class="card">
+<div class="card-hd"><p class="kicker">Gyms</p><h3>Sixteen leaders who read your team</h3></div>
+<div class="card-bd"><ul>
+<li>Gold's sixteen: Brock to Blue, then Falkner to Clair. 200 Watts a challenge, win or lose</li>
+<li>The leader sizes up your team and builds one a little ahead of it. Challengers win about four times in ten</li>
+<li>Each leader has an arena of their own, an entrance, lines written for this, and a badge drawn for it</li>
+</ul></div>
+</div>
+<div class="card">
+<div class="card-hd"><p class="kicker">The wild</p><h3>Nine areas to catch in</h3></div>
+<div class="card-bd"><ul>
+<li>Real wild tables from Gold and Blue, under names of their own, unlocked by steps, badges and catches</li>
+<li>An encounter every 25 steps, or search for 2 Watts. Catch with Gold's catch rules and wobbles</li>
+<li>Shiny odds you choose: 1 in 8,192, 1 in 4,096 or 1 in 512. A Shiny Charm for all sixteen badges</li>
+<li>A PC of eight boxes of thirty, and Gold's 57 TMs and HMs</li>
+</ul></div>
+</div>
+</div>
+
+<div class="clip-grid">
+<figure class="pixel"><img src="../assets/img/pokewalker/squad-pick.png" width="103" height="103"
+alt="The SQUAD screen: 1V1 and 3V3 tabs, Pikachu, Charizard and Heracross listed in order at level 50, and GO 200W at the bottom.">
+<figcaption>Pick a squad and its order, then GO.</figcaption></figure>
+<figure class="pixel"><img src="../assets/img/pokewalker/battle-vs-card.png" width="720" height="720"
+alt="The match card: the screen split diagonally red and green, a portrait of each trainer, a VS badge between them, INDIGO PLATEAU across the top and three bars under each trainer.">
+<figcaption>The match card. One bar per Pokémon.</figcaption></figure>
+<figure class="pixel"><img src="../assets/img/pokewalker/battle-throw.png" width="720" height="720"
+alt="A Poké Ball tumbling towards the camera over blue speed lines.">
+<figcaption>Each Pokémon comes out of its own ball.</figcaption></figure>
+</div>
+
+<div class="clip-grid">
+<figure class="pixel"><img src="../assets/img/pokewalker/gym-brock-entrance.png" width="720" height="720"
+alt="Brock's entrance: his portrait over a rocky arena, his name on a ribbon with a ROOKIE tag, and a speech box.">
+<figcaption>Brock sizes you up as a rookie.</figcaption></figure>
+<figure class="pixel"><img src="../assets/img/pokewalker/gym-misty-entrance.png" width="720" height="720"
+alt="Misty's entrance: her portrait over the stands, a ROOKIE tag, and READY TO GET SOAKED? in the speech box.">
+<figcaption>Misty.</figcaption></figure>
+<figure class="pixel"><img src="../assets/img/pokewalker/gym-surge-entrance.png" width="720" height="720"
+alt="Lt. Surge's entrance: his portrait crackling with electricity, a ROOKIE tag, and HEY, KID! I'M SURGE! in the speech box.">
+<figcaption>Lt. Surge.</figcaption></figure>
+<figure class="pixel"><img src="../assets/img/pokewalker/gym-morty-entrance.png" width="720" height="720"
+alt="Morty's entrance: his portrait before red shrine gates at night, a ROOKIE tag, and I SAW YOU COMING in the speech box.">
+<figcaption>Morty, at his shrine.</figcaption></figure>
+</div>
+
+<figure class="pixel" style="max-width:620px;margin-inline:auto;">
+<img src="../assets/img/pokewalker/gym-arenas.png" width="1236" height="1344"
+alt="Sixteen round screens in a grid, one per gym arena: Kanto's eight then Johto's, from Brock's rocky floor and Misty's pool to Pryce's ice rink and Clair's flooded cave.">
+<figcaption>All sixteen arenas, in challenge order.</figcaption>
+</figure>
+
+<figure style="max-width:480px;margin-inline:auto;">
+<video controls playsinline preload="metadata" poster="../assets/img/pokewalker/walker-move-effects-poster.png" width="720" height="720">
+<source src="../assets/video/pokewalker/walker-move-effects.mp4" type="video/mp4">
+</video>
+<figcaption>Pikachu against Blastoise: Surf, Earthquake, Thunderbolt and Thunder, each with its own stadium effect. Sound on.</figcaption>
+</figure>
+
+<div class="clip-grid">
+<figure>
+<video controls playsinline preload="metadata" poster="../assets/img/pokewalker/gym-tour-poster.png" width="480" height="480"><source src="../assets/video/pokewalker/gym-tour.mp4" type="video/mp4"></video>
+<figcaption>Every leader's entrance, a whole gym fight and all sixteen badges.</figcaption>
+</figure>
+<figure class="clip-auto">
+<video muted loop autoplay playsinline preload="metadata" poster="../assets/img/pokewalker/walker-wild-poster.png" width="720" height="720"><source src="../assets/video/pokewalker/walker-wild.mp4" type="video/mp4"></video>
+<img class="clip-poster" src="../assets/img/pokewalker/walker-wild-poster.png" width="720" height="720" alt="A wild encounter in a forest arena.">
+<figcaption>Whisper Woods: a wild Metapod, a thrown ball, and a fight.</figcaption>
+</figure>
+<figure>
+<video controls playsinline preload="metadata" poster="../assets/img/pokewalker/battle-match-poster.png" width="480" height="480"><source src="../assets/video/pokewalker/battle-match.mp4" type="video/mp4"></video>
+<figcaption>A whole three-on-three, start to finish.</figcaption>
+</figure>
+</div>
+</section>
+
+<section>
+<div class="sec-head">
+<h2>The open world</h2>
+<p class="sub">A whole region to walk, being built now.</p>
+</div>
+<div class="cards">
+<div class="card">
+<div class="card-hd"><p class="kicker">The region</p><h3>Sixteen gym towns round a park</h3></div>
+<div class="card-bd"><ul>
+<li>One island region: the park at the centre, a ring of sixteen gym towns, Kanto's and Johto's, and the Stadium to the north</li>
+<li>A grand canal, wide tree-lined boulevards, Tidewater Bay, forests, farms and mountains between them</li>
+<li>Each town gets its gym, a Pokémon Center, a Mart and houses as real buildings you walk past</li>
+<li>Drawn by the same 3D camera as the stadium and the park, from a layout kept as data</li>
+</ul></div>
+</div>
+<div class="card">
+<div class="card-hd"><p class="kicker">Status</p><h3>A work in progress</h3></div>
+<div class="card-bd"><ul>
+<li>These are renders from the world engine on a desktop, not from the walker. The region isn't on the device yet</li>
+<li>A layout pass is underway to make it denser and less symmetric, more like a theme park than a grid</li>
+<li>Today's shared park is the piece of it already running, online and off</li>
+</ul></div>
+</div>
+</div>
+
+<figure style="max-width:900px;margin-inline:auto;">
+<a href="../assets/img/pokewalker/world-map.png"><img src="../assets/img/pokewalker/world-map-1400.png" width="1400" height="1400"
+alt="The Pokewalker Region map: a round green island in a blue sea, the park at the centre, two rings of roads joining sixteen numbered gym towns from Pewter and Cerulean to Blackthorn and Mahogany, a canal circling between them, and the Stadium at the top."></a>
+<figcaption>The region as the engine lays it out. Select it for the full-size map.</figcaption>
+</figure>
+
+<div class="clip-grid">
+<figure><img src="../assets/img/pokewalker/world-park.png" width="1280" height="720"
+alt="The park in daylight: a fountain, flowerbeds and benches, paths curving between cherry trees and lamps.">
+<figcaption>The park.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/world-park-dusk.png" width="1280" height="720"
+alt="The same park at dusk, everything washed in orange.">
+<figcaption>The park at dusk.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/world-pewter-gym.png" width="1280" height="720"
+alt="Pewter's gym behind cherry trees and a paved square.">
+<figcaption>Pewter's gym.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/world-pewter-center.png" width="1280" height="720"
+alt="A red-roofed Pokémon Center behind cherry trees on Pewter's square.">
+<figcaption>Pewter's Pokémon Center.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/world-boulevard.png" width="1280" height="720"
+alt="A long tree-lined boulevard with a dashed centre line and lamps.">
+<figcaption>A boulevard between towns.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/world-canal.png" width="1280" height="720"
+alt="A road running beside the canal, with trees and a cherry tree on the bank.">
+<figcaption>Along the canal.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/world-tidewater.png" width="1280" height="720"
+alt="A sandy shore with rocks and grass at the edge of Tidewater Bay.">
+<figcaption>Tidewater Bay.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/world-stadium-night.png" width="1280" height="720"
+alt="The boulevard to the Stadium at night, its floodlit stands at the end of the road.">
+<figcaption>The road to the Stadium, at night.</figcaption></figure>
+</div>
+</section>
+
+<section>
+<div class="sec-head">
+<h2>The portal</h2>
+<p class="sub">Your walker, on the web: friends, a league, replays and trades.</p>
+</div>
+<div class="cards">
+<div class="card">
+<div class="card-hd"><p class="kicker">You and your friends</p><h3>Cards, codes and pokes</h3></div>
+<div class="card-bd"><ul>
+<li>A trainer card with your team, record and badge case, public, friends-only or private</li>
+<li>Friends by a twelve-digit friend code</li>
+<li>Poke a friend's ball, or challenge them: the server plays both teams' tactics and your walker replays the fight</li>
+<li>Edit your team, names and settings from the site; they reach the walker on its next sync</li>
+</ul></div>
+</div>
+<div class="card">
+<div class="card-hd"><p class="kicker">The league</p><h3>Monthly seasons, kept replays</h3></div>
+<div class="card-bd"><ul>
+<li>A season a month, a table for each format: open, level caps, and a balanced level 50</li>
+<li>Every battle is kept as a replay of about a kilobyte, played back in the browser by the walker's own stadium</li>
+<li>Trophies come home as decorations for the pet's room</li>
+</ul></div>
+</div>
+<div class="card">
+<div class="card-hd"><p class="kicker">Live</p><h3>Park, races, trades, backups</h3></div>
+<div class="card-bd"><ul>
+<li>The live park, and live race rooms that anyone can watch</li>
+<li>Trades between two trainers, held in escrow until both agree</li>
+<li>Backups of the walker, the newest ten kept, restored with two presses on the device</li>
+</ul></div>
+</div>
+</div>
+<div class="clip-grid">
+<figure><img src="../assets/img/pokewalker/portal-home.png" width="1170" height="1960"
+alt="The portal's home page on a phone: a Poké Ball, POKEWALKER ONLINE, the heading Your walker, in the League, and buttons to sign in and see the league.">
+<figcaption>The front door.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/portal-trainer-card.png" width="1170" height="2280"
+alt="A trainer card: a trainer portrait, battles 4, badges 10 of 16, trophies 3, a win, a loss and a draw, a friend code and the badge case.">
+<figcaption>A trainer card.</figcaption></figure>
+<figure><img src="../assets/img/pokewalker/portal-gym-challenge.png" width="1170" height="3330"
+alt="The gym challenge page: a short explanation of the sixteen leaders, then a grid of all sixteen with their portraits and badges.">
+<figcaption>The gym challenge and its sixteen leaders.</figcaption></figure>
+</div>
+</section>
 
 <section>
 <div class="sec-head">
@@ -247,72 +480,6 @@ alt="The walker on a dark reflective floor with its screen lit on Pikachu's walk
 
 <section>
 <div class="sec-head">
-<h2>Battles</h2>
-<p class="sub">Generation 1's rules in a 3D stadium, with three lanes on top.</p>
-</div>
-<div class="cards">
-<div class="card">
-<div class="card-hd"><p class="kicker">The engine</p><h3>Gen 1 rules, one twist</h3></div>
-<div class="card-bd"><ul>
-<li>Damage, types and accuracy follow Pokémon Red and Blue, with no floating point, so the walker, the browser and the server get the same result to the byte</li>
-<li>The twist: three lanes and a secret stance every turn. Jump the wrong way and an attack lands for double</li>
-<li>One command screen: four moves, where to aim, where to stand. Leave it alone and it plays the AI's choice</li>
-</ul></div>
-</div>
-<div class="card">
-<div class="card-hd"><p class="kicker">The stadium</p><h3>A camera that moves</h3></div>
-<div class="card-bd"><ul>
-<li>A real 3D camera orbits the field and swings behind whoever is acting</li>
-<li>Surf, Earthquake, Thunderbolt and Thunder get their own effects painted into the stadium. Every other move plays the cartridge's own animation</li>
-<li>Critical hits become a beam clash in the middle of the field; knockouts crack the wall</li>
-<li>Pick a squad first: 1V1, 3V3 or 6V6, in the order you tap them</li>
-</ul></div>
-</div>
-<div class="card">
-<div class="card-hd"><p class="kicker">Gyms</p><h3>Sixteen leaders who read your team</h3></div>
-<div class="card-bd"><ul>
-<li>Gold's sixteen: Brock to Blue, then Falkner to Clair. 200 Watts a challenge, win or lose</li>
-<li>The leader sizes up your team and builds one a little ahead of it. Challengers win about four times in ten</li>
-<li>Each leader has an arena of their own, an entrance, lines written for this, and a badge drawn for it</li>
-</ul></div>
-</div>
-<div class="card">
-<div class="card-hd"><p class="kicker">The wild</p><h3>Nine areas to catch in</h3></div>
-<div class="card-bd"><ul>
-<li>Real wild tables from Gold and Blue, under names of their own, unlocked by steps, badges and catches</li>
-<li>An encounter every 25 steps, or search for 2 Watts. Catch with Gold's catch rules and wobbles</li>
-<li>Shiny odds you choose: 1 in 8,192, 1 in 4,096 or 1 in 512. A Shiny Charm for all sixteen badges</li>
-<li>A PC of eight boxes of thirty, and Gold's 57 TMs and HMs</li>
-</ul></div>
-</div>
-</div>
-
-<figure style="max-width:480px;margin-inline:auto;">
-<video controls playsinline preload="metadata" poster="../assets/img/pokewalker/walker-move-effects-poster.png" width="720" height="720">
-<source src="../assets/video/pokewalker/walker-move-effects.mp4" type="video/mp4">
-</video>
-<figcaption>Pikachu against Blastoise: Surf, Earthquake, Thunderbolt and Thunder, each with its own stadium effect. Sound on.</figcaption>
-</figure>
-
-<div class="clip-grid">
-<figure>
-<video controls playsinline preload="metadata" poster="../assets/img/pokewalker/gym-tour-poster.png" width="480" height="480"><source src="../assets/video/pokewalker/gym-tour.mp4" type="video/mp4"></video>
-<figcaption>Every leader's entrance, a whole gym fight and all sixteen badges.</figcaption>
-</figure>
-<figure class="clip-auto">
-<video muted loop autoplay playsinline preload="metadata" poster="../assets/img/pokewalker/walker-wild-poster.png" width="720" height="720"><source src="../assets/video/pokewalker/walker-wild.mp4" type="video/mp4"></video>
-<img class="clip-poster" src="../assets/img/pokewalker/walker-wild-poster.png" width="720" height="720" alt="A wild encounter in a forest arena.">
-<figcaption>Whisper Woods: a wild Metapod, a thrown ball, and a fight.</figcaption>
-</figure>
-<figure>
-<video controls playsinline preload="metadata" poster="../assets/img/pokewalker/battle-match-poster.png" width="480" height="480"><source src="../assets/video/pokewalker/battle-match.mp4" type="video/mp4"></video>
-<figcaption>A whole three-on-three, start to finish.</figcaption>
-</figure>
-</div>
-</section>
-
-<section>
-<div class="sec-head">
 <h2>RALLY and the park</h2>
 <p class="sub">Somewhere to go, and other people to meet there.</p>
 </div>
@@ -380,63 +547,35 @@ alt="The walker on a dark reflective floor with its screen lit on Pikachu's walk
 </div>
 </div>
 
-<div class="fig-pair">
-<figure class="pixel" style="max-width:none;">
-<img src="../assets/img/pokewalker/traderoom-send.png" width="412" height="412"
-alt="The Trade Room's main screen: TRADE ROOM at the top, a SEND plate and a TAKE BACK plate below it, and OFFER TOKEN along the bottom.">
-<p class="cap">The Trade Room, on the walker</p>
-</figure>
-<figure class="pixel" style="max-width:none;">
+<figure class="pixel" style="max-width:620px;margin-inline:auto;">
 <img src="../assets/img/pokewalker/real-cartridge-trade.png" width="1035" height="884"
 alt="A real Pokémon Blue's Cable Club trade table: BLUE offering MEWTWO, WALKER offering PIKACHU, and the line 'PIKACHU will be traded.'">
-<p class="cap">A real Pokémon Blue, taking the walker's token</p>
+<figcaption>A real Pokémon Blue at the Cable Club, agreeing to take the walker's token.</figcaption>
 </figure>
-</div>
 </section>
 
 <section>
 <div class="sec-head">
-<h2>The portal</h2>
-<p class="sub">Your walker, on the web: friends, a league, replays and trades.</p>
+<h2>Shorts</h2>
+<p class="sub">Vertical videos written as a script.</p>
 </div>
 <div class="cards">
 <div class="card">
-<div class="card-hd"><p class="kicker">You and your friends</p><h3>Cards, codes and pokes</h3></div>
+<div class="card-hd"><p class="kicker">pw-shorts</p><h3>A plain-text script in, a vertical video out</h3></div>
 <div class="card-bd"><ul>
-<li>A trainer card with your team, record and badge case, public, friends-only or private</li>
-<li>Friends by a twelve-digit friend code</li>
-<li>Poke a friend's ball, or challenge them: the server plays both teams' tactics and your walker replays the fight</li>
-<li>Edit your team, names and settings from the site; they reach the walker on its next sync</li>
-</ul></div>
-</div>
-<div class="card">
-<div class="card-hd"><p class="kicker">The league</p><h3>Monthly seasons, kept replays</h3></div>
-<div class="card-bd"><ul>
-<li>A season a month, a table for each format: open, level caps, and a balanced level 50</li>
-<li>Every battle is kept as a replay of about a kilobyte, played back in the browser by the walker's own stadium</li>
-<li>Trophies come home as decorations for the pet's room</li>
-</ul></div>
-</div>
-<div class="card">
-<div class="card-hd"><p class="kicker">Live</p><h3>Park, races, trades, backups</h3></div>
-<div class="card-bd"><ul>
-<li>The live park, and live race rooms that anyone can watch</li>
-<li>Trades between two trainers, held in escrow until both agree</li>
-<li>Backups of the walker, the newest ten kept, restored with two presses on the device</li>
+<li>A short is a text file of lines like <code>use venusaur PETAL_DANCE on meganium</code></li>
+<li>Everything on screen is drawn by the walker's own code: Gold's move animations and their sounds, the League stadium, the sixteen arenas, the wild areas</li>
+<li>1080×1920 at 30 frames a second, with sound</li>
 </ul></div>
 </div>
 </div>
-<div class="clip-grid">
-<figure><img src="../assets/img/pokewalker/portal-home.png" width="1170" height="1960"
-alt="The portal's home page on a phone: a Poké Ball, POKEWALKER ONLINE, the heading Your walker, in the League, and buttons to sign in and see the league.">
-<figcaption>The front door.</figcaption></figure>
-<figure><img src="../assets/img/pokewalker/portal-trainer-card.png" width="1170" height="2280"
-alt="A trainer card: a trainer portrait, battles 4, badges 10 of 16, trophies 3, a win, a loss and a draw, a friend code and the badge case.">
-<figcaption>A trainer card.</figcaption></figure>
-<figure><img src="../assets/img/pokewalker/portal-gym-challenge.png" width="1170" height="3330"
-alt="The gym challenge page: a short explanation of the sixteen leaders, then a grid of all sixteen with their portraits and badges.">
-<figcaption>The gym challenge and its sixteen leaders.</figcaption></figure>
-</div>
+
+<figure style="max-width:380px;margin-inline:auto;">
+<video controls playsinline preload="metadata" poster="../assets/img/pokewalker/short-pikachu-dash-poster.png" width="720" height="1280">
+<source src="../assets/video/pokewalker/short-pikachu-dash.mp4" type="video/mp4">
+</video>
+<figcaption>Pikachu against the whole dungeon: a swarm closing in down a cave, a Thunder Shield, and out the other side. Made entirely by pw-shorts from a script. Sound on.</figcaption>
+</figure>
 </section>
 
 <section>
@@ -468,6 +607,7 @@ alt="The gym challenge page: a short explanation of the sixteen leaders, then a 
 <li><b>The step counter is too strict.</b> It counts real steps on the board, but drops most of them.</li>
 <li><b>The link port has never met a console.</b> Its driver is written and a real recorded trade passes through it, but the adapter board between walker and cable isn't built.</li>
 <li><b>The shell has not been printed.</b> Everything so far is renders and in-browser previews of the model.</li>
+<li><b>The open world is renders only.</b> The region runs in the engine on a desktop; it isn't on the walker, and its layout is being reworked.</li>
 <li><b>The portal isn't online yet.</b> It runs locally, and the walker's secure connection to it has not been tried on the board.</li>
 </ul>
 </section>
@@ -626,8 +766,9 @@ Every figure is read or counted from the project's repository as of 15 Nov 2026:
 counts per crate, the game rules from its own source, the 900,000-byte trade check from its
 oracle test. The clips are the walker's own software recorded at its native 412×412 and
 scaled up without smoothing; the turning ball and the hero picture are Blender renders of
-the shell's model with real screen footage on the glass. The portal pictures are screenshots
-of it running locally.
+the shell's model with real screen footage on the glass. The shell views are CAD renders of
+the current design, and the region views are renders from the world engine on a desktop.
+The portal pictures are screenshots of it running locally.
 </p>
 <p>
 Pokewalker is a personal reimplementation of a Nintendo accessory, and the source
