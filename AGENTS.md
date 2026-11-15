@@ -185,11 +185,7 @@ Project pages live in `projects/` and draw their facts from private repos under
 
 - `projects/terminalgb.html` → `gameboy/` (the emulator is named **TerminalGB**; the
   repo/dir is `gameboy`).
-- `projects/agentgb.html` → `agentgb/` (the neural player). AgentGB is the site's
-  **flagship** (set 2026-08-29): `index.html` carries a full-width `.feature-banner`
-  above `#projects` (CSS at the bottom of `main.css`, "Feature banner") linking straight
-  to this page, image `assets/img/agentgb/pixel-observation.png` (see the Brock gotcha
-  below for why this isn't `brock-swarm-poster.png` any more). The project page is
+- `projects/agentgb.html` → `agentgb/` (the neural player). The project page is
   the hub — its own "Writing" section groups AgentGB posts into four chapter `.card`s
   rather than one flat list; add the next post by dropping a new `<li>` into whichever
   chapter it belongs to, or a new chapter `.card` if it doesn't fit one.
@@ -756,6 +752,15 @@ an `alt`.
   several carry `og_title` / `og_description` too. A new post without one publishes an
   empty `<meta name="description">` and an empty JSON-LD `description` — the layout does
   not fall back to the site description.
+
+## Front-page lead (set 2026-11-15)
+
+Pokewalker is the lead project: its card is first in `#projects`. The full-width
+`.feature-banner` above it is no longer hand-written: it renders `site.posts.first`, the
+newest post by date, so it changes when a post lands. Its picture is the post's optional
+`image` / `image_alt` / `image_pixel` front matter (see `README.md`); without one the banner
+is text only. Two posts on the same day tie on date, and Jekyll then picks by filename, so
+give a same-day post a full `date:` with its time.
 
 ## The Pokewalker demo (`demo/pokewalker/`, added 2026-11-14)
 

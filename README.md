@@ -83,7 +83,7 @@ keeps building and looking right while it does. **`index.html`:**
 | `<head>` | `<title>`, `description`, `og:title`, `og:description`, `og:image:alt` — and `og:image`, which is a literal `https://alchemy86.github.io/…` URL. Canonical, `og:url`, the feed link and the JSON-LD block rebase themselves from `url` and `baseurl` |
 | `.masthead` | the brand text `devlog.`, and nav links to `#projects` and `#pages` |
 | the hero `<section>` | "Notes from the workbench" and a paragraph about Game Boy emulators |
-| `.feature-banner`, `#projects`, `#pages` | whole sections pointing at the files you just deleted — delete these too |
+| `#projects`, `#pages` | whole sections pointing at the files you just deleted — delete these too |
 | `#start` | this "Start your own" section, pointing at *this* repository |
 | `.site-footer` | "devlog — the captain's engineering log" |
 
@@ -151,6 +151,8 @@ counter. It is the *phase between two clocks* at boot hand-off.
 | `card_kicker` | no | Front-page card kicker, when it should differ from `kicker` |
 | `order` | no | Position in the front-page list, lowest first. **Leave it out and the post goes to the top** |
 | `metrics` | no | The headline metric band — a list of `num` / `label`, with `accent: true` to pick one out |
+| `image` · `image_alt` | no | A picture for the front-page banner, which always shows the newest post. Path from the site root; without one the banner is text only |
+| `image_pixel` | no | `true` keeps that picture's pixels sharp and uncropped, for a screen capture |
 
 A metric band:
 

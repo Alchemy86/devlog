@@ -982,6 +982,12 @@ a.card:hover .card-ft { color: var(--accent); }
   object-fit: cover;
   display: block;
 }
+.feature-banner.fb-text { grid-template-columns: 1fr; }
+.feature-banner .fb-media.fb-pixel img {
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
 @media (max-width: 780px) {
   .feature-banner { grid-template-columns: 1fr; }
   .feature-banner .fb-media { min-height: 200px; order: -1; }

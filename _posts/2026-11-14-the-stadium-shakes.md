@@ -1,4 +1,5 @@
 ---
+date: 2026-11-14 18:06:06 +0000
 title: 'The stadium shakes'
 tag: 'Pokewalker'
 kicker: 'Software · Battles'

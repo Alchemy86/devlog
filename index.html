@@ -79,30 +79,21 @@
       </p>
     </section>
 
+    {% assign lead_post = site.posts.first %}
     <section>
-      <a class="feature-banner" href="projects/agentgb.html">
+      <a class="feature-banner{% unless lead_post.image %} fb-text{% endunless %}" href="posts/{{ lead_post.slug }}.html">
         <div class="fb-copy">
-          <p class="eyebrow">Flagship · AI plays Pokémon</p>
-          <h2>Six hundred copies of a hundred-thousand-parameter network genuinely play Pokémon Blue.</h2>
-          <p class="fb-dek">
-            Real buttons, a real emulator, a cold boot every time. The 21-link chain —
-            bedroom to Poké Balls in hand — now runs 600 for 600. A confidence gate that
-            used to lock onto one button forever, fixed by letting the belief in it decay
-            instead of banning it; and chambered goals that let 306 of those runs walk
-            themselves to a Pokémon Center and heal, mid-chain, for free: all on the
-            project page.
-          </p>
-          <div class="fb-facts">
-            <span>21-link chain <b>600/600</b></span>
-            <span>Network <b>118,806</b> weights</span>
-            <span>Self-heals mid-chain <b>306/600</b></span>
-          </div>
-          <span class="fb-go">Read the whole journey →</span>
+          <p class="eyebrow">Latest · {{ lead_post.eyebrow }}</p>
+          <h2>{{ lead_post.title }}</h2>
+          <p class="fb-dek">{% if lead_post.dek %}{{ lead_post.dek }}{% else %}{{ lead_post.description }}{% endif %}</p>
+          {% if lead_post.metrics %}<div class="fb-facts">{% for m in lead_post.metrics %}
+            <span>{{ m.label }} <b>{{ m.num }}</b></span>{% endfor %}
+          </div>{% endif %}
+          <span class="fb-go">Read the story →</span>
         </div>
-        <div class="fb-media">
-          <img src="assets/img/agentgb/pixel-observation.png" width="1472" height="928"
-               alt="Two rows of Game Boy screens. The top row is the emulator's real output; the bottom row is the same frames reduced to the coarse four-level grid the network actually sees.">
-        </div>
+        {% if lead_post.image %}<div class="fb-media{% if lead_post.image_pixel %} fb-pixel{% endif %}">
+          <img src="{{ lead_post.image }}" alt="{{ lead_post.image_alt }}">
+        </div>{% endif %}
       </a>
     </section>
 
@@ -115,6 +106,11 @@
       </div>
 
       <div class="project-grid" style="margin-top:28px;">
+        <a class="project-card" href="projects/pokewalker.html">
+          <img class="pc-name" src="assets/img/glyphsmith/pokewalker-logo.svg" width="1200" height="380" alt="Pokewalker">
+          <span class="pc-desc">A real pedometer toy that trades with a Game Boy over an actual link cable instead of infrared to a DS. The trade protocol matches a cartridge-verified reference byte for byte, 900,000 bytes across 300 sessions.</span>
+          <span class="pc-go">Project page →</span>
+        </a>
         <a class="project-card" href="projects/terminalgb.html">
           <img class="pc-name" src="assets/img/glyphsmith/terminalgb-logo.svg" width="1200" height="380" alt="TerminalGB">
           <span class="pc-desc">A Game Boy and Game Boy Color emulator with two picture engines — one fast, one exact enough to catch a single-dot timing bug. 103/103 on Mooneye, 5th of 19 on the Shootout.</span>
@@ -158,11 +154,6 @@
         <a class="project-card" href="projects/asciiworldengine.html">
           <img class="pc-name" src="assets/img/glyphsmith/asciiworldengine-logo.svg" width="1400" height="420" alt="AsciiWorldEngine">
           <span class="pc-desc">A walkable ASCII city in Rust, built from nothing: world, camera, raycaster and renderer at 0.537 ms a frame. Traffic carries real private registration plates, and a glass lift lets the city fall away below you through the glass.</span>
-          <span class="pc-go">Project page →</span>
-        </a>
-        <a class="project-card" href="projects/pokewalker.html">
-          <img class="pc-name" src="assets/img/glyphsmith/pokewalker-logo.svg" width="1200" height="380" alt="Pokewalker">
-          <span class="pc-desc">A real pedometer toy that trades with a Game Boy over an actual link cable instead of infrared to a DS. The trade protocol matches a cartridge-verified reference byte for byte, 900,000 bytes across 300 sessions.</span>
           <span class="pc-go">Project page →</span>
         </a>
       </div>

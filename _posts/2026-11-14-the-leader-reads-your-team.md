@@ -1,4 +1,10 @@
 ---
+date: 2026-11-14 18:57:38 +0000
+image: 'assets/img/pokewalker/gym-tour-poster.png'
+image_pixel: true
+image_alt: >-
+  Blaine's entrance on the walker's round screen: his portrait over a lava crater, a ROOKIE
+  tag, his name on a ribbon, and the speech box reading HAH! I'M BLAINE! QUESTION ONE: NEW?
 title: 'The leader reads your team'
 tag: 'Pokewalker'
 kicker: 'Software · Gyms'

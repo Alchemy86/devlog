@@ -1,4 +1,5 @@
 ---
+date: 2026-11-14 14:00:49 +0000
 title: 'Dodge left, take double'
 tag: 'Pokewalker'
 kicker: 'Software · Battles'
