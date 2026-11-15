@@ -92,7 +92,7 @@ team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
 <script type="module">
-import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=542d1cdc-1794736830';
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=3a104f56-1794743203';
 
 const screen = document.getElementById('screen');
 const g = screen.getContext('2d');
@@ -124,7 +124,7 @@ function lastError() {
 
 async function boot(folder, label) {
   if (!wasmBytes) {
-    const r = await fetch('pw_pet_wasm.wasm?v=542d1cdc-1794736830');
+    const r = await fetch('pw_pet_wasm.wasm?v=3a104f56-1794743203');
     if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
     wasmBytes = await r.arrayBuffer();
   }
@@ -179,6 +179,7 @@ async function boot(folder, label) {
   let team = [];
   const teamLevels = new Map();
   const teamHp = new Map();
+  const teamMoves = new Map();
   if (folder.has('team.txt')) {
     const txt = await (await folder.get('team.txt')()).text();
     // A member a line, `DEX [LEVEL ...]` as the device reads it; a single
@@ -190,6 +191,7 @@ async function boot(folder, label) {
         const f = l.split(/\s+/);
         teamLevels.set(Number(f[0]), Number(f[1] || 0));
         teamHp.set(Number(f[0]), Number(f[3] || f[2] || 0));
+        if (f[4]) teamMoves.set(Number(f[0]), f[4]);
       }
     }
     team = dexes.map(Number).filter(n => list.has(n));
@@ -201,6 +203,10 @@ async function boot(folder, label) {
     const name = list.get(dex).name;
     if (name) stage(new TextEncoder().encode(name));
     pw.pw_team_add_full(dex, teamLevels.get(dex) || 0, teamHp.get(dex) || 0);
+    if (teamMoves.has(dex)) {
+      stage(new TextEncoder().encode(teamMoves.get(dex)));
+      pw.pw_team_moves(pw.pw_team_len() - 1);
+    }
   }
   let blob;
   if (folder.has('dex.store')) {
