@@ -34,7 +34,7 @@ export async function folderFromFiles(files) {
 }
 
 export async function folderFromUrl(base) {
-  const res = await fetch(`${base}/index.json?v=7655db66-1794702380`);
+  const res = await fetch(`${base}/index.json?v=58984fe3-1794703444`);
   if (!res.ok) throw new Error(`${base}/index.json: ${res.status}`);
   const index = await res.json();
   const map = new Map();
@@ -50,8 +50,8 @@ export async function folderFromUrl(base) {
       });
     }
   }
-  if (index.store) map.set('dex.store', async () => (await fetch(`${base}/dex.store?v=7655db66-1794702380`)).blob());
-  if (index.room) map.set('room/room.bin', async () => (await fetch(`${base}/room/room.bin?v=7655db66-1794702380`)).blob());
+  if (index.store) map.set('dex.store', async () => (await fetch(`${base}/dex.store?v=58984fe3-1794703444`)).blob());
+  if (index.room) map.set('room/room.bin', async () => (await fetch(`${base}/room/room.bin?v=58984fe3-1794703444`)).blob());
   if (index.team) map.set('team.txt', async () => new Blob([index.team.join('\n')]));
   return map;
 }
