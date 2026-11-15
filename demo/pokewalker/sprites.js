@@ -10,6 +10,7 @@
 //   pokemon/<dex>[-NAME]/walk-shiny.png the same in shiny colours (optional)
 //   pokemon/<dex>[-NAME]/cry.wav        the cry, 8-bit mono PCM WAV (optional)
 //   room/room.bin                       pet mode's room (optional)
+//   park/world.bin                      the open world's trees and buildings (optional)
 //   team.txt                            dex numbers to walk with, one a line
 //                                       (optional; else the first six)
 //
@@ -34,7 +35,7 @@ export async function folderFromFiles(files) {
 }
 
 export async function folderFromUrl(base) {
-  const res = await fetch(`${base}/index.json?v=163063ff-1794763173`);
+  const res = await fetch(`${base}/index.json?v=ebdef272-1794766088`);
   if (!res.ok) throw new Error(`${base}/index.json: ${res.status}`);
   const index = await res.json();
   const map = new Map();
@@ -50,9 +51,9 @@ export async function folderFromUrl(base) {
       });
     }
   }
-  if (index.store) map.set('dex.store', async () => (await fetch(`${base}/dex.store?v=163063ff-1794763173`)).blob());
-  if (index.room) map.set('room/room.bin', async () => (await fetch(`${base}/room/room.bin?v=163063ff-1794763173`)).blob());
-  if (index.park) map.set('park.world', async () => (await fetch(`${base}/park.world?v=163063ff-1794763173`)).blob());
+  if (index.store) map.set('dex.store', async () => (await fetch(`${base}/dex.store?v=ebdef272-1794766088`)).blob());
+  if (index.room) map.set('room/room.bin', async () => (await fetch(`${base}/room/room.bin?v=ebdef272-1794766088`)).blob());
+  if (index.world) map.set('park/world.bin', async () => (await fetch(`${base}/park/world.bin?v=ebdef272-1794766088`)).blob());
   if (index.team) map.set('team.txt', async () => new Blob([index.team.join('\n')]));
   return map;
 }

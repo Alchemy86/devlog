@@ -87,12 +87,13 @@ pokemon/0001-NAME/walk.png       8 walking frames in a row:
                                  back, front, left, right ×2
 pokemon/0001-NAME/walk-shiny.png shiny colours (optional)
 room/room.bin                    pet mode's room (optional)
+park/world.bin                   the open world's trees and buildings (optional)
 pokemon/0001-NAME/cry.wav        the cry, 8-bit mono WAV (optional)
 team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
 <script type="module">
-import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=163063ff-1794763173';
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=ebdef272-1794766088';
 
 const screen = document.getElementById('screen');
 const g = screen.getContext('2d');
@@ -124,7 +125,7 @@ function lastError() {
 
 async function boot(folder, label) {
   if (!wasmBytes) {
-    const r = await fetch('pw_pet_wasm.wasm?v=163063ff-1794763173');
+    const r = await fetch('pw_pet_wasm.wasm?v=ebdef272-1794766088');
     if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
     wasmBytes = await r.arrayBuffer();
   }
@@ -226,9 +227,9 @@ async function boot(folder, label) {
     const room = new Uint8Array(await (await folder.get('room/room.bin')()).arrayBuffer());
     if (stage(room) && pw.pw_load_room() !== 0) say(`That room would not load: ${lastError()}`);
   }
-  if (folder.has('park.world') && pw.pw_load_park_world) {
-    const world = new Uint8Array(await (await folder.get('park.world')()).arrayBuffer());
-    if (stage(world) && pw.pw_load_park_world() !== 0) say(`The park's art would not load: ${lastError()}`);
+  if (folder.has('park/world.bin') && pw.pw_load_world) {
+    const world = new Uint8Array(await (await folder.get('park/world.bin')()).arrayBuffer());
+    if (stage(world) && pw.pw_load_world() !== 0) say(`That world would not load: ${lastError()}`);
   }
   const walking = pw.pw_team_len();
   say(`${label}: ${list.size} creature${list.size === 1 ? '' : 's'}, ${walking} walking with you${restored ? ' (from your save)' : ''}. Double tap the ball to open it.`);
