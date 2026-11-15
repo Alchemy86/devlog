@@ -42,6 +42,7 @@
   <div class="row">
     <button class="ui" id="walk" aria-pressed="false">Walk</button>
     <form id="wattsform" style="display:inline-flex;gap:6px;align-items:center;margin:0"><input id="watts" type="number" min="0" max="9999" placeholder="Watts" style="width:6em" aria-label="Watts"><button class="ui" type="submit">Set Watts</button></form>
+    <form id="stepsform" style="display:inline-flex;gap:6px;align-items:center;margin:0"><input id="stepsin" type="number" min="1" max="100000" placeholder="Steps" style="width:6em" aria-label="Steps"><button class="ui" type="submit">Add steps</button></form>
     <label class="ui">Load sprite folder<input type="file" id="folder" webkitdirectory multiple></label>
     <button class="ui" id="reset" title="Switch the walker off and on: it comes back from its save">Restart</button>
   </div>
@@ -91,7 +92,7 @@ team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
 <script type="module">
-import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=43c7d1ef-1794700875';
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=7bb0c1f3-1794701084';
 
 const screen = document.getElementById('screen');
 const g = screen.getContext('2d');
@@ -123,7 +124,7 @@ function lastError() {
 
 async function boot(folder, label) {
   if (!wasmBytes) {
-    const r = await fetch('pw_pet_wasm.wasm?v=43c7d1ef-1794700875');
+    const r = await fetch('pw_pet_wasm.wasm?v=7bb0c1f3-1794701084');
     if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
     wasmBytes = await r.arrayBuffer();
   }
@@ -608,6 +609,17 @@ document.getElementById('wattsform').addEventListener('submit', e => {
   const now = pw.pw_set_watts(n);
   saveNow();
   say(`Watts set to ${now}`);
+});
+
+const stepsIn = document.getElementById('stepsin');
+stepsIn.addEventListener('keydown', e => e.stopPropagation());
+document.getElementById('stepsform').addEventListener('submit', e => {
+  e.preventDefault();
+  if (!pw) return;
+  const n = Math.max(1, Math.min(100000, parseInt(stepsIn.value, 10) || 0));
+  pw.pw_add_steps(n);
+  say(`${n} steps walked: they land on the walker's next 30-second beat`);
+  setTimeout(saveNow, 31000);
 });
 
 let current = null, currentLabel = '';
