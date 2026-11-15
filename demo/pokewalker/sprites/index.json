@@ -253,5 +253,6 @@
  ],
  "store": true,
  "room": true,
+ "park": true,
  "team": ["25 50 110 110", "6 50 153 153", "214 50 155 155", "143 50 235 235", "94 50 135 135", "8 50 134 134 SURF,HYDRO_PUMP,BLIZZARD,BITE"]
 }

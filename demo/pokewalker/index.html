@@ -92,7 +92,7 @@ team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
 <script type="module">
-import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=d7da7895-1794762950';
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=163063ff-1794763173';
 
 const screen = document.getElementById('screen');
 const g = screen.getContext('2d');
@@ -124,7 +124,7 @@ function lastError() {
 
 async function boot(folder, label) {
   if (!wasmBytes) {
-    const r = await fetch('pw_pet_wasm.wasm?v=d7da7895-1794762950');
+    const r = await fetch('pw_pet_wasm.wasm?v=163063ff-1794763173');
     if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
     wasmBytes = await r.arrayBuffer();
   }
@@ -225,6 +225,10 @@ async function boot(folder, label) {
   if (folder.has('room/room.bin')) {
     const room = new Uint8Array(await (await folder.get('room/room.bin')()).arrayBuffer());
     if (stage(room) && pw.pw_load_room() !== 0) say(`That room would not load: ${lastError()}`);
+  }
+  if (folder.has('park.world') && pw.pw_load_park_world) {
+    const world = new Uint8Array(await (await folder.get('park.world')()).arrayBuffer());
+    if (stage(world) && pw.pw_load_park_world() !== 0) say(`The park's art would not load: ${lastError()}`);
   }
   const walking = pw.pw_team_len();
   say(`${label}: ${list.size} creature${list.size === 1 ? '' : 's'}, ${walking} walking with you${restored ? ' (from your save)' : ''}. Double tap the ball to open it.`);
