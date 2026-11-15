@@ -92,7 +92,7 @@ team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
 <script type="module">
-import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=cbaadd6b-1794702051';
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=7655db66-1794702380';
 
 const screen = document.getElementById('screen');
 const g = screen.getContext('2d');
@@ -124,7 +124,7 @@ function lastError() {
 
 async function boot(folder, label) {
   if (!wasmBytes) {
-    const r = await fetch('pw_pet_wasm.wasm?v=cbaadd6b-1794702051');
+    const r = await fetch('pw_pet_wasm.wasm?v=7655db66-1794702380');
     if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
     wasmBytes = await r.arrayBuffer();
   }
