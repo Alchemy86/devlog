@@ -92,7 +92,7 @@ team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
 <script type="module">
-import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=f313ac4b-1794701792';
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=cbaadd6b-1794702051';
 
 const screen = document.getElementById('screen');
 const g = screen.getContext('2d');
@@ -124,7 +124,7 @@ function lastError() {
 
 async function boot(folder, label) {
   if (!wasmBytes) {
-    const r = await fetch('pw_pet_wasm.wasm?v=f313ac4b-1794701792');
+    const r = await fetch('pw_pet_wasm.wasm?v=cbaadd6b-1794702051');
     if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
     wasmBytes = await r.arrayBuffer();
   }
@@ -178,6 +178,7 @@ async function boot(folder, label) {
   const list = species(folder);
   let team = [];
   const teamLevels = new Map();
+  const teamHp = new Map();
   if (folder.has('team.txt')) {
     const txt = await (await folder.get('team.txt')()).text();
     // A member a line, `DEX [LEVEL ...]` as the device reads it; a single
@@ -185,7 +186,11 @@ async function boot(folder, label) {
     const lines = txt.split('\n').map(l => l.split('#')[0].trim()).filter(Boolean);
     const dexes = lines.length === 1 && lines[0].includes(',') ? lines[0].split(',') : lines.map(l => l.split(/\s+/)[0]);
     if (!(lines.length === 1 && lines[0].includes(','))) {
-      for (const l of lines) teamLevels.set(Number(l.split(/\s+/)[0]), Number(l.split(/\s+/)[1] || 0));
+      for (const l of lines) {
+        const f = l.split(/\s+/);
+        teamLevels.set(Number(f[0]), Number(f[1] || 0));
+        teamHp.set(Number(f[0]), Number(f[3] || f[2] || 0));
+      }
     }
     team = dexes.map(Number).filter(n => list.has(n));
   }
@@ -195,7 +200,7 @@ async function boot(folder, label) {
   for (const dex of team.slice(0, 6)) {
     const name = list.get(dex).name;
     if (name) stage(new TextEncoder().encode(name));
-    pw.pw_team_add_level(dex, teamLevels.get(dex) || 0);
+    pw.pw_team_add_full(dex, teamLevels.get(dex) || 0, teamHp.get(dex) || 0);
   }
   let blob;
   if (folder.has('dex.store')) {
