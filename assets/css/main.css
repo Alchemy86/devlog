@@ -1005,3 +1005,15 @@ a.card:hover .card-ft { color: var(--accent); }
   .wide-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .wide-table table { min-width: 620px; }
 }
+
+/* ----- A grid of short screen clips ---------------------------------------- */
+/* Three or four square captures of one device's screen, side by side, each with
+   its own caption. Collapses to fewer columns as the page narrows. */
+.clip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  align-items: start;
+  margin: 28px 0;
+}
+.clip-grid figure { margin: 0; }

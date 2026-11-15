@@ -403,34 +403,26 @@ Project pages live in `projects/` and draw their facts from private repos under
   `volumedetect` (a sensible level, no clip) and a `showspectrumpic` spectrogram (real rhythm, not
   noise), and say so plainly rather than claiming you listened.
 
-- `projects/pokewalker.html` → `~/Github/pokewalker/` (private; no page links to it, standard
-  convention). Two hardware lines share the repo and are not to be conflated: `picowalker-v0.4`
-  (a custom RP2350 board, machined Poké Ball, 74LVC2G17 link interface — documented in
-  `_posts/2026-09-16-the-infrared-had-to-go.md`) was **dropped as a build target on
-  2026-09-24**; the live target since is the bought-in Waveshare ESP32-S3-Touch-LCD-1.46B (round
-  412×412 touch IPS), with the Poké Ball drawn on the glass rather than moulded. The pet software
-  is `software/`, a Rust workspace, its own from 2026-09-24 (the earlier `picowalker-core` C
-  reference is checked against, not built on — licence and ownership both say so). Line counts
-  are `find src -name '*.rs' | xargs wc -l` per crate under `software/*/src/` — re-count before
-  requoting, it grows every session (64,296 total as of commit `07f62f7`, 30 Sep 2026). The test
-  count on the page is every host-runnable suite (`cargo test --workspace --exclude
-  pw-pet-firmware`, since the firmware crate needs the Xtensa toolchain) passing together — 760
-  as of the same commit. **The 900,000-fuzzed-byte figure is `pw-link-oracle`'s own test**
-  (`cd software/pw-link-oracle && cargo test --release`), feeding identical bytes to `pw-link`
-  and to `terminalgb-plugin-gen1-link` (TerminalGB's own Generation 1 partner, independently
-  verified against a real Pokémon Blue cartridge) and requiring every answer to match — re-run
-  it before requoting, it is cheap (under a second). **The physical link port has no driver.**
-  `software/pw-pet-firmware/src/board.rs` names the four GPIOs; nothing bit-bangs the real
-  Game Boy serial protocol against them yet. Every verified trade so far is `pw-link` talking to
-  a real cartridge (in TerminalGB) or to its own oracle, over TCP — not yet over an actual cable.
-  Trade Room screenshots (`assets/img/pokewalker/traderoom-*.png`) are real captures from
-  `pw-pet-window`'s own `--script`/`shot` mechanism (`--team` needs `pw-pet-window`'s own
-  `set_stats(slot, 5, 20, 20)` call after adding a member, added 2026-09-30, or a demo team
-  reads "LEVEL 0" — a CLI-harness gap, not a game one), at native 103×103, upscaled 4× nearest
-  ("point" filter) to the board's real 412×412. The Cable Club screenshot
-  (`real-cartridge-trade.png`) is a real Pokémon Blue ROM+save, run in TerminalGB, trading
-  against its own `gen1-link` plugin — cite it as protocol evidence, not as the walker itself
-  pictured trading, since the ball was not connected in that capture.
+- `projects/pokewalker.html` and `_posts/2026-11-15-a-minute-on-the-glass.md` → `~/Github/pokewalker/`
+  (private; no page links to it). The live target is the Waveshare ESP32-S3-Touch-LCD-1.46B (round
+  412×412 touch) in a printed one-piece Poké Ball cup; the RP2350 `picowalker-v0.4` line was dropped
+  2026-09-24. `software/` is a Rust workspace of 20 crates. The page was rebuilt on 2026-11-15 from a
+  fact sheet whose every line cites its source file; re-derive rather than requote, because the repo
+  moves daily. Counts: `find software -path '*/target' -prune -o -name '*.rs' -print | xargs wc -l`
+  (190,198 at `542d1cdc`). **`software/README.md`'s opening and closing sections are stale** ("six
+  crates", "touch not wired"); `README.md` and `AGENTS.md` there are current. The 900,000-byte figure
+  is `pw-link-oracle`'s own test (`cargo test --release`, 300 runs × 3,000 bytes, under a second).
+  **Board status is the thing most likely to be overstated:** the walk, touch, keys, steps and battles
+  run on the board; RALLY, OTA, the online park and the portal transport have not; the shell has never
+  been printed; the portal is not deployed; the link-port driver exists (`pw_link::cable`) but has never
+  met a console and the adapter board isn't built. Check `README.md` "What works today" before
+  claiming more. Media: walker clips are cut from `~/Videos/pokewalker-promo/work/raw*/` at 412×412 and
+  upscaled `scale=720:720:flags=neighbor`; the promo, `battle-epic-ko.mp4` and `device-turn.mp4` are
+  byte copies (`sha1sum`). **All walker footage shows the owner's own cartridge art** (Pokémon,
+  trainers, rooms) from the gitignored `graphics.local/`; the pokewalker repo's `AGENTS.md` says never
+  to publish it, so get the captain's explicit go-ahead before adding more. Trade Room screenshots
+  (`traderoom-*.png`) are `pw-pet-window` `--script` captures at 103×103 upscaled 4×; the Cable Club
+  screenshot is protocol evidence, not the walker pictured trading.
 
 ## Standing pages (added 2026-08-27, `glitches.html` added 2026-09-27)
 
