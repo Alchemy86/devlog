@@ -1,6 +1,6 @@
 ---
 date: 2026-11-16 21:00:00 +0000
-title: 'Any picture, not only a Pokémon'
+title: 'Art as numbers: the maths of no pixel resources'
 tag: 'Pokewalker'
 kicker: 'Software · Creatures as data'
 card_kicker: 'Software'
