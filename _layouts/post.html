@@ -26,6 +26,7 @@
     from any post. absolute_url in the tag already carries the baseurl.
   {%- endcomment %}
   {% feed_meta %}
+  <link rel="alternate" type="application/feed+json" title="{{ site.title }}" href="{{ '/feed.json' | absolute_url }}">
 
   <script type="application/ld+json">
   {
@@ -65,6 +66,7 @@
         <a href="../#projects">Projects</a>
         <a href="../#pages">Pages</a>
         <a href="../#writing">Writing</a>
+        <a href="../#subscribe">Subscribe</a>
       </nav>
     </div>
   </header>

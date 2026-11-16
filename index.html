@@ -24,6 +24,7 @@
 
   <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}/">
   {% feed_meta %}
+  <link rel="alternate" type="application/feed+json" title="{{ site.title }}" href="{{ '/feed.json' | absolute_url }}">
 
   <script type="application/ld+json">
   {
@@ -59,6 +60,7 @@
         <a href="./#projects">Projects</a>
         <a href="./#pages">Pages</a>
         <a href="./#writing">Writing</a>
+        <a href="./#subscribe">Subscribe</a>
       </nav>
     </div>
   </header>
@@ -237,7 +239,9 @@
     <section id="writing">
       <div class="sec-head">
         <h2>Writing</h2>
-        <p class="sub">One story each.</p>
+        <p class="sub" id="subscribe">One story each. Subscribe for new posts:
+          <a href="{{ '/feed.xml' | relative_url }}">RSS</a> ·
+          <a href="{{ '/feed.json' | relative_url }}">JSON Feed</a></p>
       </div>
       <ul class="post-list">
         {% assign feed = site.posts | sort: "order" %}
