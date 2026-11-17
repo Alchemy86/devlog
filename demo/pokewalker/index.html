@@ -99,7 +99,7 @@ team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
 <script type="module">
-import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=aa4ae2ef-1794886575';
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=3e7d9bdb-1794900129';
 
 const screen = document.getElementById('screen');
 const g = screen.getContext('2d');
@@ -153,7 +153,7 @@ function lastError() {
 
 async function boot(folder, label) {
   if (!wasmBytes) {
-    const r = await fetch('pw_pet_wasm.wasm?v=aa4ae2ef-1794886575');
+    const r = await fetch('pw_pet_wasm.wasm?v=3e7d9bdb-1794900129');
     if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
     wasmBytes = await r.arrayBuffer();
   }
@@ -264,10 +264,10 @@ async function boot(folder, label) {
   // follower bundle below (a `PW_SHAPE_DIR` workspace's `-WALK-BACK` files).
   if (pw.pw_fly_shape) {
     try {
-      const res = await fetch('shapes/index.json?v=aa4ae2ef-1794886575');
+      const res = await fetch('shapes/index.json?v=3e7d9bdb-1794900129');
       if (res.ok) {
         for (const dex of await res.json()) {
-          const r = await fetch(`shapes/${String(dex).padStart(4, '0')}.pwshape?v=aa4ae2ef-1794886575`);
+          const r = await fetch(`shapes/${String(dex).padStart(4, '0')}.pwshape?v=3e7d9bdb-1794900129`);
           if (r.ok && stage(new Uint8Array(await r.arrayBuffer()))) pw.pw_fly_shape(dex);
         }
       }
@@ -279,10 +279,10 @@ async function boot(folder, label) {
   // its sprite.
   if (pw.pw_swim_views) {
     try {
-      const res = await fetch('shapes/views/index.json?v=aa4ae2ef-1794886575');
+      const res = await fetch('shapes/views/index.json?v=3e7d9bdb-1794900129');
       if (res.ok) {
         for (const dex of await res.json()) {
-          const r = await fetch(`shapes/views/${String(dex).padStart(4, '0')}.pwviews?v=aa4ae2ef-1794886575`);
+          const r = await fetch(`shapes/views/${String(dex).padStart(4, '0')}.pwviews?v=3e7d9bdb-1794900129`);
           if (r.ok && stage(new Uint8Array(await r.arrayBuffer()))) pw.pw_swim_views(dex);
         }
       }
@@ -292,10 +292,10 @@ async function boot(folder, label) {
   // (`software/creatures/`), the pictures only where it has none.
   if (pw.pw_battle_views) {
     try {
-      const res = await fetch('shapes/battle/index.json?v=aa4ae2ef-1794886575');
+      const res = await fetch('shapes/battle/index.json?v=3e7d9bdb-1794900129');
       if (res.ok) {
         for (const dex of await res.json()) {
-          const r = await fetch(`shapes/battle/${String(dex).padStart(4, '0')}.pwviews?v=aa4ae2ef-1794886575`);
+          const r = await fetch(`shapes/battle/${String(dex).padStart(4, '0')}.pwviews?v=3e7d9bdb-1794900129`);
           if (r.ok && stage(new Uint8Array(await r.arrayBuffer()))) pw.pw_battle_views(dex);
         }
       }
