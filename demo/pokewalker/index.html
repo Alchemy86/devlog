@@ -16,6 +16,10 @@
   canvas { position: relative; width: 100%; height: 100%; border-radius: 50%; display: block; touch-action: none; image-rendering: pixelated; background: #000; }
   .key { position: absolute; right: -38px; width: 22px; height: 56px; border-radius: 6px; border: 0; background: var(--key); color: var(--fg); font-size: 10px; writing-mode: vertical-rl; cursor: pointer; }
   .key:active { background: var(--accent); }
+  body.wide main { max-width: 1040px; }
+  body.wide .device { width: min(calc(100vw - 104px), 960px); aspect-ratio: 16 / 9; }
+  body.wide .device::before { border-radius: 18px; }
+  body.wide canvas { border-radius: 8px; }
   #pwr { top: 22%; } #boot { top: 52%; }
   .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 8px 0; }
   button.ui, label.ui { background: var(--key); color: var(--fg); border: 0; border-radius: 8px; padding: 8px 14px; font: inherit; cursor: pointer; }
@@ -41,6 +45,7 @@
   </div>
   <div class="row">
     <button class="ui" id="walk" aria-pressed="false">Walk</button>
+    <button class="ui" id="lake" title="In the park, stand your Pokémon on the lake's bank (L)">To the lake</button>
     <form id="wattsform" style="display:inline-flex;gap:6px;align-items:center;margin:0"><input id="watts" type="number" min="0" max="65535" placeholder="Watts" style="width:6em" aria-label="Watts"><button class="ui" type="submit">Set Watts</button></form>
     <form id="stepsform" style="display:inline-flex;gap:6px;align-items:center;margin:0"><input id="stepsin" type="number" min="1" max="100000" placeholder="Steps" style="width:6em" aria-label="Steps"><button class="ui" type="submit">Add steps</button></form>
     <label class="ui">Load sprite folder<input type="file" id="folder" webkitdirectory multiple></label>
@@ -58,6 +63,7 @@
   </div>
   <div class="row">
     <button class="ui" id="sound" aria-pressed="true" title="Sound on or off (M)">Sound on</button>
+    <button class="ui" id="mode" title="The wide layout or the walker's own round glass (O)">Round glass</button>
     <button class="ui" id="erase" title="Forget the save and start a fresh walker">Erase save</button>
   </div>
   <form class="row" id="trainer">
@@ -76,7 +82,7 @@
   <p id="status">Loading…</p>
   <details>
     <summary>How to use it</summary>
-    <p>Double tap the closed ball to open it. Swipe sideways for the games, up or down to change who walks with you. The crossed swords on the games ring are <b>BATTLE</b>: QUICK BATTLE against a rival matched to your team, or GYM CHALLENGE against the sixteen Gold Gym Leaders in order, each beaten one a badge for the trainer card. Tap the egg at the top for pet mode: drag to look round, double tap to zoom, stroke the Pokémon, flick the ball, tap the radio, the PC or the console. PWR goes back; BOOT is the other key. <b>Walk</b> pretends you are walking, for steps and Watts.</p>
+    <p>Double tap the closed ball to open it. Swipe sideways for the games, up or down to change who walks with you. The crossed swords on the games ring are <b>BATTLE</b>: QUICK BATTLE against a rival matched to your team, or GYM CHALLENGE against the sixteen Gold Gym Leaders in order, each beaten one a badge for the trainer card. Tap the egg at the top for pet mode: drag to look round, double tap to zoom, stroke the Pokémon, flick the ball, tap the radio, the PC or the console. PWR goes back; BOOT is the other key. In the park (settings, <b>PARK</b>), hold a finger still on your Pokémon to <b>fly</b>: drag to steer (sideways turns, up climbs, down dives), BOOT boosts, C changes the camera, PWR lands. A Water type can <b>swim</b>: at the water's edge (<b>To the lake</b> takes it there) hold BOOT to leap in, drag to steer (up rises, down sinks), BOOT boosts, hold BOOT near the surface to leap out and back in, tap your Pokémon or press C for the next camera, and PWR swims to the bank and leaps out. <b>Walk</b> pretends you are walking, for steps and Watts.</p>
     <p>Sound starts with your first tap or key press (browsers keep pages quiet until then). The walker saves itself in this browser as the device saves to its flash: the team, Watts, steps, the bag, pet mode, the Radio's stars and the settings all come back next time.</p>
     <p>Every walker is a trainer, as in the games: an ID No. drawn at its first start, a name (set it above, as the phone setup page does on the device), and the walker's name and ID on every Pokémon it catches. The settings list's <b>TRAINER</b> row shows the trainer card.</p>
     <p>Two things are hardware and are not here: <b>WiFi</b> (the walker's own hotspot and the phone setup page need its radio) and the <b>link cable</b> to a Game Boy, which the Trade Room needs to actually trade. Their screens open, and say there is nothing connected.</p>
@@ -93,12 +99,34 @@ team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
 <script type="module">
-import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=ebdef272-1794766088';
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=dad2d029-1794883661';
 
 const screen = document.getElementById('screen');
 const g = screen.getContext('2d');
 const status = document.getElementById('status');
 let pw = null, wasmBytes = null, startedAt = 0, img = null, dim = 412, logical = 103;
+// Wide is the default for a browser: the same software laid out for a
+// window. The round glass is the device's own screen, one click away.
+let wide = (() => { try { return localStorage.getItem('pw.mode') !== 'round'; } catch (_) { return true; } })();
+let wideW = 192, wideH = 108, wideImg = null;
+function setMode(w) {
+  wide = w;
+  try { localStorage.setItem('pw.mode', w ? 'wide' : 'round'); } catch (_) { }
+  document.body.classList.toggle('wide', w);
+  const b = document.getElementById('mode');
+  if (b) b.textContent = w ? 'Round glass' : 'Wide';
+  if (!pw) return;
+  if (w) {
+    const d = pw.pw_wide_dim();
+    wideW = d >>> 16; wideH = d & 0xffff;
+    screen.width = wideW; screen.height = wideH;
+    wideImg = g.createImageData(wideW, wideH);
+    screen.setAttribute('aria-label', "The walker's screen, laid out wide");
+  } else {
+    screen.width = screen.height = dim;
+    screen.setAttribute('aria-label', "The walker's round screen");
+  }
+}
 
 const store = {
   get(k, d) { try { const v = localStorage.getItem('pw.' + k); return v === null ? d : v; } catch (_) { return d; } },
@@ -125,7 +153,7 @@ function lastError() {
 
 async function boot(folder, label) {
   if (!wasmBytes) {
-    const r = await fetch('pw_pet_wasm.wasm?v=ebdef272-1794766088');
+    const r = await fetch('pw_pet_wasm.wasm?v=dad2d029-1794883661');
     if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
     wasmBytes = await r.arrayBuffer();
   }
@@ -180,6 +208,7 @@ async function boot(folder, label) {
   logical = pw.pw_canvas_dim();
   screen.width = screen.height = dim;
   img = g.createImageData(dim, dim);
+  setMode(wide && !!pw.pw_render_wide);
   if (!folder) { ready = true; say(restored ? 'Your saved walker, with no sprites.' : 'Running with no sprites.'); return; }
   const list = species(folder);
   let team = [];
@@ -231,6 +260,32 @@ async function boot(folder, label) {
     const world = new Uint8Array(await (await folder.get('park/world.bin')()).arrayBuffer());
     if (stage(world) && pw.pw_load_world() !== 0) say(`That world would not load: ${lastError()}`);
   }
+  // Maths creatures to fly out of the park as (`make local` copies them in
+  // from pw-forge's folder; a hosted page has none and flies the sprites).
+  if (pw.pw_fly_shape) {
+    try {
+      const res = await fetch('shapes/index.json');
+      if (res.ok) {
+        for (const dex of await res.json()) {
+          const r = await fetch(`shapes/${String(dex).padStart(4, '0')}.pwshape`);
+          if (r.ok && stage(new Uint8Array(await r.arrayBuffer()))) pw.pw_fly_shape(dex);
+        }
+      }
+    } catch (_) { }
+  }
+  // Walk bundles to swim out of the park as, the swimmer and the wild
+  // Pokemon under the water (`make local` again; none swims the sprites).
+  if (pw.pw_swim_views) {
+    try {
+      const res = await fetch('shapes/views/index.json');
+      if (res.ok) {
+        for (const dex of await res.json()) {
+          const r = await fetch(`shapes/views/${String(dex).padStart(4, '0')}.pwviews`);
+          if (r.ok && stage(new Uint8Array(await r.arrayBuffer()))) pw.pw_swim_views(dex);
+        }
+      }
+    } catch (_) { }
+  }
   const walking = pw.pw_team_len();
   say(`${label}: ${list.size} creature${list.size === 1 ? '' : 's'}, ${walking} walking with you${restored ? ' (from your save)' : ''}. Double tap the ball to open it.`);
   ready = true;
@@ -246,6 +301,12 @@ function frame() {
   // Staying online: the walker starts a sync of its own when one is due.
   else if (!syncing && portalUsable && pw.pw_portal_auto(clockS(), document.hidden ? 1 : 0)) portalSync(true);
   pumpAudio();
+  if (wide) {
+    if (pw.pw_render_wide(t) !== 0) return;
+    wideImg.data.set(new Uint8Array(pw.memory.buffer, pw.pw_frame_ptr(), pw.pw_frame_bytes()));
+    g.putImageData(wideImg, 0, 0);
+    return;
+  }
   if (pw.pw_render(t) !== 0) return;
   img.data.set(new Uint8Array(pw.memory.buffer, pw.pw_frame_ptr(), pw.pw_frame_bytes()));
   g.putImageData(img, 0, 0);
@@ -461,21 +522,48 @@ for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, unlockAudio, {
 
 function at(e) {
   const r = screen.getBoundingClientRect();
+  if (wide) return [Math.floor((e.clientX - r.left) * wideW / r.width), Math.floor((e.clientY - r.top) * wideH / r.height)];
   return [Math.floor((e.clientX - r.left) * logical / r.width), Math.floor((e.clientY - r.top) * logical / r.height)];
 }
-screen.addEventListener('pointerdown', e => { if (!pw) return; screen.setPointerCapture(e.pointerId); const [x, y] = at(e); pw.pw_touch_down(x, y, nowUs()); });
-screen.addEventListener('pointermove', e => { if (!pw || !(e.buttons & 1) && e.pointerType === 'mouse') return; const [x, y] = at(e); pw.pw_touch_move(x, y, nowUs()); });
-screen.addEventListener('pointerup', e => { if (!pw) return; const [x, y] = at(e); pw.pw_touch_up(x, y, nowUs()); });
-screen.addEventListener('pointercancel', e => { if (!pw) return; const [x, y] = at(e); pw.pw_touch_up(x, y, nowUs()); });
+const touch = {
+  down: (x, y) => (wide ? pw.pw_wide_touch_down : pw.pw_touch_down)(x, y, nowUs()),
+  move: (x, y) => (wide ? pw.pw_wide_touch_move : pw.pw_touch_move)(x, y, nowUs()),
+  up: (x, y) => (wide ? pw.pw_wide_touch_up : pw.pw_touch_up)(x, y, nowUs()),
+};
+document.getElementById('mode').addEventListener('click', () => setMode(!wide));
+addEventListener('keydown', e => { if ((e.key === 'o' || e.key === 'O') && !(e.target instanceof HTMLInputElement)) setMode(!wide); });
+setMode(wide);
+screen.addEventListener('pointerdown', e => { if (!pw) return; screen.setPointerCapture(e.pointerId); const [x, y] = at(e); touch.down(x, y); });
+screen.addEventListener('pointermove', e => { if (!pw || !(e.buttons & 1) && e.pointerType === 'mouse') return; const [x, y] = at(e); touch.move(x, y); });
+screen.addEventListener('pointerup', e => { if (!pw) return; const [x, y] = at(e); touch.up(x, y); });
+screen.addEventListener('pointercancel', e => { if (!pw) return; const [x, y] = at(e); touch.up(x, y); });
 
 const press = b => pw && pw.pw_press(b, nowUs());
-document.getElementById('pwr').addEventListener('click', () => press(0));
-document.getElementById('boot').addEventListener('click', () => press(1));
+// A key held is a gesture of its own (BOOT held at the park's water dives),
+// so the walker hears each key come back up as well as go down.
+const release = b => pw && pw.pw_release && pw.pw_release(b, nowUs());
+for (const [id, b] of [['pwr', 0], ['boot', 1]]) {
+  const key = document.getElementById(id);
+  key.addEventListener('pointerdown', e => { key.setPointerCapture(e.pointerId); press(b); });
+  key.addEventListener('pointerup', () => release(b));
+  key.addEventListener('pointercancel', () => release(b));
+  key.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (!e.repeat) press(b); } });
+  key.addEventListener('keyup', e => { if (e.key === 'Enter' || e.key === ' ') release(b); });
+}
 addEventListener('keydown', e => {
-  if (e.key === 'p' || e.key === 'P') press(0);
-  if (e.key === 'b' || e.key === 'B') press(1);
+  if (e.target instanceof HTMLInputElement) return;
+  if (!e.repeat && (e.key === 'p' || e.key === 'P')) press(0);
+  if (!e.repeat && (e.key === 'b' || e.key === 'B')) press(1);
   if (e.key === 'm' || e.key === 'M') soundBtn.click();
+  if ((e.key === 'c' || e.key === 'C') && pw && pw.pw_fly_camera) pw.pw_fly_camera();
+  if ((e.key === 'c' || e.key === 'C') && pw && pw.pw_swim_camera) pw.pw_swim_camera();
+  if ((e.key === 'l' || e.key === 'L') && pw && pw.pw_park_lake) pw.pw_park_lake();
 });
+addEventListener('keyup', e => {
+  if (e.key === 'p' || e.key === 'P') release(0);
+  if (e.key === 'b' || e.key === 'B') release(1);
+});
+document.getElementById('lake').addEventListener('click', () => pw && pw.pw_park_lake && pw.pw_park_lake());
 
 // -- a live rally: the portal's room runs the race, this follows its ticks ----
 // The walker signs for its seat (`pw_race_room_request`), the room sends

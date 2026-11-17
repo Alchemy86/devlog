@@ -8,6 +8,10 @@
 //   pokemon/<dex>[-NAME]/walk.png       walking sprite: 8 frames in a row,
 //                                       back, front, left, right, two steps each
 //   pokemon/<dex>[-NAME]/walk-shiny.png the same in shiny colours (optional)
+//   pokemon/<dex>[-NAME]/sleep.png      one frame a facing with the eyes
+//                                       closed, walk.png's colours (optional)
+//   pokemon/<dex>[-NAME]/knockback.png  square frames: thrown back into the
+//                                       wall by a knockout (optional)
 //   pokemon/<dex>[-NAME]/cry.wav        the cry, 8-bit mono PCM WAV (optional)
 //   room/room.bin                       pet mode's room (optional)
 //   park/world.bin                      the open world's trees and buildings (optional)
@@ -35,11 +39,11 @@ export async function folderFromFiles(files) {
 }
 
 export async function folderFromUrl(base) {
-  const res = await fetch(`${base}/index.json?v=ebdef272-1794766088`);
+  const res = await fetch(`${base}/index.json?v=dad2d029-1794883661`);
   if (!res.ok) throw new Error(`${base}/index.json: ${res.status}`);
   const index = await res.json();
   const map = new Map();
-  const names = ['front.png', 'front-2.png', 'anim.txt', 'walk.png', 'walk-shiny.png', 'cry.wav'];
+  const names = ['front.png', 'front-2.png', 'anim.txt', 'walk.png', 'walk-shiny.png', 'sleep.png', 'knockback.png', 'cry.wav'];
   for (const entry of index.pokemon || []) {
     const dir = typeof entry === 'string' ? entry : entry.dir;
     const have = typeof entry === 'string' ? names : entry.files;
@@ -51,9 +55,9 @@ export async function folderFromUrl(base) {
       });
     }
   }
-  if (index.store) map.set('dex.store', async () => (await fetch(`${base}/dex.store?v=ebdef272-1794766088`)).blob());
-  if (index.room) map.set('room/room.bin', async () => (await fetch(`${base}/room/room.bin?v=ebdef272-1794766088`)).blob());
-  if (index.world) map.set('park/world.bin', async () => (await fetch(`${base}/park/world.bin?v=ebdef272-1794766088`)).blob());
+  if (index.store) map.set('dex.store', async () => (await fetch(`${base}/dex.store?v=dad2d029-1794883661`)).blob());
+  if (index.room) map.set('room/room.bin', async () => (await fetch(`${base}/room/room.bin?v=dad2d029-1794883661`)).blob());
+  if (index.world) map.set('park/world.bin', async () => (await fetch(`${base}/park/world.bin?v=dad2d029-1794883661`)).blob());
   if (index.team) map.set('team.txt', async () => new Blob([index.team.join('\n')]));
   return map;
 }
@@ -182,6 +186,17 @@ export async function encodePet(s) {
   const p = new Uint8Array(48);
   pal.forEach((c, i) => p.set(c, 3 * (i + 1)));
   parts.push(p, script);
+  const fk = s.files.get('knockback.png');
+  if (fk) {
+    try {
+      const k = await pixels(await fk());
+      const side = k.height, n = Math.floor(k.width / side);
+      if (side > 0 && side <= 128 && k.width % side === 0 && n > 0 && n <= 12 && (side * side) % 2 === 0) {
+        parts.push(Uint8Array.of(side, side, n));
+        for (let i = 0; i < n; i++) parts.push(pack4(indices(k, i * side, 0, side, side, pal, side, side, 0, 0)));
+      }
+    } catch (_) { }
+  }
   return concat(parts);
 }
 
@@ -195,6 +210,15 @@ export async function encodeFollower(s) {
   const pal = reduce([im]);
   const frames = [];
   for (let k = 0; k < 8; k++) frames.push(pack4(indices(im, k * fw, 0, fw, fh, pal, fw, fh, 0, 0)));
+  const fz = s.files.get('sleep.png');
+  if (fz) {
+    try {
+      const sl = await pixels(await fz());
+      if (sl.width === fw * 4 && sl.height === fh) {
+        for (let k = 0; k < 4; k++) frames.push(pack4(indices(sl, k * fw, 0, fw, fh, pal, fw, fh, 0, 0)));
+      }
+    } catch (_) { }
+  }
   let shinyPal = null;
   const fs = s.files.get('walk-shiny.png');
   if (fs) {
@@ -212,7 +236,7 @@ export async function encodeFollower(s) {
     } catch (_) { }
   }
   const head = new Uint8Array(4 + 48);
-  head[0] = fw; head[1] = fh; head[2] = 8; head[3] = shinyPal ? 1 : 0;
+  head[0] = fw; head[1] = fh; head[2] = frames.length; head[3] = shinyPal ? 1 : 0;
   pal.forEach((c, i) => head.set(c, 4 + 3 * (i + 1)));
   const parts = [head, ...frames];
   if (shinyPal) {
