@@ -8,12 +8,12 @@ permalink: /terminalgb-performance.html
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TerminalGB performance — devlog</title>
-  <meta name="description" content="What TerminalGB does, what it measures, and how fast it runs — real ms/frame figures with the load average, the core placement and the clock they were taken on, plus a same-session comparison against two other emulators.">
+  <meta name="description" content="How fast TerminalGB runs and what its accuracy costs: 314× real time on one core, a same-session comparison against Peanut-GB, SameBoy and PyBoy, and full speed bare-metal on an ESP32-S3.">
   <meta name="color-scheme" content="light dark">
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="TerminalGB performance and features">
-  <meta property="og:description" content="Real ms/frame numbers with their conditions, a same-session comparison against SameBoy and PyBoy, and the accuracy each engine buys.">
+  <meta property="og:description" content="Real ms/frame numbers with their conditions, same-session comparisons against Peanut-GB, SameBoy and PyBoy, the accuracy each engine buys, and the emulator on a microcontroller.">
   <meta property="og:url" content="https://alchemy86.github.io/devlog/terminalgb-performance.html">
 
   <meta property="og:image" content="https://alchemy86.github.io/devlog/assets/img/brand/devlog-og.png">
@@ -56,16 +56,17 @@ permalink: /terminalgb-performance.html
       <p class="eyebrow">Standing page · TerminalGB</p>
       <h1>Performance, and what it buys.</h1>
       <p class="lead">
-        How fast TerminalGB runs, and what accuracy costs. Every figure carries the core,
-        the picture engine and the load average it was taken on, because on this box the same
-        binary reads 56% apart between a quiet machine and a busy one.
+        TerminalGB is cycle-accurate, passes every Mooneye acceptance test on its exact engine,
+        and runs Pokémon Blue at 314× real time on one desktop core. Peanut-GB, an emulator
+        built for speed, is 17% faster on the same game and passes 12 of those 66 tests.
+        On a microcontroller board, bare metal, it runs original Game Boy games at full speed.
       </p>
       <div class="hero-facts">
-        <span>Fastest configuration <b>0.0405 ms/frame</b></span>
-        <span><b>414×</b> real time, one core</span>
-        <span><b>3,735×</b> at twenty workers</span>
+        <span>Pokémon Blue <b>314×</b> real time, one core</span>
+        <span>Peanut-GB ahead by <b>14–17%</b> on games</span>
+        <span><b>67 fps</b> on an ESP32-S3</span>
         <span>A DMG frame is <b>16.7427 ms</b></span>
-        <span>Updated <b>27 Aug 2026</b></span>
+        <span>Updated <b>19 Nov 2026</b></span>
       </div>
     </section>
 
@@ -73,8 +74,11 @@ permalink: /terminalgb-performance.html
       <div class="toc">
         <p class="eyebrow">On this page</p>
         <ol>
-          <li><a href="#headline">The headline, with its conditions</a></li>
-          <li><a href="#field">Against the field, same session</a></li>
+          <li><a href="#headline">The headline, against Peanut-GB</a></li>
+          <li><a href="#accuracy">What the extra time buys</a></li>
+          <li><a href="#round7">Round seven: what worked and what did not</a></li>
+          <li><a href="#board">On a microcontroller</a></li>
+          <li><a href="#field">Against SameBoy and PyBoy</a></li>
           <li><a href="#scaling">What twenty cores do</a></li>
           <li><a href="#engines">Two picture engines, and what exactness costs</a></li>
           <li><a href="#method">The method, and three ways of getting it wrong</a></li>
@@ -86,119 +90,284 @@ permalink: /terminalgb-performance.html
     <!-- ============ HEADLINE ============ -->
     <section id="headline">
       <div class="sec-head">
-        <h2>The headline, with its conditions</h2>
+        <h2>The headline, against Peanut-GB</h2>
         <p class="sub">
-          Pokémon Blue from a real in-game save state, one worker, pinned to a P-core,
-          thread CPU clock. The DMG's own frame is 16.7427 ms, so 1× real time is 59.7275
-          frames a second.
+          Measured 18–19 Nov 2026, TerminalGB and Peanut-GB v1.3.0 interleaved in one session.
+          One P-core, pinned, thread CPU clock, best of five rounds, load 1.8–2.4. Every run
+          starts from reset on a DMG, picture on, no sound. 1× real time is 59.7275 frames a
+          second.
         </p>
       </div>
 
       <div class="tiles">
         <div class="tile">
-          <div class="t-num"><span class="accent">0.0405</span><small>&nbsp;ms</small></div>
-          <div class="t-label">Per frame, fastest accurate config</div>
-          <div class="t-note">Pixels off, no APU installed. 414× real time, load 1.3.</div>
+          <div class="t-num"><span class="accent">314</span><small>×</small></div>
+          <div class="t-label">Pokémon Blue, <code>standard</code></div>
+          <div class="t-note">0.0533 ms a frame. Peanut-GB: 367×.</div>
         </div>
         <div class="tile">
-          <div class="t-num">0.4962<small>&nbsp;ms</small></div>
-          <div class="t-label">Per frame, exact engine + picture</div>
-          <div class="t-note">34× real time. The default engine, drawing every dot.</div>
+          <div class="t-num">114<small>×</small></div>
+          <div class="t-label">Pokémon Blue, <code>identical</code></div>
+          <div class="t-note">The exact engine, every dot drawn. Up from 87×.</div>
         </div>
         <div class="tile">
-          <div class="t-num">3,735<small>×</small></div>
-          <div class="t-label">Aggregate, 20 workers</div>
-          <div class="t-note">223,073 emulated frames a second on a quiet box.</div>
+          <div class="t-num">66<small>/66</small></div>
+          <div class="t-label">Mooneye acceptance, DMG</div>
+          <div class="t-note">On <code>identical</code>. Peanut-GB: 12/66.</div>
         </div>
         <div class="tile">
-          <div class="t-num">9.5<small>×</small></div>
-          <div class="t-label">Faster than SameBoy</div>
-          <div class="t-note">Both cycle-accurate, both optimised, measured in one session.</div>
+          <div class="t-num">14.8<small>&nbsp;ms</small></div>
+          <div class="t-label">Blue on an ESP32-S3</div>
+          <div class="t-note">67 fps on the board's own screen. The budget is 16.74 ms.</div>
         </div>
       </div>
 
       <div class="card" style="margin-top:26px;">
         <div class="card-hd">
-          <p class="kicker">One core, five configurations</p>
-          <h3>The number changes by an order of magnitude depending on what is switched on</h3>
+          <p class="kicker">One core, × real time</p>
+          <h3>Within 14–17% of Peanut-GB on games, with the fast engine</h3>
         </div>
         <div class="card-bd">
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Configuration</th>
-                  <th class="num">ms/frame</th>
-                  <th class="num">× real time</th>
-                  <th class="num">Load</th>
+                  <th>Cartridge, engine</th>
+                  <th class="num">Peanut-GB</th>
+                  <th class="num">Before</th>
+                  <th class="num">Now</th>
+                  <th class="num">Gain</th>
                 </tr>
               </thead>
               <tbody>
-                <tr><td><strong>Collector</strong> — pixels off, APU installed, samples off</td><td class="num"><strong>0.0454</strong></td><td class="num"><strong>369×</strong></td><td class="num">1.3</td></tr>
-                <tr><td>The same, no APU installed at all</td><td class="num">0.0405</td><td class="num">414×</td><td class="num">1.3</td></tr>
-                <tr><td>The same, on a busy box</td><td class="num">0.0772</td><td class="num">217×</td><td class="num">16</td></tr>
-                <tr><td>Player — picture on, APU silent</td><td class="num">0.1582</td><td class="num">106×</td><td class="num">16</td></tr>
-                <tr><td><code>identical</code> picture engine, picture on</td><td class="num">0.4962</td><td class="num">34×</td><td class="num">16</td></tr>
+                <tr><td>Pokémon Blue, <code>standard</code></td><td class="num">367×</td><td class="num">298×</td><td class="num"><strong>314×</strong></td><td class="num">+5%</td></tr>
+                <tr><td>Kirby's Dream Land 2, <code>standard</code></td><td class="num">292×</td><td class="num">237×</td><td class="num"><strong>256×</strong></td><td class="num">+8%</td></tr>
+                <tr><td>Blargg <code>cpu_instrs</code>, <code>standard</code></td><td class="num">266×</td><td class="num">135×</td><td class="num"><strong>177×</strong></td><td class="num">+31%</td></tr>
+                <tr><td>Pokémon Blue, <code>identical</code></td><td class="num">367×</td><td class="num">87×</td><td class="num"><strong>114×</strong></td><td class="num">+31%</td></tr>
+                <tr><td>Kirby's Dream Land 2, <code>identical</code></td><td class="num">292×</td><td class="num">57×</td><td class="num"><strong>79×</strong></td><td class="num">+39%</td></tr>
+                <tr><td>Blargg <code>cpu_instrs</code>, <code>identical</code></td><td class="num">266×</td><td class="num">58×</td><td class="num"><strong>81×</strong></td><td class="num">+39%</td></tr>
               </tbody>
             </table>
           </div>
           <p>
-            Rows one and three are the <em>same binary</em>. The entire difference between
-            369× and 217× is the box's other occupant, reaching the measurement through
-            frequency scaling. That is why every row above states its load average, and why
-            a figure quoted without one should be distrusted.
+            Peanut-GB has one engine, so its figure repeats. <code>standard</code> draws a whole
+            scanline at once, as Peanut-GB does; <code>identical</code> walks the hardware's
+            pixel pipeline dot by dot, which Peanut-GB does not do at all. On the two games,
+            Peanut-GB is 14–17% faster than <code>standard</code>. On <code>cpu_instrs</code>,
+            which never halts and so measures the CPU alone, it is 1.5× faster.
+          </p>
+          <p>
+            The gap is the core. Counted with hardware counters, TerminalGB's renderer costs
+            about what Peanut-GB's does, but its core runs 1.5–2× the host instructions per
+            emulated cycle: it ticks the timer, the sound chip and DMA on every memory access,
+            which is what passing <code>mem_timing</code> and Mooneye takes.
+          </p>
+          <p>
+            Pokémon Blue on <code>standard</code> was published here as 369× in August. That was
+            a different configuration — pixels off, from a save state — and it does not
+            reproduce on today's code; the like-for-like figure before this round was 292–298×.
           </p>
         </div>
         <div class="card-ft">
-          Reproduce with the repository's own <code>core_bench</code> example: 20,000 frames,
-          3,000 warm-up, three repeats, pinned with <code>taskset</code>.
+          7,168 frames from reset per game, 3,000 for <code>cpu_instrs</code>.
+          <code>core_bench --no-default-features</code>, <code>GB_MODEL=dmg</code>,
+          <code>taskset -c 4</code>, Peanut-GB built <code>-O3</code> with its LCD on.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ACCURACY ============ -->
+    <section id="accuracy">
+      <div class="sec-head">
+        <h2>What the extra time buys</h2>
+        <p class="sub">
+          The same test ROMs and the same pass rule for both emulators, on a DMG.
+          Nothing on this page changed a single result: every accuracy baseline is the
+          same before and after the speed work.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-bd">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Suite</th><th class="num">Peanut-GB</th><th class="num"><code>identical</code></th><th class="num"><code>standard</code></th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Blargg and dmg-acid2</td><td class="num">13 / 18</td><td class="num">18 / 18</td><td class="num">18 / 18</td></tr>
+                <tr><td>Mooneye acceptance, DMG</td><td class="num">12 / 66</td><td class="num"><strong>66 / 66</strong></td><td class="num">58 / 66</td></tr>
+                <tr><td>Mooneye emulator-only (MBC1/2/5)</td><td class="num">23 / 28</td><td class="num">28 / 28</td><td class="num">28 / 28</td></tr>
+                <tr><td>Mealybug Tearoom, DMG references</td><td class="num">0 / 24</td><td class="num">11 / 24</td><td class="num">1 / 24</td></tr>
+                <tr><td>Game Boy Color</td><td class="num">no</td><td class="num">yes</td><td class="num">yes</td></tr>
+                <tr><td>Sound chip, cycle-timed</td><td class="num">no</td><td class="num">yes</td><td class="num">yes</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Peanut-GB is fast because it leaves things out, on purpose: an interrupt costs no
+            cycles, OAM DMA is an instant copy, mode 3 is always the same length, and the
+            peripherals step once per instruction rather than per memory access. It is built to
+            run a Game Boy on a microcontroller, and it does that well. It also uses about a
+            third of the memory: ~50 KB an instance against TerminalGB's ~176 KB.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ROUND SEVEN ============ -->
+    <section id="round7">
+      <div class="sec-head">
+        <h2>Round seven: what worked and what did not</h2>
+        <p class="sub">
+          Every change is exact: frame and work-RAM hashes unchanged on 56 workloads in both
+          engines, and every external baseline unchanged — Mooneye, Blargg, acid2, Mealybug,
+          all 13 c-sp suites, SameSuite and gbselftest.
+        </p>
+      </div>
+
+      <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr));">
+        <div class="card">
+          <div class="card-hd"><p class="kicker">The big one</p><h3>Eight dots at a time</h3></div>
+          <div class="card-bd">
+            <p>
+              Once the exact engine's pixel pipeline is in its steady eight-dot rhythm, with no
+              sprite due, no window and nothing pending, the next eight dots are always the same
+              eight steps. It now takes them in one go. <strong>+25–35% on
+              <code>identical</code></strong>. A line with a mid-line write still goes dot by
+              dot from wherever it is.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><p class="kicker">Smaller wins</p><h3>Fewer detours</h3></div>
+          <div class="card-bd">
+            <p>
+              Work RAM and HRAM read directly while no DMA is on a bus, and the opcode fetch
+              using the same path: +31% on <code>cpu_instrs</code>, which runs from RAM.
+              <code>standard</code> composing a line a byte per pixel and writing colour once:
+              +2–3%. The exact engine owed its dots through modes 0–2: 1–10%.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><p class="kicker">Measured and dropped</p><h3>One countdown per access</h3></div>
+          <div class="card-bd">
+            <p>
+              Folding the timer, sound and DMA checks into a single compare per memory access
+              was ±1% on <code>standard</code> and 3–7% slower on <code>identical</code>. Backed
+              out.
+            </p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><p class="kicker">The profile lied</p><h3>The sprite FIFO</h3></div>
+          <div class="card-bd">
+            <p>
+              A profile put 19.5% of an exact frame on rotating the sprite FIFO. Making it a ring
+              buffer was 2–3% <em>slower</em> on its own: the share was sampling skid from the
+              dispatch around it. It stayed, because the eight-dot step needs it — without the
+              ring, that step loses most of its gain.
+            </p>
+          </div>
         </div>
       </div>
 
       <div class="card" style="margin-top:16px;">
         <div class="card-hd">
-          <p class="kicker">And with the speed flags on</p>
+          <p class="kicker">Speed flags</p>
           <h3>Documented shortcuts, each behind a named switch, off by default</h3>
         </div>
         <div class="card-bd">
           <p>
-            Everything above is the accurate machine — every peripheral on its exact cycle.
-            A run that is <em>driving</em> the machine rather than judging it can take
-            liberties, and each one is a named flag rather than a silent mode:
+            Everything above is the accurate machine. A run that is <em>driving</em> the machine
+            rather than judging it can take liberties, each one a named flag. Before this round,
+            the <code>speed</code> preset took Blue on <code>standard</code> from 297× to 317×.
+            On the microcontroller below it is worth much more. No accuracy gate can reach it.
           </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BOARD ============ -->
+    <section id="board">
+      <div class="sec-head">
+        <h2>On a microcontroller</h2>
+        <p class="sub">
+          TerminalGB bare-metal on the Pokéwalker's board: a Waveshare ESP32-S3, one Xtensa LX7
+          core at 240 MHz for the emulator, the other for the screen. Mean ms per frame over 300
+          frames of real play, from real saves. Measured 18–19 Nov 2026, before round seven.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-bd">
           <div class="table-wrap">
             <table>
               <thead>
-                <tr><th>Mode</th><th class="num">ms/frame</th><th class="num">× real time</th><th class="num">Over accurate</th></tr>
+                <tr><th>Cartridge</th><th class="num"><code>standard</code> + speed, on screen</th><th class="num">fps</th><th class="num"><code>identical</code></th></tr>
               </thead>
               <tbody>
-                <tr><td>Accurate</td><td class="num">0.0555–0.0557</td><td class="num">300×</td><td class="num">—</td></tr>
-                <tr><td><code>speed</code></td><td class="num">0.0510–0.0511</td><td class="num">328×</td><td class="num">+9.2%</td></tr>
-                <tr><td><code>speed,no-apu-state</code></td><td class="num">0.0395–0.0397</td><td class="num">423×</td><td class="num">+40.8%</td></tr>
+                <tr><td>Pokémon Blue</td><td class="num"><strong>14.8 ms</strong></td><td class="num">67</td><td class="num">108.4 ms</td></tr>
+                <tr><td>Kirby's Dream Land 2</td><td class="num"><strong>16.5 ms</strong></td><td class="num">60</td><td class="num">139.4 ms</td></tr>
+                <tr><td>dmg-acid2</td><td class="num">10.1 ms</td><td class="num">99</td><td class="num">139.5 ms</td></tr>
+                <tr><td>Pokémon Gold, in colour</td><td class="num">29.9 ms</td><td class="num">33</td><td class="num">143.9 ms</td></tr>
               </tbody>
             </table>
           </div>
           <p>
-            Read these as ratios against the accurate row measured <em>in the same
-            session</em>, not against the table above it — that is a different save state, and
-            comparing across sessions on this box is worth nothing. One P-core, load 0.84,
-            three interleaved rounds.
+            A frame has 16.74 ms. <strong>Original Game Boy games run at full speed</strong>,
+            Kirby only just: its average fits, its worst frames reach 21 ms. A Game Boy Color
+            game runs at 55% of real time, and the exact engine at 12–15%, on every cartridge.
+            The final frame hash on the board matches a desktop run of the same inputs, every
+            time.
           </p>
         </div>
-        <div class="card-ft">
-          Speed mode is off by default and no accuracy gate can reach it.
+      </div>
+
+      <div class="cards" style="margin-top:16px;">
+        <div class="card">
+          <div class="card-hd"><p class="kicker">What the board tricks gave</p><h3>Fast memory, and a second core</h3></div>
+          <div class="card-bd">
+            <ul>
+              <li><strong>Hot code in IRAM</strong> (about 80 KB): −15 to −21% on <code>standard</code>.</li>
+              <li><strong>Framebuffer in internal SRAM</strong>: −2.3 to −3.0 ms a frame.</li>
+              <li><strong>The screen on the second core</strong>: converting, scaling and sending the picture costs that core about 10 ms a frame and the emulator's core nothing.</li>
+              <li>The machine's 51 KB of state in internal SRAM, and the ROM in PSRAM rather than flash: no difference. The data cache already holds them.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><p class="kicker">Peanut-GB on the same board</p><h3>About twice as fast, and grey</h3></div>
+          <div class="card-bd">
+            <p>
+              Tuned the same way, Peanut-GB runs Blue in <strong>7.0 ms</strong> and Kirby in
+              6.9 ms. It plays Pokémon Gold only as a grey original-Game Boy game, in 7.9 ms;
+              TerminalGB plays it in colour. It passes 12 of 66 Mooneye tests.
+            </p>
+            <p>
+              The board widens the gap. On the desktop, deep out-of-order cores hide most of
+              TerminalGB's extra instructions; an in-order microcontroller core pays for every one.
+            </p>
+          </div>
         </div>
       </div>
+
+      <p class="note" style="margin-top:14px;">
+        No sound reaches the board's speaker yet: the sound chip runs and makes samples, and
+        that cost is in every figure above. A second run on the board, with round seven's
+        speed-ups, is coming.
+      </p>
     </section>
 
     <!-- ============ FIELD ============ -->
     <section id="field">
       <div class="sec-head">
-        <h2>Against the field, same session</h2>
+        <h2>Against SameBoy and PyBoy</h2>
         <p class="sub">
-          One machine, one core, one cartridge, one frame count, one clock — and nobody's
-          marketing number. Every side built with its own release configuration and its
-          rendering and sound switched off, because that is how a headless campaign runs.
+          Measured in August 2026, before round seven. One machine, one
+          core, one cartridge, one frame count, one clock. Every side built with its own release
+          configuration and its rendering and sound switched off.
         </p>
       </div>
 
@@ -254,6 +423,14 @@ permalink: /terminalgb-performance.html
           Drawn from the measured figures, not to scale of any published claim.
         </figcaption>
       </figure>
+
+      <p class="note" style="margin-top:14px;">
+        SameBoy is the accuracy reference this project settles disputes against, and
+        TerminalGB is 9.5× faster with both cycle-accurate. Picture on, each against the
+        engine that draws the same way, the September figure is 1.9×: TerminalGB's
+        <code>identical</code> at 79× against SameBoy's 41×, before round seven took
+        <code>identical</code> up by another 31–39%.
+      </p>
 
       <div class="cards" style="margin-top:26px;">
         <div class="card">
@@ -320,7 +497,7 @@ permalink: /terminalgb-performance.html
         <h2>What twenty cores do</h2>
         <p class="sub">
           The unit that matters to a measurement campaign is not ms/frame — it is how many
-          measurements fit in a day.
+          measurements fit in a day. Measured August 2026, <code>standard</code>, pixels off.
         </p>
       </div>
 
@@ -417,13 +594,13 @@ permalink: /terminalgb-performance.html
                 <tr><td>AGE</td><td class="num">3 / 59</td><td class="num">11 / 59</td></tr>
                 <tr><td>Mooneye (wilbertpol)</td><td class="num">62 / 122</td><td class="num">82 / 122</td></tr>
                 <tr><td>Scribbltests</td><td class="num">7 / 13</td><td class="num">9 / 13</td></tr>
-                <tr><td>Frame cost, Pokémon Blue, picture on, one P-core</td><td class="num">0.094 ms</td><td class="num">0.373 ms</td></tr>
+                <tr><td>Frame cost, Pokémon Blue from reset, picture on, one P-core</td><td class="num">0.0533 ms</td><td class="num">0.1475 ms</td></tr>
               </tbody>
             </table>
           </div>
           <p>
-            The accurate engine costs four times as much per frame and is <em>still</em>
-            only 2.2% of a frame's 16.7 ms budget on a desktop core. That is cheap enough to
+            The accurate engine costs 2.8 times as much per frame and is <em>still</em>
+            under 1% of a frame's 16.7 ms budget on a desktop core. That is cheap enough to
             be the default, and it is. It is not free everywhere: on the PSP frontend the
             emulator pins <code>standard</code>, because an exact picture nobody can play is
             worth nothing.
@@ -521,14 +698,20 @@ permalink: /terminalgb-performance.html
           percentage.
         </li>
         <li>
+          <b>On a microcontroller, only the fast engine keeps up, and only for original
+          Game Boy games.</b> On the ESP32-S3 a Color game runs at 55% of real time and the
+          exact engine at 12–15%. Its likeliest next step is drawing lines with nothing written
+          mid-line by the fast path, which has not been built.
+        </li>
+        <li>
           <b>Single-core 1,000× is not reachable by optimisation.</b> Named above with the
           arithmetic: deleting the bus tick, the APU and the timer entirely gets to roughly
           550×, and would not be an emulator.
         </li>
         <li>
-          <b>The three-emulator comparison was run on the fast engine.</b> That is the fair
+          <b>The SameBoy and PyBoy comparison was run on the fast engine.</b> That is the fair
           comparator against two emulators with their rendering off. A bare run of the same
-          command today uses the exact engine and reads about four times slower — a different
+          command today uses the exact engine and reads several times slower — a different
           measurement, not a regression.
         </li>
       </ul>
@@ -540,8 +723,10 @@ permalink: /terminalgb-performance.html
           <strong>Where these numbers come from.</strong> Every throughput figure was produced
           by the project's own <code>core_bench</code> example on one machine, pinned to a
           named core class, reporting thread CPU time, with the load average recorded beside
-          it. The three-emulator comparison was run in a single session with every side built
-          in its own release configuration and its rendering and sound off.
+          it. Every comparison against another emulator was run interleaved in a single session,
+          best of three or five rounds, with every side built in its own release configuration.
+          Board figures are mean milliseconds per frame over 300 frames, with the board's final
+          frame hash checked against a desktop run.
         </p>
         <p>
           The accuracy table is read from the repository's checked-in conformance baselines,

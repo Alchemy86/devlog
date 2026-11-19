@@ -238,13 +238,15 @@ permalink: /projects/terminalgb.html
             <tr><td>rtc3test</td><td class="num">6 / 6</td><td class="num">6 / 6</td></tr>
             <tr><td>cgb-acid2 · cgb-acid-hell</td><td class="num">1 / 1 · 1 / 1</td><td class="num">1 / 1 · 0 / 1</td></tr>
             <tr><td>Mealybug Tearoom, pixel-exact rows</td><td class="num">29 / 79</td><td class="num">3 / 79</td></tr>
-            <tr><td>Frame cost, Pokémon Blue, picture on, one P-core</td><td class="num">0.373 ms</td><td class="num">0.094 ms</td></tr>
+            <tr><td>Frame cost, Pokémon Blue from reset, picture on, one P-core</td><td class="num">0.1475 ms</td><td class="num">0.0533 ms</td></tr>
           </tbody>
         </table>
       </div>
       <p class="note" style="margin-top:14px;">
-        The exact engine costs four times as much per frame and still spends only 2.2% of a
-        frame's 16.7 ms budget on a desktop core, which is why it is the default. The PSP frontend pins <code>standard</code>: an exact picture nobody can
+        The exact engine costs 2.8 times as much per frame and still spends under 1% of a
+        frame's 16.7 ms budget on a desktop core, which is why it is the default. On a
+        microcontroller the fast engine is the one that keeps up: Pokémon Blue runs at 67 fps
+        bare-metal on an ESP32-S3. The PSP frontend pins <code>standard</code>: an exact picture nobody can
         play is worth nothing. Full throughput figures are on the
         <a href="../terminalgb-performance.html">performance page</a>.
       </p>
