@@ -707,6 +707,10 @@ an `alt`.
 
 `README.md` § *Being found* is the reference; what an agent needs on top of it:
 
+- **`google2ca9a1beb38d5746.html` at the root is the Google Search Console ownership file**
+  for the `https://alchemy86.github.io/devlog/` property (verified 2026-11-19). Never delete
+  or rename it; verification lapses without it. Its `sitemap: false` front matter keeps it
+  out of `sitemap.xml`.
 - **`jekyll-sitemap` and `jekyll-feed` only.** Confirm any further plugin against the
   allowlist in the pinned gem itself, not from memory:
   `bundle exec ruby -e 'require "github-pages"; puts GitHubPages::Plugins::PLUGIN_WHITELIST'`.
