@@ -1,0 +1,60 @@
+{%- comment -%}
+  The Subscribe button in every page's masthead. Feed readers first; the email form
+  appears only when `subscribe_email_url` is set in _config.yml.
+{%- endcomment -%}
+{%- assign sub_rss = '/feed.xml' | absolute_url -%}
+{%- assign sub_json = '/feed.json' | absolute_url -%}
+<div class="subscribe">
+        <button type="button" class="subscribe-btn" aria-expanded="false" aria-controls="subscribe-panel">Subscribe</button>
+        <div class="subscribe-panel" id="subscribe-panel" role="dialog" aria-label="Subscribe to devlog" hidden>
+          <p class="subscribe-hd">Get new posts in your feed reader</p>
+          <div class="subscribe-copy">
+            <input type="text" readonly value="{{ sub_rss }}" aria-label="RSS feed address">
+            <button type="button" class="subscribe-copy-btn" data-copy="{{ sub_rss }}">Copy RSS link</button>
+          </div>
+          <p class="subscribe-feeds"><a href="{{ sub_rss }}">RSS</a> · <a href="{{ sub_json }}">JSON Feed</a></p>
+          <p class="subscribe-hd">Follow in one click</p>
+          <p class="subscribe-readers">
+            <a href="https://feedly.com/i/subscription/feed/{{ sub_rss | cgi_escape }}" rel="noopener">Feedly</a>
+            <a href="https://www.inoreader.com/?add_feed={{ sub_rss | cgi_escape }}" rel="noopener">Inoreader</a>
+          </p>
+{%- if site.subscribe_email_url %}
+          <p class="subscribe-hd">Or by email</p>
+          <form class="subscribe-email" action="{{ site.subscribe_email_url }}" method="post">
+            <input type="email" name="email" required placeholder="you@example.com" aria-label="Email address">
+            <button type="submit">Sign up</button>
+          </form>
+{%- endif %}
+        </div>
+        <script>
+        (function () {
+          var root = document.currentScript.parentNode;
+          var btn = root.querySelector('.subscribe-btn');
+          var panel = root.querySelector('.subscribe-panel');
+          var copy = root.querySelector('.subscribe-copy-btn');
+          function open(show) {
+            panel.hidden = !show;
+            btn.setAttribute('aria-expanded', show ? 'true' : 'false');
+            if (show) copy.focus();
+          }
+          btn.addEventListener('click', function () { open(panel.hidden); });
+          document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !panel.hidden) { open(false); btn.focus(); }
+          });
+          document.addEventListener('click', function (e) {
+            if (!panel.hidden && !root.contains(e.target)) open(false);
+          });
+          copy.addEventListener('click', function () {
+            var url = copy.getAttribute('data-copy');
+            var done = function () {
+              copy.textContent = 'Copied';
+              setTimeout(function () { copy.textContent = 'Copy RSS link'; }, 2000);
+            };
+            var field = root.querySelector('.subscribe-copy input');
+            var fallback = function () { field.select(); try { document.execCommand('copy'); done(); } catch (err) {} };
+            if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, fallback);
+            else fallback();
+          });
+        })();
+        </script>
+      </div>

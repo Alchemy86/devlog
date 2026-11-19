@@ -1017,3 +1017,96 @@ a.card:hover .card-ft { color: var(--accent); }
   margin: 28px 0;
 }
 .clip-grid figure { margin: 0; }
+
+/* ----- Subscribe (_includes/subscribe.html, in every masthead) --------------
+   A button in the nav; the panel hangs from the masthead's container so it
+   overlays the page instead of pushing it down, and fits a phone's width. */
+.masthead .container { position: relative; }
+.subscribe { display: inline-block; margin-left: 20px; }
+.subscribe-btn {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 4px 11px;
+  cursor: pointer;
+}
+.subscribe-btn:hover,
+.subscribe-btn[aria-expanded="true"] { background: var(--accent); color: var(--paper); }
+.subscribe-btn:focus-visible,
+.subscribe-panel a:focus-visible,
+.subscribe-panel button:focus-visible,
+.subscribe-panel input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.subscribe-panel {
+  position: absolute;
+  top: calc(100% - 10px);
+  right: 24px;
+  z-index: 10;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  padding: 16px 18px;
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink);
+}
+.subscribe-panel[hidden] { display: none; }
+.subscribe-panel p { margin: 0; }
+.subscribe-panel .subscribe-hd {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 14px 0 8px;
+}
+.subscribe-panel .subscribe-hd:first-child { margin-top: 0; }
+.subscribe-copy,
+.subscribe-email { display: flex; gap: 8px; }
+.subscribe-panel input {
+  flex: 1;
+  min-width: 0;
+  font: 12px var(--mono);
+  color: var(--ink-soft);
+  background: var(--code-bg);
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+.subscribe-email input { color: var(--ink); }
+.subscribe-panel button:not(.subscribe-btn) {
+  font: 600 12px var(--mono);
+  color: var(--paper);
+  background: var(--accent);
+  border: 0;
+  border-radius: 4px;
+  padding: 6px 10px;
+  min-width: 120px;
+  cursor: pointer;
+}
+.subscribe-panel button:not(.subscribe-btn):hover { background: var(--accent-dim); }
+.subscribe-feeds { margin-top: 8px !important; font-size: 13px; color: var(--ink-soft); }
+.masthead .subscribe-panel a { margin: 0; color: var(--accent); }
+.subscribe-readers { display: flex; gap: 8px; }
+.masthead .subscribe-readers a {
+  flex: 1;
+  text-align: center;
+  font: 600 12px var(--mono);
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  padding: 7px 0;
+  color: var(--ink);
+}
+.masthead .subscribe-readers a:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+@media (max-width: 640px) {
+  .subscribe { margin-left: 0; }
+  .subscribe-panel { left: 16px; right: 16px; width: auto; max-width: none; top: 100%; }
+}

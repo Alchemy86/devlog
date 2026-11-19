@@ -1,3 +1,7 @@
+---
+# Front matter so the shared Subscribe include renders; permalink keeps the .html URL.
+permalink: /glitches.html
+---
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,7 +45,7 @@
         <a href="./#projects">Projects</a>
         <a href="./#pages">Pages</a>
         <a href="./#writing">Writing</a>
-        <a href="./#subscribe">Subscribe</a>
+        {% include subscribe.html %}
       </nav>
     </div>
   </header>

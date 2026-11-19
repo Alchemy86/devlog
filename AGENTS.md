@@ -717,24 +717,23 @@ an `alt`.
   `og_description` overrides. And it is a Liquid tag, so it could never reach the twelve
   pages that have no front matter. Canonical, feed discovery and JSON-LD — the parts it
   would actually have added — are hand-written instead. Do not "finish the job" by adding it.
-- **Twelve of the thirteen hand-written pages are static files, not Jekyll pages.** Only
-  `index.html` (front matter) and the posts (`_layouts/post.html`) are Liquid-processed;
-  `finds.html`, `agentgb-progress.html`, `terminalgb-performance.html` and all nine
-  `projects/*.html` are copied through byte-for-byte, so Liquid's `{{ }}` and `{% %}`
-  do nothing in them. Their canonical and feed links are
-  written out in full and must be hand-edited if `url` or `baseurl` ever changes. They are
-  still in the sitemap: `jekyll-sitemap` walks `site.static_files` for `.html` as well as
-  `site.html_pages`, so all 38 URLs are covered.
+- **Every hand-written page now carries front matter** (added 2026-11-19 for the shared
+  Subscribe button, `_includes/subscribe.html`, which sits in every masthead's nav). The
+  standing, project and glitch pages' front matter is only a `permalink: /<path>.html`:
+  without it the site-wide `permalink: /posts/:title.html` would publish them with no
+  `.html`. A new top-level page needs the same two lines and `{% include subscribe.html %}`
+  in place of a nav Subscribe link. Their canonical and feed links are still written out in
+  full and must be hand-edited if `url` or `baseurl` ever changes. The email form in the
+  panel appears only when `subscribe_email_url` is set in `_config.yml`.
 - **`robots.txt` at `/devlog/robots.txt` is not read by anything.** robots.txt is an
   origin-root file and this site lives under a subpath; the origin root is
   `Alchemy86/alchemy86.github.io`, a different repository (it exists, `has_pages: true`,
   and currently 404s on `/robots.txt`). The file is kept because `jekyll-sitemap` writes
   its own when the source has none. The file itself explains this — read it before
   "fixing" it. Submit `sitemap.xml` in Search Console instead.
-- **Sitemap `lastmod` for the twelve static pages is the build machine's file mtime**, so
-  on Pages it is the build time, not an edit time. That is `jekyll-sitemap`'s behaviour
-  for static files and cannot be changed without shipping a custom sitemap template.
-  Posts get their real front-matter date.
+- **Sitemap `lastmod`**: posts carry their front-matter date; the hand-written pages carry
+  none (a `last_modified_at` in their front matter would add one). Before they had front
+  matter it was the build machine's file mtime, which on Pages meant nothing.
 - **The gate on any head change is a before/after build diff**, and the bar it has to
   clear is: every changed page byte-identical from `</head>` onward, every added line
   inside `<head>`, and only new files at the site root. Build to `_site_before`, change,

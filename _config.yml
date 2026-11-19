@@ -70,3 +70,8 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - vendor
+
+# Email sign-up in the Subscribe panel (_includes/subscribe.html). Empty hides it.
+# Set it to a form endpoint that takes a POSTed `email` field, e.g. Buttondown's
+# https://buttondown.com/api/emails/embed-subscribe/<username>
+subscribe_email_url:
