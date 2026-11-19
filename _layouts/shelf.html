@@ -144,6 +144,11 @@
           <p class="shelf-label">{{ page.usage_label | default: 'How to use' }}</p>
           <pre><code>{{ item.usage | escape }}</code></pre>
           {%- endif %}
+          {%- if item.script %}
+          <p class="shelf-label">{{ page.script_label | default: 'Script' }}</p>
+          <pre class="shelf-script"><code>{{ item.script | escape }}</code></pre>
+          <button type="button" class="shelf-copy">Copy</button>
+          {%- endif %}
           {%- if item.link %}
           <p><a href="{{ item.link }}">{{ item.link_text | default: 'More' }} →</a></p>
           {%- endif %}
@@ -159,7 +164,11 @@
               <p class="shelf-level-label">{{ l.label }}</p>
               {%- if l.usage %}
               <code class="shelf-level-usage">{{ l.usage | escape }}</code>
-              <button type="button" class="shelf-copy" data-copy="{{ l.usage | escape }}">Copy</button>
+              <button type="button" class="shelf-copy">Copy</button>
+              {%- endif %}
+              {%- if l.script %}
+              <pre class="shelf-script shelf-level-script"><code>{{ l.script | escape }}</code></pre>
+              <button type="button" class="shelf-copy">Copy script</button>
               {%- endif %}
             </li>
             {%- endfor %}
@@ -252,10 +261,11 @@
 
     root.querySelectorAll('.shelf-copy').forEach(function (b) {
       b.addEventListener('click', function () {
-        var text = b.getAttribute('data-copy');
+        var text = b.getAttribute('data-copy') || b.previousElementSibling.textContent;
+        var label = b.textContent;
         var done = function () {
           b.textContent = 'Copied';
-          setTimeout(function () { b.textContent = 'Copy'; }, 1400);
+          setTimeout(function () { b.textContent = label; }, 1400);
         };
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(text).then(done, function () {});

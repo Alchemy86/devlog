@@ -1298,9 +1298,19 @@ body:has(.shelf-detail:target) { overflow: hidden; }
   overflow-wrap: anywhere;
   user-select: all;
 }
+.shelf-sheet-body .shelf-script, .shelf-script {
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow: auto;
+  max-height: 14em;
+}
+.shelf-sheet-body .shelf-copy { margin-bottom: 16px; }
+.shelf-level-script { font-size: 10px; max-height: 9em; margin: 0; }
 .shelf-copy {
   align-self: flex-start;
-  margin-top: auto;
   cursor: pointer;
   background: none;
   font: 600 10px var(--mono);

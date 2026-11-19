@@ -226,6 +226,9 @@ swipes sideways. Each level is `label`, `usage`, `preview` and `poster`, drawn a
 (set `level_w` and `level_h` on the page for another size). The strip's heading is
 `levels_label` on the page, `Levels` if unset.
 
+`script` (on an item or a level) is the exact text that made its preview, shown under it in
+a scrolling monospace box with a Copy button.
+
 And a page, `dvds.html`, with only front matter:
 
 ```yaml
