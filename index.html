@@ -166,7 +166,7 @@
       <div class="sec-head">
         <h2>Standing pages</h2>
         <p class="sub">
-          Five pages that grow rather than get published once.
+          Six pages that grow rather than get published once.
         </p>
       </div>
 
@@ -184,6 +184,21 @@
             </p>
           </div>
           <div class="card-ft">{{ site.data.shelves.effects.size }} effects · search and tags →</div>
+        </a>
+
+        <a class="card" href="tech-news.html">
+          <div class="card-hd">
+            <p class="kicker">Outside work</p>
+            <h3>Tech news</h3>
+          </div>
+          <div class="card-bd">
+            <p>
+              Other people's work worth knowing about, in plain terms. First up: Samsung
+              Research's LittleBit, which gets Llama 2 70B from 138 GB down to under 2 GB, and
+              what it still needs before you can run it.
+            </p>
+          </div>
+          <div class="card-ft">{% assign news = site.posts | where: "tag", "Tech news" %}{{ news.size }} {% if news.size == 1 %}post{% else %}posts{% endif %} · plain-terms breakdowns →</div>
         </a>
 
         <a class="card" href="glitches.html">

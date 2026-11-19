@@ -1,0 +1,110 @@
+---
+permalink: /tech-news.html
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tech news — devlog</title>
+  <meta name="description" content="Outside work worth knowing about, broken down in plain terms: what it is, how it works, what it needs before you can use it, with links to the source.">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Tech news">
+  <meta property="og:description" content="Outside work worth knowing about, broken down in plain terms, with links to the source.">
+  <meta property="og:url" content="https://alchemy86.github.io/devlog/tech-news.html">
+
+  <meta property="og:image" content="https://alchemy86.github.io/devlog/assets/img/brand/devlog-og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The devlog mark: the wordmark set against an amber margin rule.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:site_name" content="devlog">
+  <meta property="og:locale" content="en_GB">
+
+  <link rel="canonical" href="https://alchemy86.github.io/devlog/tech-news.html">
+  <link rel="alternate" type="application/atom+xml" href="https://alchemy86.github.io/devlog/feed.xml" title="devlog">
+
+  <link rel="icon" href="assets/img/brand/devlog-icon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/img/brand/devlog-icon-128.png" sizes="128x128" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/brand/devlog-icon-180.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="./">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="./#projects">Projects</a>
+        <a href="./#pages">Pages</a>
+        <a href="./effects/">Effects</a>
+        <a href="./#writing">Writing</a>
+        {% include subscribe.html %}
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="page-hero">
+      <p class="eyebrow">Standing page · Tech news</p>
+      <h1>Tech news.</h1>
+      <p class="lead">
+        Other people's work worth knowing about, broken down in plain terms: what it is, how it
+        works, what it still needs before you can use it, and why it matters. Every post links
+        to the code and the papers it came from.
+      </p>
+      <div class="hero-facts">
+{%- assign news = site.posts | where: "tag", "Tech news" %}
+        <span><b>{{ news.size }}</b> {% if news.size == 1 %}post{% else %}posts{% endif %}</span>
+        <span>Latest <b>{{ news.first.date | date: "%-d %b %Y" }}</b></span>
+      </div>
+    </section>
+
+    <section>
+      <div class="cards">
+{%- for p in news %}
+        <a class="card" href="{{ p.url | relative_url }}">
+          <div class="card-hd">
+            <p class="kicker">{{ p.kicker }} · {{ p.date | date: "%-d %b %Y" }}</p>
+            <h3>{{ p.title }}</h3>
+          </div>
+          <div class="card-bd">
+            <p>{{ p.description }}</p>
+          </div>
+          <div class="card-ft">Full breakdown →</div>
+        </a>
+{%- endfor %}
+      </div>
+    </section>
+
+    <section>
+      <div class="provenance">
+        <p>
+          <strong>Where these come from.</strong> The figures in each post are the original
+          authors' own, from their papers, code and model cards, and each post links to all of
+          them. Where other people have already tried the thing, their published results are
+          quoted alongside.
+        </p>
+      </div>
+
+      <a class="backlink" href="./">← Back to devlog</a>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+</body>
+</html>
