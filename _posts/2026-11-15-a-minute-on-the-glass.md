@@ -33,11 +33,14 @@ note: >-
 ---
 
 <figure style="max-width:380px;margin-inline:auto;">
-  <video controls playsinline preload="metadata"
-         poster="../assets/img/pokewalker/pokewalker-promo-mobile-poster.png"
-         width="720" height="1280">
-    <source src="../assets/video/pokewalker/pokewalker-promo-mobile.mp4" type="video/mp4">
-  </video>
+  <div style="position:relative;aspect-ratio:9/16;width:100%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/2DB5xa6cxeU?rel=0"
+            title="The Pokewalker promo"
+            style="position:absolute;inset:0;width:100%;height:100%;border:0;"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen loading="lazy"></iframe>
+  </div>
   <figcaption>The Pokewalker promo. Sound on.</figcaption>
 </figure>
 
