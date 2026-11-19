@@ -219,6 +219,13 @@ Only `id`, `name`, `details` and `tags` are needed. `poster` is the still on the
 until then, and for anyone who asks for reduced motion). `usage` shows in a box in the
 detail sheet. Pictures go in the folder the page names.
 
+An item can also carry `levels`, the same thing at a few settings (low, medium and high
+density, small and large, each colour). They show as a strip of small labelled previews
+under the details, each with its own usage line and a Copy button; on a phone the strip
+swipes sideways. Each level is `label`, `usage`, `preview` and `poster`, drawn at 240x320
+(set `level_w` and `level_h` on the page for another size). The strip's heading is
+`levels_label` on the page, `Levels` if unset.
+
 And a page, `dvds.html`, with only front matter:
 
 ```yaml
