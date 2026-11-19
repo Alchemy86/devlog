@@ -1245,7 +1245,7 @@ body:has(.shelf-detail:target) { overflow: hidden; }
 }
 .shelf-sheet-media { background: #0d0f18; }
 .shelf-sheet-media img { width: 100%; height: auto; }
-.shelf-sheet-body { position: relative; padding: 22px 24px 24px; }
+.shelf-sheet-body { position: relative; min-width: 0; padding: 22px 24px 24px; }
 .shelf-sheet-body .shelf-title { font-size: 22px; margin: 0 0 12px; padding-right: 72px; }
 .shelf-sheet-body p { margin: 0 0 14px; font-size: 15.5px; }
 .shelf-sheet-body pre { margin: 0 0 16px; font-size: 12.5px; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -1326,7 +1326,7 @@ body:has(.shelf-detail:target) { overflow: hidden; }
   .shelf-detail:target { padding: 10px; align-items: flex-end; }
   .shelf-levels { padding: 14px 18px 20px; }
   .shelf-level-strip { grid-auto-columns: 40%; }
-  .shelf-sheet { grid-template-columns: 1fr; max-height: calc(100dvh - 20px); }
+  .shelf-sheet { grid-template-columns: minmax(0, 1fr); max-height: calc(100dvh - 20px); }
   .shelf-sheet-media img { max-height: 52vh; width: auto; margin: 0 auto; }
   .shelf-sheet-body { padding: 18px 18px 20px; }
 }
