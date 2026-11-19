@@ -191,6 +191,58 @@ Prose, which kramdown renders because of `markdown="1"`.
 If you write a plain markdown post with no `<section>` markers at all, the layout adds
 one section per `##` for you, so the simple case needs nothing.
 
+## Shelves
+
+A shelf is a page of cards you can search: name, a few words, tags, and a looping
+preview, two to a row on a phone and four on a wide screen. Tap a card for a larger
+preview and the full details. [Visual Effects](https://alchemy86.github.io/devlog/effects/) is the first one.
+
+A new shelf is two files. A data file, `_data/shelves/dvds.yml` (or `.json`), one entry
+per item:
+
+```yaml
+- id: alien
+  name: Alien
+  details: Ridley Scott, 1979. The crew of the Nostromo answer a distress call.
+  tags: [sci-fi, horror]
+  poster: alien.jpg
+  preview: alien.webp
+  usage: Region 2, 2-disc edition
+  kicker: 1979
+  badge: Favourite
+  link: https://example.com/alien
+  link_text: Trailer
+```
+
+Only `id`, `name`, `details` and `tags` are needed. `poster` is the still on the card,
+`preview` an animated picture that plays while the card is on screen (the poster stands in
+until then, and for anyone who asks for reduced motion). `usage` shows in a box in the
+detail sheet. Pictures go in the folder the page names.
+
+And a page, `dvds.html`, with only front matter:
+
+```yaml
+---
+layout: shelf
+permalink: /dvds/
+title: DVDs
+eyebrow: Shelf · Films
+description: Every film on the shelf.
+lead: Every film on the shelf, searchable by title, director and genre.
+shelf: dvds
+media: assets/img/dvds/
+item_noun: films
+usage_label: Edition
+updated: 19 Nov 2026
+---
+```
+
+`media_w` and `media_h` set the pictures' size if they are not 360x480 (a DVD cover is
+nearer 270x380). Anything written under the front matter appears below the cards. Link
+the new page from the Standing pages section of `index.html`.
+
+The search and tag chips need JavaScript; without it the page shows every card.
+
 ## Changing the look
 
 Set one value in `_config.yml`:

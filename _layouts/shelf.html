@@ -1,0 +1,244 @@
+{%- assign items = site.data.shelves[page.shelf] -%}
+{%- assign media = page.media | default: '' | prepend: '/' | relative_url -%}
+{%- assign noun = page.item_noun | default: 'items' -%}
+{%- capture tag_list -%}{%- for item in items -%}{%- for t in item.tags -%}{{ t }}|{%- endfor -%}{%- endfor -%}{%- endcapture -%}
+{%- assign all_tags = tag_list | split: '|' | uniq | sort -%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page.title }}{{ site.title_suffix }}</title>
+  <meta name="description" content="{{ page.description }}">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ page.title }}">
+  <meta property="og:description" content="{{ page.description }}">
+  <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}{{ page.url }}">
+
+  <meta property="og:image" content="{{ site.url }}{{ site.baseurl }}/assets/img/brand/devlog-og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The devlog mark: the wordmark set against an amber margin rule.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:site_name" content="{{ site.title }}">
+  <meta property="og:locale" content="en_GB">
+
+  <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}{{ page.url }}">
+  <link rel="alternate" type="application/atom+xml" href="{{ '/feed.xml' | absolute_url }}" title="{{ site.title }}">
+
+  <link rel="icon" href="{{ '/assets/img/brand/devlog-icon.svg' | relative_url }}" type="image/svg+xml">
+  <link rel="icon" href="{{ '/assets/img/brand/devlog-icon-128.png' | relative_url }}" sizes="128x128" type="image/png">
+  <link rel="apple-touch-icon" href="{{ '/assets/img/brand/devlog-icon-180.png' | relative_url }}">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="container">
+      <a class="brand" href="{{ '/' | relative_url }}">devlog<span class="dot">.</span></a>
+      <nav>
+        <a href="{{ '/' | relative_url }}#projects">Projects</a>
+        <a href="{{ '/' | relative_url }}#pages">Pages</a>
+        <a href="{{ '/' | relative_url }}#writing">Writing</a>
+        {% include subscribe.html %}
+      </nav>
+    </div>
+  </header>
+
+  <main class="container shelf" data-noun="{{ noun }}">
+
+    <section class="page-hero">
+      {%- if page.eyebrow %}
+      <p class="eyebrow">{{ page.eyebrow }}</p>
+      {%- endif %}
+      <h1>{{ page.title }}</h1>
+      {%- if page.lead %}
+      <p class="lead">{{ page.lead }}</p>
+      {%- endif %}
+      <div class="hero-facts">
+        <span><b>{{ items.size }}</b> {{ noun }}</span>
+        <span><b>{{ all_tags.size }}</b> tags</span>
+        {%- for f in page.facts %}
+        <span>{{ f }}</span>
+        {%- endfor %}
+        {%- if page.updated %}
+        <span>Updated <b>{{ page.updated }}</b></span>
+        {%- endif %}
+      </div>
+    </section>
+
+    <section class="shelf-section" id="shelf">
+      <div class="shelf-tools" hidden>
+        <input class="shelf-search" type="search" placeholder="Search {{ noun }}" aria-label="Search {{ noun }}" autocomplete="off" spellcheck="false">
+        <div class="shelf-chips" role="group" aria-label="Filter by tag">
+          <button type="button" class="chip on" data-tag="" aria-pressed="true">All</button>
+          {%- for t in all_tags %}
+          <button type="button" class="chip" data-tag="{{ t }}" aria-pressed="false">{{ t }}</button>
+          {%- endfor %}
+        </div>
+        <p class="shelf-count" aria-live="polite">{{ items.size }} {{ noun }}</p>
+      </div>
+
+      <ul class="shelf-grid">
+        {%- for item in items %}
+        {%- capture search %}{{ item.name }} {{ item.details }} {{ item.tags | join: ' ' }} {{ item.usage }} {{ item.kicker }}{% endcapture %}
+        <li class="shelf-item" id="card-{{ item.id }}" data-tags="{{ item.tags | join: ' ' }}" data-search="{{ search | downcase | escape }}">
+          <a class="shelf-card" href="#{{ item.id }}">
+            <div class="shelf-media">
+              {%- if item.poster or item.preview %}
+              <img src="{{ media }}{{ item.poster | default: item.preview }}"{% if item.preview %} data-anim="{{ media }}{{ item.preview }}"{% endif %} alt="" width="{{ page.media_w | default: 360 }}" height="{{ page.media_h | default: 480 }}" loading="lazy" decoding="async">
+              {%- endif %}
+              {%- if item.badge and item.badge != '' %}
+              <span class="shelf-badge">{{ item.badge }}</span>
+              {%- endif %}
+            </div>
+            <div class="shelf-body">
+              {%- if item.kicker and item.kicker != '' %}
+              <p class="shelf-kicker">{{ item.kicker }}</p>
+              {%- endif %}
+              <h3>{{ item.name }}</h3>
+              <p class="shelf-details">{{ item.details }}</p>
+              <p class="shelf-tags">{% for t in item.tags %}<span class="chip">{{ t }}</span>{% endfor %}</p>
+            </div>
+          </a>
+        </li>
+        {%- endfor %}
+      </ul>
+      <p class="shelf-empty" hidden>Nothing matches. Try another word or tag.</p>
+    </section>
+
+    {%- for item in items %}
+    <section class="shelf-detail" id="{{ item.id }}" role="dialog" aria-modal="true" aria-label="{{ item.name }}">
+      <a class="shelf-backdrop" href="#card-{{ item.id }}" tabindex="-1" aria-hidden="true"></a>
+      <div class="shelf-sheet">
+        <div class="shelf-sheet-media">
+          {%- if item.preview %}
+          <picture>
+            {%- if item.poster %}
+            <source media="(prefers-reduced-motion: reduce)" srcset="{{ media }}{{ item.poster }}">
+            {%- endif %}
+            <img src="{{ media }}{{ item.preview }}" alt="{{ item.name }}" width="{{ page.media_w | default: 360 }}" height="{{ page.media_h | default: 480 }}" loading="lazy" decoding="async">
+          </picture>
+          {%- elsif item.poster %}
+          <img src="{{ media }}{{ item.poster }}" alt="{{ item.name }}" width="{{ page.media_w | default: 360 }}" height="{{ page.media_h | default: 480 }}" loading="lazy" decoding="async">
+          {%- endif %}
+        </div>
+        <div class="shelf-sheet-body">
+          <a class="shelf-close" href="#card-{{ item.id }}">Close</a>
+          {%- if item.kicker and item.kicker != '' %}
+          <p class="shelf-kicker">{{ item.kicker }}</p>
+          {%- endif %}
+          <h3 class="shelf-title">{{ item.name }}</h3>
+          <p>{{ item.details }}</p>
+          {%- if item.badge and item.badge != '' %}
+          <p><span class="chip on">{{ item.badge }}</span></p>
+          {%- endif %}
+          {%- if item.usage %}
+          <p class="shelf-label">{{ page.usage_label | default: 'How to use' }}</p>
+          <pre><code>{{ item.usage | escape }}</code></pre>
+          {%- endif %}
+          {%- if item.link %}
+          <p><a href="{{ item.link }}">{{ item.link_text | default: 'More' }} →</a></p>
+          {%- endif %}
+          <p class="shelf-tags">{% for t in item.tags %}<span class="chip">{{ t }}</span>{% endfor %}</p>
+        </div>
+      </div>
+    </section>
+    {%- endfor %}
+
+    {{ content }}
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>devlog — the captain's engineering log</span>
+      <span>Built static. No trackers. Every number verifiable.</span>
+    </div>
+  </footer>
+
+  <script>
+  (function () {
+    var root = document.querySelector('.shelf');
+    var tools = root.querySelector('.shelf-tools');
+    var input = tools.querySelector('.shelf-search');
+    var chips = Array.prototype.slice.call(tools.querySelectorAll('.chip'));
+    var count = tools.querySelector('.shelf-count');
+    var empty = root.querySelector('.shelf-empty');
+    var items = Array.prototype.slice.call(root.querySelectorAll('.shelf-item'));
+    var noun = root.getAttribute('data-noun');
+    var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var tag = '';
+    tools.hidden = false;
+
+    function apply() {
+      var words = input.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      var shown = 0;
+      items.forEach(function (it) {
+        var hay = it.getAttribute('data-search');
+        var tags = ' ' + it.getAttribute('data-tags') + ' ';
+        var ok = (!tag || tags.indexOf(' ' + tag + ' ') >= 0) && words.every(function (w) { return hay.indexOf(w) >= 0; });
+        it.hidden = !ok;
+        if (ok) shown++;
+      });
+      count.textContent = shown === items.length ? items.length + ' ' + noun : shown + ' of ' + items.length + ' ' + noun;
+      empty.hidden = shown > 0;
+      var url = new URL(window.location.href);
+      if (input.value.trim()) url.searchParams.set('q', input.value.trim()); else url.searchParams.delete('q');
+      if (tag) url.searchParams.set('tag', tag); else url.searchParams.delete('tag');
+      history.replaceState(history.state, '', url);
+    }
+
+    function pick(t) {
+      tag = t;
+      chips.forEach(function (c) {
+        var on = c.getAttribute('data-tag') === t;
+        c.classList.toggle('on', on);
+        c.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      apply();
+    }
+
+    chips.forEach(function (c) {
+      c.addEventListener('click', function () {
+        var t = c.getAttribute('data-tag');
+        pick(t === tag ? '' : t);
+      });
+    });
+    input.addEventListener('input', apply);
+
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('q')) input.value = params.get('q');
+    var start = params.get('tag') || '';
+    pick(chips.some(function (c) { return c.getAttribute('data-tag') === start; }) ? start : '');
+
+    if (!still && 'IntersectionObserver' in window) {
+      var seen = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          var img = e.target;
+          var want = e.isIntersecting ? img.getAttribute('data-anim') : img.getAttribute('data-poster');
+          if (img.getAttribute('src') !== want) img.setAttribute('src', want);
+        });
+      }, { rootMargin: '150px 0px' });
+      root.querySelectorAll('.shelf-media img[data-anim]').forEach(function (img) {
+        img.setAttribute('data-poster', img.getAttribute('src'));
+        seen.observe(img);
+      });
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var open = document.querySelector('.shelf-detail:target');
+      if (open) window.location.hash = 'card-' + open.id;
+    });
+  })();
+  </script>
+
+</body>
+</html>
