@@ -196,6 +196,7 @@ one section per `##` for you, so the simple case needs nothing.
 A shelf is a page of cards you can search: name, a few words, tags, and a looping
 preview, two to a row on a phone and four on a wide screen. Tap a card for a larger
 preview and the full details. [Visual Effects](https://alchemy86.github.io/devlog/effects/) is the first one.
+Its cards are generated from pw-shorts: `docs/effects/sync.sh` adds any new effect, re-renders any that changed and publishes, in one run.
 
 A new shelf is two files. A data file, `_data/shelves/dvds.yml` (or `.json`), one entry
 per item:
