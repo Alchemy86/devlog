@@ -1,6 +1,6 @@
 ---
 date: 2026-11-26 23:00:00 +0000
-title: 'The high byte was nearly always zero'
+title: 'Performance and memory tricks for small devices'
 tag: 'Pokewalker'
 kicker: 'Software · Performance'
 card_kicker: 'Software'
