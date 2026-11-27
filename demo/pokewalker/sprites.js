@@ -39,7 +39,7 @@ export async function folderFromFiles(files) {
 }
 
 export async function folderFromUrl(base) {
-  const res = await fetch(`${base}/index.json?v=ce787c9e-1794948264`);
+  const res = await fetch(`${base}/index.json?v=f4158f6f-1795805886`);
   if (!res.ok) throw new Error(`${base}/index.json: ${res.status}`);
   const index = await res.json();
   const map = new Map();
@@ -55,9 +55,9 @@ export async function folderFromUrl(base) {
       });
     }
   }
-  if (index.store) map.set('dex.store', async () => (await fetch(`${base}/dex.store?v=ce787c9e-1794948264`)).blob());
-  if (index.room) map.set('room/room.bin', async () => (await fetch(`${base}/room/room.bin?v=ce787c9e-1794948264`)).blob());
-  if (index.world) map.set('park/world.bin', async () => (await fetch(`${base}/park/world.bin?v=ce787c9e-1794948264`)).blob());
+  if (index.store) map.set('dex.store', async () => (await fetch(`${base}/dex.store?v=f4158f6f-1795805886`)).blob());
+  if (index.room) map.set('room/room.bin', async () => (await fetch(`${base}/room/room.bin?v=f4158f6f-1795805886`)).blob());
+  if (index.world) map.set('park/world.bin', async () => (await fetch(`${base}/park/world.bin?v=f4158f6f-1795805886`)).blob());
   if (index.team) map.set('team.txt', async () => new Blob([index.team.join('\n')]));
   return map;
 }

@@ -31,6 +31,10 @@
   #trainer input { background: var(--bg); color: var(--fg); border: 2px solid var(--key); border-radius: 8px; padding: 7px 10px; font: inherit; width: 9ch; text-transform: uppercase; }
   #trainer label { color: var(--dim); align-self: center; }
   #tid, #record { color: var(--dim); align-self: center; font-size: 13px; }
+  body.app main { max-width: none; min-height: 100vh; padding: 0; display: flex; align-items: center; justify-content: center; }
+  body.app main > :not(.device) { display: none; }
+  body.app .device { width: min(calc(100vw - 104px), calc(100vh - 60px)); margin: 0; }
+  body.app.wide .device { width: min(calc(100vw - 104px), calc((100vh - 32px) * 16 / 9)); }
   #tlook { background: var(--bg); color: var(--fg); border: 2px solid var(--key); border-radius: 8px; padding: 7px 6px; font: inherit; max-width: 16ch; }
 </style>
 </head>
@@ -99,7 +103,7 @@ team.txt                         dex numbers to walk with</code></pre>
   </details>
 </main>
 <script type="module">
-import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=ce787c9e-1794948264';
+import { folderFromFiles, folderFromUrl, species, buildStore } from './sprites.js?v=f4158f6f-1795805886';
 
 const screen = document.getElementById('screen');
 const g = screen.getContext('2d');
@@ -107,11 +111,19 @@ const status = document.getElementById('status');
 let pw = null, wasmBytes = null, startedAt = 0, img = null, dim = 412, logical = 103;
 // Wide is the default for a browser: the same software laid out for a
 // window. The round glass is the device's own screen, one click away.
-let wide = (() => { try { return localStorage.getItem('pw.mode') !== 'round'; } catch (_) { return true; } })();
+// The Android app (`../pw-pet-android`) puts `PwHost` on the page: the walker
+// alone, on its round glass, with steps from the phone's pedometer.
+const host = window.PwHost || null;
+if (host) document.body.classList.add('app');
+// The app, or `?wide=auto` in a browser: the layout follows the screen's
+// shape, the round glass upright and the wide layout on its side.
+const autoWide = !!host || new URLSearchParams(location.search).get('wide') === 'auto';
+const sideways = () => innerWidth > innerHeight;
+let wide = autoWide ? sideways() : (() => { try { return localStorage.getItem('pw.mode') !== 'round'; } catch (_) { return true; } })();
 let wideW = 192, wideH = 108, wideImg = null;
 function setMode(w) {
   wide = w;
-  try { localStorage.setItem('pw.mode', w ? 'wide' : 'round'); } catch (_) { }
+  if (!autoWide) try { localStorage.setItem('pw.mode', w ? 'wide' : 'round'); } catch (_) { }
   document.body.classList.toggle('wide', w);
   const b = document.getElementById('mode');
   if (b) b.textContent = w ? 'Round glass' : 'Wide';
@@ -119,8 +131,9 @@ function setMode(w) {
   if (w) {
     const d = pw.pw_wide_dim();
     wideW = d >>> 16; wideH = d & 0xffff;
-    screen.width = wideW; screen.height = wideH;
-    wideImg = g.createImageData(wideW, wideH);
+    const k = pw.pw_wide_scale ? pw.pw_wide_scale() : 1;
+    screen.width = wideW * k; screen.height = wideH * k;
+    wideImg = g.createImageData(wideW * k, wideH * k);
     screen.setAttribute('aria-label', "The walker's screen, laid out wide");
   } else {
     screen.width = screen.height = dim;
@@ -153,7 +166,7 @@ function lastError() {
 
 async function boot(folder, label) {
   if (!wasmBytes) {
-    const r = await fetch('pw_pet_wasm.wasm?v=ce787c9e-1794948264');
+    const r = await fetch('pw_pet_wasm.wasm?v=f4158f6f-1795805886');
     if (!r.ok) throw new Error(`pw_pet_wasm.wasm: ${r.status}`);
     wasmBytes = await r.arrayBuffer();
   }
@@ -209,7 +222,7 @@ async function boot(folder, label) {
   screen.width = screen.height = dim;
   img = g.createImageData(dim, dim);
   setMode(wide && !!pw.pw_render_wide);
-  if (!folder) { ready = true; say(restored ? 'Your saved walker, with no sprites.' : 'Running with no sprites.'); return; }
+  if (!folder) { ready = true; hostOwed = 0; if (host) host.pageReady(); say(restored ? 'Your saved walker, with no sprites.' : 'Running with no sprites.'); return; }
   const list = species(folder);
   let team = [];
   const teamLevels = new Map();
@@ -264,10 +277,10 @@ async function boot(folder, label) {
   // follower bundle below (a `PW_SHAPE_DIR` workspace's `-WALK-BACK` files).
   if (pw.pw_fly_shape) {
     try {
-      const res = await fetch('shapes/index.json?v=ce787c9e-1794948264');
+      const res = await fetch('shapes/index.json?v=f4158f6f-1795805886');
       if (res.ok) {
         for (const dex of await res.json()) {
-          const r = await fetch(`shapes/${String(dex).padStart(4, '0')}.pwshape?v=ce787c9e-1794948264`);
+          const r = await fetch(`shapes/${String(dex).padStart(4, '0')}.pwshape?v=f4158f6f-1795805886`);
           if (r.ok && stage(new Uint8Array(await r.arrayBuffer()))) pw.pw_fly_shape(dex);
         }
       }
@@ -279,10 +292,10 @@ async function boot(folder, label) {
   // its sprite.
   if (pw.pw_swim_views) {
     try {
-      const res = await fetch('shapes/views/index.json?v=ce787c9e-1794948264');
+      const res = await fetch('shapes/views/index.json?v=f4158f6f-1795805886');
       if (res.ok) {
         for (const dex of await res.json()) {
-          const r = await fetch(`shapes/views/${String(dex).padStart(4, '0')}.pwviews?v=ce787c9e-1794948264`);
+          const r = await fetch(`shapes/views/${String(dex).padStart(4, '0')}.pwviews?v=f4158f6f-1795805886`);
           if (r.ok && stage(new Uint8Array(await r.arrayBuffer()))) pw.pw_swim_views(dex);
         }
       }
@@ -292,10 +305,10 @@ async function boot(folder, label) {
   // (`software/creatures/`), the pictures only where it has none.
   if (pw.pw_battle_views) {
     try {
-      const res = await fetch('shapes/battle/index.json?v=ce787c9e-1794948264');
+      const res = await fetch('shapes/battle/index.json?v=f4158f6f-1795805886');
       if (res.ok) {
         for (const dex of await res.json()) {
-          const r = await fetch(`shapes/battle/${String(dex).padStart(4, '0')}.pwviews?v=ce787c9e-1794948264`);
+          const r = await fetch(`shapes/battle/${String(dex).padStart(4, '0')}.pwviews?v=f4158f6f-1795805886`);
           if (r.ok && stage(new Uint8Array(await r.arrayBuffer()))) pw.pw_battle_views(dex);
         }
       }
@@ -305,6 +318,8 @@ async function boot(folder, label) {
   say(`${label}: ${list.size} creature${list.size === 1 ? '' : 's'}, ${walking} walking with you${restored ? ' (from your save)' : ''}. Double tap the ball to open it.`);
   ready = true;
   saveNow();
+  hostOwed = 0;
+  if (host) host.pageReady();
 }
 
 function frame() {
@@ -316,6 +331,7 @@ function frame() {
   // Staying online: the walker starts a sync of its own when one is due.
   else if (!syncing && portalUsable && pw.pw_portal_auto(clockS(), document.hidden ? 1 : 0)) portalSync(true);
   pumpAudio();
+  if (autoWide && pw.pw_render_wide && sideways() !== wide) setMode(!wide);
   if (wide) {
     if (pw.pw_render_wide(t) !== 0) return;
     wideImg.data.set(new Uint8Array(pw.memory.buffer, pw.pw_frame_ptr(), pw.pw_frame_bytes()));
@@ -342,12 +358,33 @@ function saveNow() {
     lastSave = text;
     store.set('save', text);
   }
+  bankHostSteps();
   const sg = pw.pw_songs_record();
   if (sg) store.set('songs', b64(new Uint8Array(pw.memory.buffer, pw.pw_portal_ptr(), sg)));
   const g = pw.pw_ghosts_record();
   if (g) store.set('ghosts', b64(new Uint8Array(pw.memory.buffer, pw.pw_portal_ptr(), g)));
 }
 setInterval(saveNow, 2000);
+
+// -- steps from a host's pedometer --------------------------------------------
+// The host hands over steps it counted; they wait in the walk until its next
+// 30 s beat, and the saved record holds banked steps only. So the page tells
+// the host what it banked only once they are banked and saved, and the host
+// keeps (and resends after a restart) whatever it has not heard back about.
+let hostOwed = 0;
+window.pwHostSteps = n => {
+  n = Math.floor(Number(n));
+  if (!pw || !ready || !(n > 0)) return false;
+  for (let left = n; left > 0; left -= 100000) pw.pw_add_steps(Math.min(left, 100000));
+  hostOwed += n;
+  return true;
+};
+function bankHostSteps() {
+  if (!host || !hostOwed || !pw || pw.pw_pending_steps() !== 0) return;
+  const n = hostOwed;
+  hostOwed = 0;
+  host.stepsBanked(n);
+}
 addEventListener('pagehide', saveNow);
 document.addEventListener('visibilitychange', () => { if (document.hidden) saveNow(); });
 

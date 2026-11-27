@@ -761,12 +761,13 @@ give a same-day post a full `date:` with its time.
 
 ## The Pokewalker demo (`demo/pokewalker/`, added 2026-11-14)
 
-A copy of the pokewalker repo's `software/pw-pet-web/dist/` (`make` there), linked from
+A copy of the pokewalker repo's `software/pw-pet-web/dist/`, linked from
 `projects/pokewalker.html`: the walker's software as WebAssembly, served as static files
-(no front matter, so Jekyll copies them as they are). Its creatures are the repo's own
-stand-ins (`preview/tools/standin_sprites.py`). **Never copy a sprite folder written from a
-cartridge here**; the page's folder button reads a visitor's own folder locally instead.
-To update: rebuild there and copy `dist/` over this folder whole.
+(no front matter, so Jekyll copies them as they are). Its Pokémon are the maths mons, drawn
+live from the shape bundles in `software/creatures/` (`dist/shapes/`, all 251), exactly as
+the walker draws them. To update, from a detached worktree of pokewalker `main`:
+`software/pw-pet-web/update-blog-demo.sh --dist-only` (the same build as `make`, plus
+cache-busting `?v=<sha>-<time>` stamps), then copy `dist/` over this folder whole.
 
 ## Shelves (added 2026-11-19)
 
