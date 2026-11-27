@@ -123,24 +123,35 @@ buildings stand at any angle, and their roofs are gables, hips and domes. The co
 does not fit.
 
 The idea behind it does. Each building face is now filled a row at a time straight from
-its edges, with no hit test per pixel and no divide per row. That is what the walker runs
-today. The next step is on the bench: buildings drawn nearest first, each claiming the
-pixels it covers, so a building hidden behind another is never coloured at all, and
-neither is the ground behind it.
+its edges, with no hit test per pixel and no divide per row. Buildings are drawn nearest
+first, each claiming the pixels it covers, so a building hidden behind another is never
+coloured at all, and neither is the ground behind it.
 
-| Frames a second on the board, noon | 16 Nov | Before the fix | Now |
-|---|---|---|---|
-| Park plaza | 15.1 | 6.8 | about 10 |
-| Gate road, standing | 15.7 | 5.6 | 10–12 |
-| Gate road, walking | 14.1 | 3.3 | 7.7–9 |
+Then the second core got a share. Both cores take bands of 26 rows, nearest building first
+within each band, and every pixel is written exactly once. Smaller bands were slower,
+because each one repeats every building's setup; bigger ones left one core waiting on the
+other. At 26 the first core waits at most 1.2 ms a frame.
 
-The picture is the same apart from 0.1% of pixels at the edges of windows.
+| Frames a second on the board, noon | 16 Nov | Before the fix | One core | Two cores |
+|---|---|---|---|---|
+| Park plaza | 15.1 | 6.8 | 9.8 | 11.6 |
+| Gate road, standing | 15.7 | 5.6 | 11.1 | 13.1 |
+| Gate road, walking | 14.1 | 3.3 | 9.4 | 10.4 |
+| Cerulean, standing | 15.4 | – | 13.5 | 13.7 |
+| Cerulean, walking | 19.0 | – | 17.2 | 17.2 |
+
+The two-core picture matches the one-core picture byte for byte. Against the old renderer
+it differs at 0.1% of pixels, all at the edges of windows.
 
 ## Where it goes next
 
 The motion data is now the small part of a follower. Its shapes are about 1.05 MB of what
-is left, and they are next. On the speed side, the gate road is still five frames a second
-short of where it was on 16 Nov, and the buildings are not finished being cheap.
+is left, and they are next.
+
+On the speed side, 16 Nov is not quite a fair target. That walker had no 3D buildings and no
+see-through water; both arrived two days later. The gate road is still about four frames a
+second short walking. At the plaza the buildings are no longer the problem: props, shadows
+and visitors take about 30 ms on one core, and they are the next thing to split across two.
 
 The rest of the device is on [the project page](../projects/pokewalker.html).
 
